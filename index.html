@@ -576,6 +576,15 @@ body{background:var(--bg);color:var(--t1);}
         <p class="info-p info-note">※ ネット上のサービスである以上、絶対的な安全を保証するものではありません。このアプリはウォレット接続などを一切求めないので、そうした画面が出た場合はご注意ください。</p>
       </div>
 
+      <div class="set-card info-card info-safe">
+        <div class="set-card-title">🛡️ データと安全性のしくみ</div>
+        <p class="info-p">このアプリは、<b>ばぶ本人</b>がデータベース（Supabase）に書き込んだ内容だけを読み込んで表示しています。書き込み側のセキュリティは念入りに設計しています。</p>
+        <div class="safe-item"><span class="safe-ico">✅</span><div><b>書き込めるのはばぶ本人だけ</b>（更新には本人しか持たない合言葉が必要。第三者は書き換えできません）</div></div>
+        <div class="safe-item"><span class="safe-ico">✅</span><div><b>リンクはXにしか飛びません</b>（万が一データに悪意あるリンクが混入しても、X以外へは飛ばないよう、このアプリ側ですべてブロックしています）</div></div>
+        <div class="safe-item"><span class="safe-ico">✅</span><div><b>危険なコードは無効化</b>（表示する前にすべて安全化するため、不正なスクリプトは動きません）</div></div>
+        <p class="info-p info-note">※ 念のため、リンク先のXアカウントが本物かどうかはご自身でもご確認ください。</p>
+      </div>
+
       <div class="set-card info-card">
         <div class="set-card-title">🧮 スコアの見方</div>
         <p class="info-p">次の要素を合計した独自指標です。</p>
@@ -864,13 +873,27 @@ function safeHandle(h){
   if(typeof h!=='string')return '';
   return h.replace(/[^A-Za-z0-9_]/g,'').slice(0,32);
 }
-// URLとして安全化（http/https のみ許可、javascript: 等を遮断）
+// 飛び先はX（x.com / twitter.com）のみ許可。データが改ざんされても他ドメインへは飛ばない。
+var ALLOWED_LINK_HOSTS=['x.com','twitter.com'];
+function hostAllowed(host){
+  host=(host||'').toLowerCase();
+  for(var i=0;i<ALLOWED_LINK_HOSTS.length;i++){
+    var d=ALLOWED_LINK_HOSTS[i];
+    if(host===d)return true;                                   // x.com そのもの
+    if(host.length>d.length+1 && host.slice(host.length-d.length-1)==='.'+d)return true; // *.x.com
+  }
+  return false;
+}
+// URLとして安全化（http/https かつ 許可ドメインのみ。javascript: 等や他ドメインは空＝リンク無効）
 function safeUrl(u){
   if(typeof u!=='string')return '';
   u=u.trim();
-  if(!u)return '';
-  if(/^https?:\/\/[^\s"'<>]+$/i.test(u))return u.slice(0,400);
-  return '';
+  if(!u||u.length>400)return '';
+  var p;
+  try{ p=new URL(u); }catch(e){ return ''; }                  // 不正URLは無効
+  if(p.protocol!=='http:'&&p.protocol!=='https:')return '';   // http/https以外を遮断
+  if(!hostAllowed(p.hostname))return '';                       // X以外のドメインを遮断
+  return u;
 }
 
 var CAT_KNOWN={ETH:'eth',SOL:'sol',BTC:'btc',Monad:'monad',Perp:'perp',DEX:'dex',
