@@ -250,6 +250,8 @@ body{background:var(--bg);color:var(--t1);}
 .fdv-in-share .fdv-in-lbl{color:var(--t2);font-weight:700;}
 .fdv-in-share .fdv-in-val{color:var(--acc);font-weight:800;}
 .fdv-intro{font-size:11px;color:var(--t3);line-height:1.6;margin-bottom:10px;}
+.fdv-sub-h{font-size:12px;font-weight:800;color:var(--t1);letter-spacing:.02em;margin:16px 0 8px;padding-top:12px;border-top:1px solid var(--b);}
+.fdv-sub-h:first-child{padding-top:0;border-top:none;margin-top:4px;}
 .fdv-form{display:flex;flex-direction:column;gap:9px;margin-bottom:12px;}
 .fdv-f-row{display:flex;flex-direction:column;gap:4px;}
 .fdv-f-lbl{font-size:11px;font-weight:700;color:var(--t2);}
@@ -1042,7 +1044,8 @@ function fmtCommaField(el){
   try{el.setSelectionRange(pos,pos);}catch(e){}
   return parseFloat(formatted.replace(/,/g,''))||0;
 }
-function fdvResultHtml(va){
+function fdvResultHtml(va,who){
+  who=who||'あなた';
   var share=fdvShareVA(va);
   var rows=FDV_LEVELS.map(function(m){
     return '<div class="fdv-row">'
@@ -1050,9 +1053,9 @@ function fdvResultHtml(va){
       +'<div class="fdv-amt">'+(share>0?fmtBigUsd(fdvPayoutVA(va,m)):'—')+'</div>'
       +'</div>';
   }).join('');
-  return '<div class="fdv-share-box"><span class="fdv-in-lbl">あなたのシェア</span><span class="fdv-in-val">'+fmtSharePct(share)+'</span></div>'
+  return '<div class="fdv-share-box"><span class="fdv-in-lbl">'+esc(who)+'のシェア</span><span class="fdv-in-val">'+fmtSharePct(share)+'</span></div>'
     +'<div class="fdv-table">'
-    +'<div class="fdv-row fdv-head"><div class="fdv-fdv">FDV</div><div class="fdv-amt">あなたの取分</div></div>'
+    +'<div class="fdv-row fdv-head"><div class="fdv-fdv">FDV</div><div class="fdv-amt">'+esc(who)+'の取分</div></div>'
     +rows
     +'</div>';
 }
@@ -1070,15 +1073,32 @@ function recalcFdvAlloc(pid,el){
   var out=document.getElementById('fdv-result-'+pid);
   if(out)out.innerHTML=fdvResultHtml(va);
 }
-// FDV換算表のHTML（詳細表示用）— すべて閲覧者が入力（ばぶのデータは使わない）
+// ばぶの記録値によるFDV試算（読み取り専用）。総量・ばぶの量が未入力なら表示しない。
+function fdvGivenHtml(p){
+  var total=Math.max(0,num(p.totalPts)), mine=Math.max(0,num(p.myPts)), alloc=Math.max(0,num(p.allocPct));
+  if(total<=0||mine<=0)return '';
+  var bva={total:total,mine:mine,alloc:alloc};
+  return '<div class="fdv-sub-h">📌 ばぶの試算</div>'
+    +'<div class="fdv-inputs">'
+    +'<div class="fdv-in-row"><span class="fdv-in-lbl">総配布量（総pt/総TVL）</span><span class="fdv-in-val">'+esc(fmtCommaStr(total))+'</span></div>'
+    +'<div class="fdv-in-row"><span class="fdv-in-lbl">ばぶの量（自分pt/Vol）</span><span class="fdv-in-val">'+esc(fmtCommaStr(mine))+'</span></div>'
+    +'<div class="fdv-in-row"><span class="fdv-in-lbl">エアドロ割当（%）</span><span class="fdv-in-val">'+(alloc>0?esc(fmtPt(alloc))+'%':'—')+'</span></div>'
+    +'</div>'
+    +fdvResultHtml(bva,'ばぶ')
+    +'<div class="fdv-note">※ ばぶの記録値による目安です。</div>';
+}
+// FDV換算表のHTML（詳細表示用）— 先にばぶの試算、続いて閲覧者が入力する自分用
 function fdvTableHtml(p){
   var pid=p.id;
   var va=getVA(pid);
   var totalVal=(num(va.total)>0)?fmtCommaStr(va.total):'';
   var mineVal=(num(va.mine)>0)?fmtCommaStr(va.mine):'';
   var allocVal=(num(va.alloc)>0)?va.alloc:'';
+  var babu=fdvGivenHtml(p);
   return '<div class="detail-sec">'
-    +'<div class="detail-h">💰 FDV別エアドロ換算（自分で計算）</div>'
+    +'<div class="detail-h">💰 FDV別エアドロ換算</div>'
+    +babu
+    +(babu?'<div class="fdv-sub-h">✏️ 自分で計算</div>':'')
     +'<div class="fdv-intro">あなたの数値を入力すると、その場で取分を計算します。<br>※ ばぶの記録には反映されず、保存もされません（各自の端末のみ）。</div>'
     +'<div class="fdv-form">'
     +'<div class="fdv-f-row"><label class="fdv-f-lbl">総配布量（総pt/総TVL）</label>'
