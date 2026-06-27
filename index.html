@@ -17,7 +17,7 @@
 :root,[data-theme="dark"]{
   --bg:#111318; --card:#1c1f28; --card2:#252836; --inp:#2e3245;
   --b:#2d3148; --bb:#424870;
-  --t1:#ffffff; --t2:#ffffff; --t3:#7880a0;
+  --t1:#ffffff; --t2:#ffffff; --t3:#a3aac2;
   --acc:#4a90e8; --acc-d:#1a2a44;
   --grn:#2ec87a; --grn-d:#0a2418;
   --ylw:#e8a020; --ylw-d:#281c04;
@@ -226,15 +226,23 @@ body{background:var(--bg);color:var(--t1);}
 
 /* 詳細トグルボタン */
 .detail-toggle{
-  width:100%;margin-top:8px;padding:8px;border:none;cursor:pointer;
-  background:var(--card2);border:1px solid var(--b);border-radius:9px;
-  color:var(--acc);font-size:12px;font-weight:700;
+  width:100%;margin-top:8px;padding:9px;border:none;cursor:pointer;
+  background:var(--card2);border:1px solid var(--bb);border-radius:9px;
+  color:#fff;font-size:13px;font-weight:700;
   display:flex;align-items:center;justify-content:center;gap:6px;
   transition:background .15s;
 }
 .detail-toggle:active{background:var(--b);}
 .detail-toggle .dt-arrow{font-size:9px;transition:transform .2s;}
 .detail-toggle.open .dt-arrow{transform:rotate(180deg);}
+.detail-close{
+  width:100%;margin-top:14px;padding:11px;border:none;cursor:pointer;
+  background:var(--card2);border:1px solid var(--bb);border-radius:9px;
+  color:#fff;font-size:13px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  transition:background .15s;
+}
+.detail-close:active{background:var(--b);}
 /* 折りたたみ詳細 */
 .detail-body{margin-top:8px;display:flex;flex-direction:column;gap:10px;animation:detailIn .2s ease;}
 @keyframes detailIn{from{opacity:0;transform:translateY(-4px);}to{opacity:1;transform:translateY(0);}}
@@ -1272,6 +1280,7 @@ function renderList(id,mode){
         :'<div class="detail-txt"><span style="color:var(--t3);">ポストは未登録です</span></div>')
       +'</div>'
       +fdvTableHtml(p)
+      +'<button class="detail-close" onclick="event.stopPropagation();toggleDetail(\''+mode+'\','+idx+')">閉じる ▲</button>'
       +'</div>'
 
       +'</div>';
@@ -1333,6 +1342,7 @@ function toggleDetail(mode,idx){
     body.style.display='none';
     btn.classList.remove('open');
     btn.querySelector('.dt-label').textContent='詳細を見る';
+    try{ btn.scrollIntoView({block:'nearest'}); }catch(e){}
   }else{
     body.style.display='block';
     btn.classList.add('open');
