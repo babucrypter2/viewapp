@@ -1337,6 +1337,76 @@ function showToast(msg){
   t._t=setTimeout(function(){t.classList.remove('show');},2400);
 }
 
+// ─────────── 自動更新（クラウドの変更を自動で反映）───────────
+// 書き込みは一切せず GET のみ。updated_at が変わった時だけ再描画する。
+// （変化が無い時は再描画しない＝開いている詳細や入力中の数値を消さない）
+var _refreshing=false;   // 多重取得の防止
+var _lastRefreshAt=0;    // 直近チェック時刻（連打抑制）
+
+// updated_at だけ軽量取得して変化を検知
+function cloudCheckUpdated(){
+  return fetch(SB_URL+'/rest/v1/app_data?id=eq.1&select=updated_at',{
+    method:'GET',
+    headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY},
+    cache:'no-store'
+  }).then(function(r){return r.ok?r.json():null;})
+    .then(function(rows){return (rows&&rows.length)?(rows[0].updated_at||null):null;})
+    .catch(function(){return null;});
+}
+
+// クラウドを確認し、更新があれば取り直して反映する
+// opts.manual=true … 手動（非表示/入力中/連打ガードを無視。結果をトースト表示）
+function refreshFromCloud(opts){
+  opts=opts||{};
+  var manual=!!opts.manual;
+  if(_refreshing)return;
+  if(!manual){
+    if(document.hidden)return;                              // 非表示中はスキップ
+    var ae=document.activeElement;                           // 入力中は触らない（入力値を保護）
+    if(ae&&(ae.tagName==='INPUT'||ae.tagName==='TEXTAREA'))return;
+    var now=Date.now();
+    if(now-_lastRefreshAt<2000)return;                       // 連打抑制
+    _lastRefreshAt=now;
+  }
+  _refreshing=true;
+  cloudCheckUpdated().then(function(ts){
+    if(!ts){                                                 // 確認できず
+      if(manual)showToast('⚠️ 接続を確認できませんでした');
+      _refreshing=false; return;
+    }
+    if(_lastUpdated && ts===_lastUpdated){                    // 変化なし → 何もしない
+      if(manual)showToast('✅ すでに最新です');
+      setCloudStatus('ok'); _refreshing=false; return;
+    }
+    // 変化あり（または初回未取得）→ 全データを取り直して反映
+    setCloudStatus('loading');
+    return cloudLoad().then(function(ok){
+      if(ok){ renderTabs(); renderAll(); renderUpdated(); setCloudStatus('ok'); showToast('🔄 最新データに更新しました'); }
+      else  { setCloudStatus('err'); }
+      _refreshing=false;
+    });
+  }).catch(function(){ setCloudStatus('err'); _refreshing=false; });
+}
+
+// 状態チップ（🟢最新 等）をタップ → 今すぐ確認
+(function(){
+  var cs=document.getElementById('cloud-status');
+  if(cs){
+    cs.style.cursor='pointer';
+    cs.title='タップで最新を確認';
+    cs.addEventListener('click',function(){refreshFromCloud({manual:true});});
+  }
+})();
+
+// アプリに戻った／再表示された時に自動チェック（iOSのPWAでも効くように複数イベントを使用）
+document.addEventListener('visibilitychange',function(){ if(!document.hidden)refreshFromCloud(); });
+window.addEventListener('focus',function(){ refreshFromCloud(); });
+window.addEventListener('pageshow',function(e){ if(e.persisted)refreshFromCloud(); }); // bfcache復帰
+window.addEventListener('online',function(){ refreshFromCloud(); });
+
+// 開きっぱなしでも反映されるよう、表示中は一定間隔でチェック（非表示中は内部でスキップ）
+setInterval(function(){ refreshFromCloud(); },30000);
+
 // 起動：クラウド→ローカルの順でデータ取得してから描画
 updateThemeBtns();
 renderTabs();
