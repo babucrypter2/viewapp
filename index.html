@@ -15,6 +15,7 @@
 * { font-family:'Yu Gothic UI','YuGothic','Hiragino Kaku Gothic ProN','Meiryo',sans-serif; box-sizing:border-box; margin:0; padding:0; }
 
 :root,[data-theme="dark"]{
+  color-scheme:dark;
   --bg:#111318; --card:#1c1f28; --card2:#252836; --inp:#2e3245;
   --b:#2d3148; --bb:#424870;
   --t1:#ffffff; --t2:#ffffff; --t3:#a3aac2;
@@ -35,7 +36,7 @@
   --shadow:0 1px 4px rgba(0,0,0,.08),0 4px 12px rgba(0,0,0,.05);
 }
 
-html,body{height:100%;overflow:hidden;-webkit-text-size-adjust:100%;font-size:15px;}
+html,body{height:100%;overflow:hidden;-webkit-text-size-adjust:100%;text-size-adjust:100%;font-size:15px;}
 body{background:var(--bg);color:var(--t1);}
 /* 数字を等幅に（一覧でビシッと揃う） */
 .sc-val,.st-val,.pj-dv,.pl-txt,.dep-hist-amt,.dep-hist-usd,.dep-hist-date{font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1;}
@@ -348,7 +349,7 @@ body{background:var(--bg);color:var(--t1);}
 .finp{background:var(--inp);border:1.5px solid var(--b);border-radius:8px;padding:10px 12px;color:var(--t1);font-size:16px;outline:none;width:100%;min-width:0;max-width:100%;}
 .finp:focus{border-color:var(--acc);}
 .finp::placeholder{color:var(--t3);}
-.fsel{background:var(--inp);border:1.5px solid var(--b);border-radius:8px;padding:10px 12px;color:var(--t1);font-size:16px;outline:none;width:100%;-webkit-appearance:none;}
+.fsel{background:var(--inp);border:1.5px solid var(--b);border-radius:8px;padding:10px 12px;color:var(--t1);font-size:16px;outline:none;width:100%;-webkit-appearance:none;appearance:none;}
 .date-sel{display:flex;gap:6px;}
 .date-sel .fsel{flex:1;padding:10px 6px;min-width:0;text-align:center;}
 .dh-form .date-sel .fsel{background:var(--card);border-color:var(--bb);}
