@@ -341,6 +341,18 @@ body{background:var(--bg);color:var(--t1);}
 .modal{background:var(--card);border-radius:18px 18px 0 0;width:100%;max-width:min(560px,100vw);max-height:90vh;overflow-y:auto;overflow-x:hidden;padding:14px 16px 28px;-webkit-overflow-scrolling:touch;}
 .modal-handle{width:36px;height:4px;background:var(--bb);border-radius:2px;margin:0 auto 12px;}
 .modal-title{font-size:16px;font-weight:700;color:var(--t1);margin-bottom:13px;}
+.ref-box{display:flex;flex-direction:column;gap:8px;}
+.ref-copy{display:inline-flex;align-items:center;gap:6px;align-self:flex-start;background:var(--card2);color:var(--t1);border:1px solid var(--bb);border-radius:8px;padding:7px 13px;font-size:12px;font-weight:700;cursor:pointer;}
+.ref-copy:active{background:var(--inp);}
+.ref-link{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;background:var(--card2);border:1px solid var(--bb);border-radius:8px;padding:10px 12px;cursor:pointer;text-align:left;}
+.ref-link:active{background:var(--inp);}
+.ref-u{font-size:12px;color:var(--grn);word-break:break-all;line-height:1.5;}
+.ref-go{font-size:12px;color:var(--t3);white-space:nowrap;font-weight:700;}
+.ref-warn{font-size:12.5px;color:var(--t1);line-height:1.7;margin-bottom:13px;}
+.ref-dom-row{display:flex;align-items:baseline;gap:10px;margin-bottom:9px;}
+.ref-dom-k{font-size:11px;color:var(--t3);flex-shrink:0;}
+.ref-dom-v{font-size:15px;font-weight:700;color:var(--ylw);word-break:break-all;}
+.ref-full{font-size:12px;color:var(--t3);background:var(--inp);border-radius:8px;padding:10px 12px;word-break:break-all;line-height:1.5;margin-bottom:4px;}
 .fg{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
 .ff{grid-column:1/-1;}
 .fgrp{display:flex;flex-direction:column;gap:5px;min-width:0;}
@@ -595,9 +607,10 @@ body{background:var(--bg);color:var(--t1);}
         <div class="set-card-title">🛡️ データと安全性のしくみ</div>
         <p class="info-p">このアプリは、<b>ばぶ本人</b>がデータベース（Supabase）に書き込んだ内容だけを読み込んで表示しています。書き込み側のセキュリティは念入りに設計しています。</p>
         <div class="safe-item"><span class="safe-ico">✅</span><div><b>書き込めるのはばぶ本人だけ</b>（更新には本人しか持たない合言葉が必要。第三者は書き換えできません）</div></div>
-        <div class="safe-item"><span class="safe-ico">✅</span><div><b>リンクはXにしか飛びません</b>（万が一データに悪意あるリンクが混入しても、X以外へは飛ばないよう、このアプリ側ですべてブロックしています）</div></div>
+        <div class="safe-item"><span class="safe-ico">✅</span><div><b>XアカウントへのリンクはX固定</b>（注目アカウント・案件公式Xは、X以外へ飛ばないようブロックしています）</div></div>
+        <div class="safe-item"><span class="safe-ico">🔗</span><div><b>紹介リンク（リファラル）は外部サイトに飛びます</b>（ばぶが登録したリンクです。開く前に必ず<b>リンク先のドメイン</b>を表示するので、本物か確認してから開いてください）</div></div>
         <div class="safe-item"><span class="safe-ico">✅</span><div><b>危険なコードは無効化</b>（表示する前にすべて安全化するため、不正なスクリプトは動きません）</div></div>
-        <p class="info-p info-note">※ 念のため、リンク先のXアカウントが本物かどうかはご自身でもご確認ください。</p>
+        <p class="info-p info-note">※ 念のため、リンク先（Xアカウントや紹介リンクのドメイン）が本物かどうかはご自身でもご確認ください。</p>
       </div>
 
       <div class="set-card info-card info-safe">
@@ -642,6 +655,20 @@ body{background:var(--bg);color:var(--t1);}
   <div class="bni" id="bni-all" onclick="sv('all',this,'b')"><div class="bni-icon">📊</div>全案件</div>
   <div class="bni" id="bni-ended" onclick="sv('ended',this,'b')"><div class="bni-icon">✅</div>終了</div>
   <div class="bni" id="bni-info" onclick="sv('info',this,'b')"><div class="bni-icon">ℹ️</div>情報</div>
+</div>
+
+<div class="modal-overlay" id="m-ref">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">🔗 リンクを開きますか？</div>
+    <p class="ref-warn">外部サイトに移動します。<b>下のドメインが正しいか</b>必ず確認してから開いてください。</p>
+    <div class="ref-dom-row"><span class="ref-dom-k">ドメイン</span><span class="ref-dom-v" id="m-ref-dom"></span></div>
+    <div class="ref-full" id="m-ref-url"></div>
+    <div class="mfooter">
+      <button class="btn-c" onclick="cm('m-ref')">キャンセル</button>
+      <button class="btn-s" onclick="openRefGo()">開く</button>
+    </div>
+  </div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -898,27 +925,14 @@ function safeHandle(h){
   if(typeof h!=='string')return '';
   return h.replace(/[^A-Za-z0-9_]/g,'').slice(0,32);
 }
-// 飛び先はX（x.com / twitter.com）のみ許可。データが改ざんされても他ドメインへは飛ばない。
-var ALLOWED_LINK_HOSTS=['x.com','twitter.com'];
-function hostAllowed(host){
-  host=(host||'').toLowerCase();
-  for(var i=0;i<ALLOWED_LINK_HOSTS.length;i++){
-    var d=ALLOWED_LINK_HOSTS[i];
-    if(host===d)return true;                                   // x.com そのもの
-    if(host.length>d.length+1 && host.slice(host.length-d.length-1)==='.'+d)return true; // *.x.com
-  }
-  return false;
-}
-// URLとして安全化（http/https かつ 許可ドメインのみ。javascript: 等や他ドメインは空＝リンク無効）
+// URLとして安全化（http/https のみ許可。javascript:/data: 等の危険スキームと '"<> 空白を遮断）
+// 紹介リンク（postUrl）はX限定にせず、開く前のドメイン確認モーダルで利用者が偽サイトを弾く方式に変更。
 function safeUrl(u){
   if(typeof u!=='string')return '';
   u=u.trim();
-  if(!u||u.length>400)return '';
-  var p;
-  try{ p=new URL(u); }catch(e){ return ''; }                  // 不正URLは無効
-  if(p.protocol!=='http:'&&p.protocol!=='https:')return '';   // http/https以外を遮断
-  if(!hostAllowed(p.hostname))return '';                       // X以外のドメインを遮断
-  return u;
+  if(!u)return '';
+  if(/^https?:\/\/[^\s"'<>]+$/i.test(u))return u.slice(0,400);
+  return '';
 }
 
 var CAT_KNOWN={ETH:'eth',SOL:'sol',BTC:'btc',Monad:'monad',Perp:'perp',DEX:'dex',
@@ -1289,10 +1303,13 @@ function renderList(id,mode){
       +'<div class="detail-txt">'+(p.memo?esc(p.memo).replace(/\n/g,'<br>'):'<span style="color:var(--t3);">詳細は未入力です</span>')+'</div>'
       +'</div>'
       +'<div class="detail-sec">'
-      +'<div class="detail-h">📝 タスク（仕込んだ内容まとめ）</div>'
+      +'<div class="detail-h">🔗 紹介リンク（リファラル）</div>'
       +(p.postUrl
-        ?'<button class="post-btn" onclick="event.stopPropagation();openUrl(\''+esc(p.postUrl)+'\')"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg> ポストを見る</button>'
-        :'<div class="detail-txt"><span style="color:var(--t3);">ポストは未登録です</span></div>')
+        ?'<div class="ref-box">'
+          +'<button class="ref-copy" data-url="'+esc(p.postUrl)+'" onclick="event.stopPropagation();copyRef(this)">📋 リンクをコピー</button>'
+          +'<button class="ref-link" data-url="'+esc(p.postUrl)+'" onclick="event.stopPropagation();askRef(this)"><span class="ref-u">'+esc(p.postUrl)+'</span><span class="ref-go">開く ›</span></button>'
+        +'</div>'
+        :'<div class="detail-txt"><span style="color:var(--t3);">紹介リンクは未登録です</span></div>')
       +'</div>'
       +fdvTableHtml(p)
       +'<button class="detail-close" onclick="event.stopPropagation();toggleDetail(\''+mode+'\','+idx+')">閉じる ▲</button>'
@@ -1341,6 +1358,46 @@ function openX(handle){
   var h=safeHandle(handle);
   if(!h)return;
   openXApp(null, 'https://x.com/'+h);
+}
+// ── 紹介リンク：コピー＆「確認してから開く」（X限定を外す代わりの安全策） ──
+var _refURL='';
+function copyRef(btn){
+  var u=btn.getAttribute('data-url')||'';
+  if(!u)return;
+  copyToClip(u);
+}
+function copyToClip(text){
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(function(){showToast('リンクをコピーしました');},function(){fallbackCopy(text);});
+  }else{fallbackCopy(text);}
+}
+function fallbackCopy(text){
+  try{
+    var ta=document.createElement('textarea');
+    ta.value=text;ta.setAttribute('readonly','');
+    ta.style.position='fixed';ta.style.top='-1000px';ta.style.opacity='0';
+    document.body.appendChild(ta);ta.focus();ta.select();
+    var ok=document.execCommand('copy');
+    document.body.removeChild(ta);
+    showToast(ok?'リンクをコピーしました':'コピーできませんでした');
+  }catch(e){showToast('コピーできませんでした');}
+}
+function askRef(btn){
+  var u=safeUrl(btn.getAttribute('data-url')||''); // http/https のみ・危険スキーム遮断
+  if(!u)return;
+  _refURL=u;
+  var host='';
+  try{host=(new URL(u)).host;}catch(e){host='';}
+  var d=document.getElementById('m-ref-dom'); if(d)d.textContent=host||'(不明なドメイン)';
+  var f=document.getElementById('m-ref-url'); if(f)f.textContent=u;
+  document.getElementById('m-ref').classList.add('open');
+}
+function openRefGo(){
+  var u=safeUrl(_refURL);
+  cm('m-ref');
+  if(!u)return;
+  if(isIOS()){ window.location.href=u; }
+  else { var w=window.open(u,'_blank','noopener,noreferrer'); if(!w){try{window.top.location.href=u;}catch(e){window.location.href=u;}} }
 }
 function openUrl(u){
   var url=safeUrl(u);
