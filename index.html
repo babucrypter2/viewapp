@@ -77,7 +77,7 @@ body{background:var(--bg);color:var(--t1);}
 .view{display:none;}
 .view.active{display:flex;flex-direction:column;height:100%;}
 .scroll-area{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;}
-.content{padding:8px 10px 130px;}
+.content{padding:8px 10px 16px;}
 
 .filter-tabs{display:flex;gap:5px;flex-wrap:wrap;padding:8px 10px 0;flex-shrink:0;}
 .ftab{padding:4px 11px;border-radius:14px;font-size:12px;font-weight:700;border:1.5px solid var(--b);color:var(--t1);cursor:pointer;background:transparent;white-space:nowrap;}
@@ -501,7 +501,7 @@ body{background:var(--bg);color:var(--t1);}
   .sidebar{display:none;}
   .main{width:100%;}
   .bnav{display:flex;}
-  .content{padding:8px 8px calc(110px + env(safe-area-inset-bottom, 24px));}
+  .content{padding:8px 8px 16px;}
   .toast{bottom:calc(58px + 8px);}
   .filter-tabs{padding:7px 8px 0;}
   .topbar{padding:0 12px;}
@@ -546,7 +546,7 @@ body{background:var(--bg);color:var(--t1);}
   <div class="updated-bar" id="updated-bar" style="display:none;"></div>
 
   <div class="view active" id="view-active">
-    <div class="scroll-area"><div class="content"><div class="card-list" id="list-active"></div></div></div>
+    <div class="scroll-area"><div class="content"><div class="card-list" id="list-active"></div><div class="bnav-spacer" aria-hidden="true"></div></div></div>
   </div>
   <div class="view" id="view-all">
     <div class="scroll-area"><div class="content">
@@ -555,10 +555,11 @@ body{background:var(--bg);color:var(--t1);}
         <label class="flt-chk"><input type="checkbox" id="flt-ended" onchange="toggleHideEnded(this)"><span>仕込み終了を表示</span></label>
       </div>
       <div class="card-list" id="list-all"></div>
+      <div class="bnav-spacer" aria-hidden="true"></div>
     </div></div>
   </div>
   <div class="view" id="view-ended">
-    <div class="scroll-area"><div class="content"><div class="card-list" id="list-ended"></div></div></div>
+    <div class="scroll-area"><div class="content"><div class="card-list" id="list-ended"></div><div class="bnav-spacer" aria-hidden="true"></div></div></div>
   </div>
   <div class="view" id="view-info">
     <div class="set-scroll">
