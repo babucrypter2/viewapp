@@ -62,7 +62,8 @@ body{background:var(--bg);color:var(--t1);}
 .topbar-title{font-size:15px;font-weight:700;color:var(--t1);flex:1;}
 .sort-wrap{display:flex;align-items:center;gap:6px;flex-shrink:0;}
 .sort-lbl{font-size:11px;color:var(--t3);font-weight:600;white-space:nowrap;}
-.sort-sel{background:var(--card2);border:1.5px solid var(--b);border-radius:8px;padding:6px 8px;color:var(--t1);font-size:13px;font-weight:600;outline:none;-webkit-appearance:none;appearance:none;cursor:pointer;max-width:150px;}
+.sort-ico{font-size:15px;color:var(--acc);font-weight:700;line-height:1;}
+.sort-sel{background-color:var(--card2);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23a3aac2' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 9px center;border:1.5px solid var(--bb);border-radius:8px;padding:6px 28px 6px 10px;color:var(--t1);font-size:13px;font-weight:700;outline:none;-webkit-appearance:none;appearance:none;cursor:pointer;max-width:170px;}
 .sort-sel option{background:var(--card);}
 .cloud-status{font-size:10px;font-weight:600;padding:3px 7px;border-radius:6px;margin-right:8px;white-space:nowrap;}
 .updated-bar{font-size:11px;color:var(--t3);background:var(--card2);padding:6px 14px;border-bottom:1px solid var(--b);text-align:center;flex-shrink:0;}
@@ -521,7 +522,7 @@ body{background:var(--bg);color:var(--t1);}
   .topbar{padding:0 12px;}
   .sort-lbl{display:none;}
   .topbar-title{font-size:14px;}
-  .sort-sel{font-size:12px;padding:5px 7px;max-width:130px;}
+  .sort-sel{font-size:12px;padding:5px 26px 5px 9px;max-width:150px;}
 }
 </style>
 </head>
@@ -546,9 +547,11 @@ body{background:var(--bg);color:var(--t1);}
     <div class="topbar-title" id="ttl">🔥 仕込み中</div>
     <span class="cloud-status cs-loading" id="cloud-status"></span>
     <div class="sort-wrap" id="sort-wrap">
+      <span class="sort-ico">⇅</span>
       <span class="sort-lbl">並び替え</span>
       <select class="sort-sel" id="sort-sel" onchange="setSort(this.value)">
         <option value="score">期待値順</option>
+        <option value="lv">仕込みLv順</option>
         <option value="fund">調達額順</option>
         <option value="usr">参加者順</option>
         <option value="tvl">TVL順</option>
@@ -591,6 +594,7 @@ body{background:var(--bg);color:var(--t1);}
         <div class="set-card-title">📖 このアプリについて</div>
         <p class="info-p"><b>ばぶ（@babucrypter）</b>がエアドロを個人的に分析・記録した内容を閲覧できるアプリです。調達額・TVL・参加者数などから独自の「期待値スコア」を算出しています。</p>
         <p class="info-p">投資助言ではなく<b>個人の見解</b>です。正確性は保証しないため、参加はご自身の責任でご判断ください。</p>
+        <p class="info-p">各参加者等の数値も私の感覚でメモ書き程度で見てもらえると幸いです。適当に入力したりすることもあるので、間違いがあればぜひご指摘いただけると嬉しいです。</p>
         <p class="info-p">紹介コードやリファラルリンクは、ポイントがブーストされたり、スキャムリンク防止にもなります。お互いのメリットのためにも、極力貼るように努めます。</p>
       </div>
 
@@ -659,7 +663,7 @@ body{background:var(--bg);color:var(--t1);}
     <div class="ref-full" id="m-ref-url"></div>
     <div class="mfooter">
       <button class="btn-c" onclick="cm('m-ref')">キャンセル</button>
-      <button class="btn-c" onclick="copyRefFromModal()">📋 コピー</button>
+      <button class="btn-c" onclick="copyRefFromModal()">🔗 コピー</button>
       <button class="btn-s" onclick="openRefGo()">開く</button>
     </div>
   </div>
@@ -1178,6 +1182,7 @@ function smAvHtml(per,v,sz){
 
 // LIST
 function sortVal(p){
+  if(sortBy==='lv')return p.lv||0;
   if(sortBy==='fund')return p.fund||0;
   if(sortBy==='usr')return p.usr||0;
   if(sortBy==='tvl')return p.tvl||0;
@@ -1305,7 +1310,7 @@ function renderList(id,mode){
       +'<div class="detail-h">🔗 紹介リンク（リファラル）</div>'
       +(p.postUrl
         ?'<div class="ref-box">'
-          +'<button class="ref-copy" data-url="'+esc(p.postUrl)+'" onclick="event.stopPropagation();copyRef(this)">📋 リンクをコピー</button>'
+          +'<button class="ref-copy" data-url="'+esc(p.postUrl)+'" onclick="event.stopPropagation();copyRef(this)">🔗 リンクをコピー</button>'
           +'<button class="ref-link" data-url="'+esc(p.postUrl)+'" onclick="event.stopPropagation();askRef(this)"><span class="ref-u">'+esc(p.postUrl)+'</span><span class="ref-go">開く ›</span></button>'
         +'</div>'
         :'<div class="detail-txt"><span style="color:var(--t3);">紹介リンクは未登録です</span></div>')
