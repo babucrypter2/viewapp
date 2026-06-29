@@ -245,11 +245,13 @@ body{background:var(--bg);color:var(--t1);}
 }
 .detail-close:active{background:var(--b);}
 /* 折りたたみ詳細 */
-.detail-body{margin-top:8px;display:flex;flex-direction:column;gap:10px;animation:detailIn .2s ease;}
+.detail-body{margin-top:10px;display:flex;flex-direction:column;gap:14px;animation:detailIn .2s ease;}
 @keyframes detailIn{from{opacity:0;transform:translateY(-4px);}to{opacity:1;transform:translateY(0);}}
-.detail-sec{background:var(--card2);border:1px solid var(--b);border-radius:10px;padding:11px 12px;}
-.detail-h{font-size:11px;font-weight:700;color:var(--acc);margin-bottom:6px;}
+.detail-sec{background:var(--card2);border:1px solid var(--bb);border-radius:11px;padding:13px 13px;}
+.detail-h{font-size:14px;font-weight:800;color:var(--t1);margin-bottom:9px;}
 .detail-txt{font-size:13px;line-height:1.7;color:var(--t1);white-space:normal;word-break:break-word;}
+.memo-link{color:var(--grn);text-decoration:underline;text-underline-offset:2px;cursor:pointer;word-break:break-all;}
+.memo-link:active{opacity:.55;}
 /* FDV換算表 */
 .fdv-inputs{display:flex;flex-direction:column;gap:1px;margin-bottom:10px;background:var(--b);border:1px solid var(--b);border-radius:9px;overflow:hidden;}
 .fdv-in-row{display:flex;align-items:center;justify-content:space-between;background:var(--card);padding:7px 11px;}
@@ -592,24 +594,14 @@ body{background:var(--bg);color:var(--t1);}
       </div>
 
       <div class="set-card info-card info-safe">
-        <div class="set-card-title">🔒 安心してご利用いただくために</div>
-        <p class="info-p">このアプリはWebページで、閲覧専用です。</p>
-        <div class="safe-item"><span class="safe-ico">✅</span><div><b>閲覧するだけ</b>（情報の送信なし）</div></div>
-        <div class="safe-item"><span class="safe-ico">✅</span><div><b>ログイン不要</b>（個人情報を取得しない）</div></div>
-        <div class="safe-item"><span class="safe-ico">✅</span><div><b>端末に触れない</b>（写真・パスワード等にアクセス不可）</div></div>
-        <div class="safe-item"><span class="safe-ico">✅</span><div><b>資産は動かない</b>（ウォレット・決済と無関係）</div></div>
-        <div class="safe-item"><span class="safe-ico">✅</span><div><b>インストール不要</b>（プログラムが残らない）</div></div>
-        <p class="info-p info-note">※ ネット上のサービスである以上、絶対的な安全を保証するものではありません。このアプリはウォレット接続などを一切求めないので、そうした画面が出た場合はご注意ください。</p>
-      </div>
-
-      <div class="set-card info-card info-safe">
-        <div class="set-card-title">🛡️ データと安全性のしくみ</div>
-        <p class="info-p">このアプリは、<b>ばぶ本人</b>がデータベース（Supabase）に書き込んだ内容だけを読み込んで表示しています。書き込み側のセキュリティは念入りに設計しています。</p>
-        <div class="safe-item"><span class="safe-ico">✅</span><div><b>書き込めるのはばぶ本人だけ</b>（更新には本人しか持たない合言葉が必要。第三者は書き換えできません）</div></div>
-        <div class="safe-item"><span class="safe-ico">✅</span><div><b>XアカウントへのリンクはX固定</b>（注目アカウント・案件公式Xは、X以外へ飛ばないようブロックしています）</div></div>
-        <div class="safe-item"><span class="safe-ico">🔗</span><div><b>紹介リンク（リファラル）は外部サイトに飛びます</b>（ばぶが登録したリンクです。開く前に必ず<b>リンク先のドメイン</b>を表示するので、本物か確認してから開いてください）</div></div>
-        <div class="safe-item"><span class="safe-ico">✅</span><div><b>危険なコードは無効化</b>（表示する前にすべて安全化するため、不正なスクリプトは動きません）</div></div>
-        <p class="info-p info-note">※ 念のため、リンク先（Xアカウントや紹介リンクのドメイン）が本物かどうかはご自身でもご確認ください。</p>
+        <div class="set-card-title">🔒 安全性について</div>
+        <p class="info-p">閲覧専用のWebページです。安心して使えるよう、こう作っています。</p>
+        <div class="safe-item"><span class="safe-ico">✅</span><div><b>閲覧するだけ</b>（情報の送信・ログイン・インストールは不要）</div></div>
+        <div class="safe-item"><span class="safe-ico">✅</span><div><b>端末・資産に触れない</b>（写真やウォレット・決済とは無関係）</div></div>
+        <div class="safe-item"><span class="safe-ico">✅</span><div><b>書き込めるのはばぶ本人だけ</b>（合言葉が必要で、第三者は書き換えできません）</div></div>
+        <div class="safe-item"><span class="safe-ico">🔗</span><div><b>リンク</b>：XアカウントはX固定／紹介リンクは外部サイト（開く前にドメインを表示）</div></div>
+        <div class="safe-item"><span class="safe-ico">✅</span><div><b>危険なコードは無効化</b>（不正なスクリプトは動きません）</div></div>
+        <p class="info-p info-note">※ Web上のサービスである以上、絶対的な安全を保証するものではありません。ウォレット接続を求める画面が出たらご注意ください。</p>
       </div>
 
       <div class="set-card info-card info-safe">
@@ -665,6 +657,7 @@ body{background:var(--bg);color:var(--t1);}
     <div class="ref-full" id="m-ref-url"></div>
     <div class="mfooter">
       <button class="btn-c" onclick="cm('m-ref')">キャンセル</button>
+      <button class="btn-c" onclick="copyRefFromModal()">📋 コピー</button>
       <button class="btn-s" onclick="openRefGo()">開く</button>
     </div>
   </div>
@@ -833,6 +826,7 @@ function sanProj(o,spLen){
     refa:sanMark(o.refa),low:sanMark(o.low),
     lv:Math.max(0,Math.min(5,Math.round(num(o.lv)))),
     memo:clampStr(o.memo,1000),
+    task:clampStr(o.task,1000),
     postUrl:safeUrl(o.postUrl),
     sm:sm,
     deps:deps,
@@ -1299,7 +1293,11 @@ function renderList(id,mode){
       +'<div class="detail-body" id="dt-body-'+mode+'-'+idx+'" style="display:none;">'
       +'<div class="detail-sec">'
       +'<div class="detail-h">📋 プロジェクト詳細</div>'
-      +'<div class="detail-txt">'+(p.memo?esc(p.memo).replace(/\n/g,'<br>'):'<span style="color:var(--t3);">詳細は未入力です</span>')+'</div>'
+      +'<div class="detail-txt">'+(p.memo?linkifyMemo(p.memo):'<span style="color:var(--t3);">詳細は未入力です</span>')+'</div>'
+      +'</div>'
+      +'<div class="detail-sec">'
+      +'<div class="detail-h">📝 やってること</div>'
+      +'<div class="detail-txt">'+(p.task?linkifyMemo(p.task):'<span style="color:var(--t3);">未入力です</span>')+'</div>'
       +'</div>'
       +'<div class="detail-sec">'
       +'<div class="detail-h">🔗 紹介リンク（リファラル）</div>'
@@ -1360,6 +1358,25 @@ function openX(handle){
 }
 // ── 紹介リンク：コピー＆「確認してから開く」（X限定を外す代わりの安全策） ──
 var _refURL='';
+// メモ本文中の URL / ドメイン / @ハンドル を、タップで確認(→開く/コピー)できる安全なリンクに変換
+function linkifyMemo(raw){
+  if(!raw)return '';
+  var re=/(https?:\/\/[^\s<>"']+)|((?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z]{2,}(?:\/[^\s<>"']*)?)|(@[A-Za-z0-9_]{1,15})/gi;
+  var out='',last=0,m;
+  while((m=re.exec(raw))!==null){
+    out+=esc(raw.slice(last,m.index)).replace(/\n/g,'<br>');
+    var orig=m[0],token=orig,trail='',url='';
+    if(!m[3]){ var tm=token.match(/[.,;:!?)\]）」』｝]+$/); if(tm){ trail=tm[0]; token=token.slice(0,token.length-trail.length); } }
+    if(m[1])url=token; else if(m[2])url='https://'+token; else url='https://x.com/'+token.slice(1);
+    var safe=safeUrl(url);
+    if(safe)out+='<span class="memo-link" data-url="'+esc(safe)+'" onclick="event.stopPropagation();askRef(this)">'+esc(token)+'</span>'+esc(trail);
+    else out+=esc(orig);
+    last=m.index+orig.length;
+  }
+  out+=esc(raw.slice(last)).replace(/\n/g,'<br>');
+  return out;
+}
+function copyRefFromModal(){ if(_refURL)copyToClip(_refURL); cm('m-ref'); }
 function copyRef(btn){
   var u=btn.getAttribute('data-url')||'';
   if(!u)return;
