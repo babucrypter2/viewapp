@@ -446,8 +446,8 @@ body{background:var(--bg);color:var(--t1);}
 .info-ul li{font-size:12px;color:var(--t1);line-height:1.7;margin-bottom:7px;}
 .info-ul li:last-child{margin-bottom:0;}
 .info-ul li b{color:var(--acc);font-weight:700;}
-.info-safe{border:1px solid var(--grn);}
-.safe-item{display:flex;gap:8px;align-items:center;margin-top:9px;font-size:12px;color:var(--t1);line-height:1.5;}
+.info-safe{border:1px solid var(--grn);padding:16px 15px;}
+.safe-item{display:flex;gap:8px;align-items:center;margin-top:11px;font-size:12px;color:var(--t1);line-height:1.5;}
 .safe-item b{color:var(--t1);font-weight:700;}
 .safe-ico{flex-shrink:0;font-size:14px;}
 .info-foot{text-align:center;font-size:11px;color:var(--t3);line-height:1.7;padding:6px 0 24px;}
@@ -591,17 +591,19 @@ body{background:var(--bg);color:var(--t1);}
         <div class="set-card-title">📖 このアプリについて</div>
         <p class="info-p"><b>ばぶ（@babucrypter）</b>がエアドロを個人的に分析・記録した内容を閲覧できるアプリです。調達額・TVL・参加者数などから独自の「期待値スコア」を算出しています。</p>
         <p class="info-p">投資助言ではなく<b>個人の見解</b>です。正確性は保証しないため、参加はご自身の責任でご判断ください。</p>
+        <p class="info-p">紹介コードやリファラルリンクは、ポイントがブーストされたり、スキャムリンク防止にもなります。お互いのメリットのためにも、極力貼るように努めます。</p>
       </div>
 
       <div class="set-card info-card info-safe">
         <div class="set-card-title">🔒 安全性について</div>
-        <p class="info-p">閲覧専用のWebページです。安心して使えるよう、こう作っています。</p>
-        <div class="safe-item"><span class="safe-ico">✅</span><div><b>閲覧するだけ</b>（情報の送信・ログイン・インストールは不要）</div></div>
-        <div class="safe-item"><span class="safe-ico">✅</span><div><b>端末・資産に触れない</b>（写真やウォレット・決済とは無関係）</div></div>
-        <div class="safe-item"><span class="safe-ico">✅</span><div><b>書き込めるのはばぶ本人だけ</b>（合言葉が必要で、第三者は書き換えできません）</div></div>
-        <div class="safe-item"><span class="safe-ico">🔗</span><div><b>リンク</b>：XアカウントはX固定／紹介リンクは外部サイト（開く前にドメインを表示）</div></div>
-        <div class="safe-item"><span class="safe-ico">✅</span><div><b>危険なコードは無効化</b>（不正なスクリプトは動きません）</div></div>
-        <p class="info-p info-note">※ Web上のサービスである以上、絶対的な安全を保証するものではありません。ウォレット接続を求める画面が出たらご注意ください。</p>
+        <p class="info-p">ばぶ本人がデータベース（Supabase）に書き込んだ内容を、読み取って表示しているだけの閲覧専用アプリです。安心してお使いください。</p>
+        <div class="safe-item"><span class="safe-ico">✅</span><div><b>閲覧専用・送信なし</b></div></div>
+        <div class="safe-item"><span class="safe-ico">📵</span><div><b>端末・資産に触れない</b></div></div>
+        <div class="safe-item"><span class="safe-ico">🔒</span><div><b>通信は暗号化（HTTPS）</b></div></div>
+        <div class="safe-item"><span class="safe-ico">🔑</span><div><b>書き込めるのはばぶ本人だけ</b></div></div>
+        <div class="safe-item"><span class="safe-ico">🔗</span><div><b>開く前にドメインを表示</b></div></div>
+        <div class="safe-item"><span class="safe-ico">🛡️</span><div><b>危険なコードは無効化</b></div></div>
+        <p class="info-p info-note">※ ウォレット接続を求める画面が出たらご注意ください。</p>
       </div>
 
       <div class="set-card info-card info-safe">
