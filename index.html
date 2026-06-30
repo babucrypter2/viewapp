@@ -1051,7 +1051,7 @@ function depShowUsd(p){
 }
 // 最初の預入からの月数 / 期間テキスト（ヶ月→無ければ日）
 function depMonths(p){var s=firstDepDate(p);return s?mos(s,p.endDate||null):0;}
-function depPeriodTxt(p){var m=depMonths(p);if(m>0)return m+'ヶ月';var d=heldDays(p);return d>0?d+'日':'';}
+function depPeriodTxt(p){var d=heldDays(p);if(d<=0)return '';var m=d/30.44;var r=Math.round(m*10)/10;if(r<0.1)r=0.1;return (r%1===0?String(Math.round(r)):r.toFixed(1))+'ヶ月';}
 // 削り額（消費したドル）
 function burnAmt(p){return p?Math.max(0,num(p.burnUsd)):0;}
 // 保有日数（開始〜終了 or 現在）。月数が0でも日割りで使えるように日数も返す
@@ -1299,7 +1299,7 @@ function renderList(id,mode){
     var idx=PROJ.indexOf(p);
     var s=score(p);
     var smS=(p.sm||[]).reduce(function(a,v,j){var q=SP[j];if(!q)return a;return a+(v==='g'?q.ptG:v==='m'?q.ptM:(q.ptB||0));},0);
-    var mos_=depMonths(p);var perT_=depPeriodTxt(p);
+    var perT_=depPeriodTxt(p);
     var rPt=p.refa==='g'?W.refa_g:p.refa==='m'?W.refa_m:W.refa_b;
     var lPt=p.low==='g'?W.low_g:p.low==='m'?W.low_m:W.low_b;
     var qPt=(p.quality||'b')==='g'?W.qual_g:(p.quality||'b')==='m'?W.qual_m:W.qual_b;
