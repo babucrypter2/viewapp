@@ -246,11 +246,11 @@ body{background:var(--bg);color:var(--t1);}
 }
 .detail-close:active{background:var(--b);}
 /* 折りたたみ詳細 */
-.detail-body{margin-top:10px;display:flex;flex-direction:column;gap:14px;animation:detailIn .2s ease;}
+.detail-body{margin-top:14px;display:flex;flex-direction:column;animation:detailIn .2s ease;}
 @keyframes detailIn{from{opacity:0;transform:translateY(-4px);}to{opacity:1;transform:translateY(0);}}
-.detail-sec{background:var(--card2);border:1px solid var(--bb);border-radius:11px;padding:13px 13px;}
-.detail-h{font-size:14px;font-weight:800;color:var(--t1);margin-bottom:9px;}
-.detail-txt{font-size:13px;line-height:1.7;color:var(--t1);white-space:normal;word-break:break-word;}
+.detail-sec{background:var(--card2);border:1px solid var(--bb);border-radius:13px;padding:15px 16px 16px;margin-bottom:24px;box-shadow:0 2px 6px rgba(0,0,0,.22);}
+.detail-h{font-size:15px;font-weight:800;color:var(--t1);letter-spacing:.01em;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--b);}
+.detail-txt{font-size:13.5px;line-height:1.8;color:var(--t1);white-space:normal;word-break:break-word;}
 .memo-link{color:var(--grn);text-decoration:underline;text-underline-offset:2px;cursor:pointer;word-break:break-all;}
 .memo-link:active{opacity:.55;}
 /* FDV換算表 */
