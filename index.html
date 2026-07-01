@@ -134,9 +134,9 @@ body{background:var(--bg);color:var(--t1);}
   gap:8px;
 }
 .rank-md{
-  width:30px;height:30px;border-radius:50%;
+  width:38px;height:38px;border-radius:50%;
   display:flex;align-items:center;justify-content:center;
-  font-weight:900;font-size:13px;color:#fff;flex-shrink:0;line-height:1;
+  font-weight:900;font-size:17px;color:#fff;flex-shrink:0;line-height:1;
 }
 .rank-1{background:linear-gradient(145deg,#f5c518,#cc8800);box-shadow:0 1px 3px rgba(245,197,24,.4);}
 .rank-2{background:linear-gradient(145deg,#c4cdd8,#8898a8);box-shadow:0 1px 3px rgba(160,170,180,.3);}
@@ -144,11 +144,14 @@ body{background:var(--bg);color:var(--t1);}
 .rank-n{background:transparent;color:var(--t3);font-size:12px;font-weight:700;border:1.5px solid var(--b);box-shadow:none;}
 
 .pj-av{
-  width:42px;height:42px;border-radius:10px;
+  width:55px;height:55px;border-radius:13px;
   display:flex;align-items:center;justify-content:center;
-  font-size:19px;font-weight:700;color:#fff;flex-shrink:0;overflow:hidden;
+  font-size:26px;font-weight:700;color:#fff;flex-shrink:0;overflow:hidden;
 }
 .pj-av img{width:100%;height:100%;object-fit:cover;}
+.pj-av-wrap{position:relative;flex-shrink:0;}
+.rank-badge{position:absolute;top:-6px;left:-6px;min-width:22px;height:22px;box-sizing:border-box;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;color:#fff;padding:0 5px;line-height:1;border:2px solid var(--card);box-shadow:0 1px 4px rgba(0,0,0,.5);}
+.rank-badge.rank-n{background:var(--card2);color:var(--t1);border-color:var(--bb);font-size:11px;}
 
 /* name + meta block — takes remaining space */
 .pj-inf{flex:1;min-width:0;}
@@ -170,7 +173,7 @@ body{background:var(--bg);color:var(--t1);}
 .x-wrap:active .x-btn{transform:scale(.92);box-shadow:0 1px 3px rgba(0,0,0,.5);}
 [data-theme="light"] .x-btn{border-color:#000;box-shadow:0 2px 5px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.15);}
 .pj-name{
-  font-size:15px;font-weight:800;color:var(--t1);line-height:1.15;
+  font-size:17px;font-weight:800;color:var(--t1);line-height:1.15;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
   letter-spacing:.01em;
 }
@@ -181,12 +184,12 @@ body{background:var(--bg);color:var(--t1);}
 .pj-stars{display:inline-flex;}
 .pj-star{font-size:11px;color:var(--t3);}
 .pj-star.on{color:var(--ylw);}
-.pj-dv{color:var(--grn);font-weight:700;white-space:nowrap;}
+.pj-dv{color:var(--t1);font-weight:700;white-space:nowrap;}
 
 /* Score — fixed right block */
-.sc-wrap{flex-shrink:0;text-align:center;width:72px;align-self:flex-start;margin-top:-1px;}
-.sc-lbl{font-size:11px;color:var(--t1);font-weight:700;margin-bottom:3px;text-align:center;}
-.sc-val{font-size:34px;font-weight:900;line-height:1;text-align:center;}
+.sc-wrap{flex-shrink:0;text-align:center;width:86px;align-self:flex-start;margin-top:-1px;margin-left:10px;}
+.sc-lbl{font-size:12px;color:var(--t1);font-weight:700;margin-bottom:3px;text-align:center;}
+.sc-val{font-size:38px;font-weight:900;line-height:1;text-align:center;}
 .c-g{color:var(--grn);}
 .c-a{color:var(--acc);}
 .c-y{color:var(--ylw);}
@@ -198,32 +201,32 @@ body{background:var(--bg);color:var(--t1);}
   align-items:stretch;
   justify-content:space-between;
   gap:0;
-  border-top:1px solid var(--b);
+  border-top:1px solid rgba(255,255,255,.14);
   padding-top:6px;
 }
 .st-col{
   flex:1;display:flex;flex-direction:column;min-width:0;
   padding:0 10px;
-  border-right:1px solid var(--b);
+  border-right:1px solid rgba(255,255,255,.09);
 }
 .st-col:first-child{padding-left:0;}
 .st-col:last-child{border-right:none;padding-right:0;}
 .st-lbl{font-size:10px;color:var(--t1);font-weight:600;margin-bottom:2px;white-space:nowrap;}
 .st-val{font-size:18px;font-weight:700;color:var(--t1);line-height:1;white-space:nowrap;}
-.st-val.eff{color:var(--grn);font-weight:800;}
+.st-val.eff{color:#5fb98d;font-weight:800;}
 
 /* ── Row 3: head (colon-style) + avatars ── */
-.card-r3{border-top:1px solid var(--b);padding-top:6px;}
+.card-r3{border-top:1px solid rgba(255,255,255,.14);padding-top:6px;}
 .sm-head{display:flex;align-items:center;flex-wrap:wrap;gap:5px 8px;margin-bottom:6px;}
 .pl-txt{
   font-size:11px;font-weight:600;color:var(--t1);white-space:nowrap;
   display:inline-flex;align-items:center;gap:3px;
-  padding-right:8px;border-right:1px solid var(--b);
+  padding-right:8px;border-right:1px solid rgba(255,255,255,.09);
 }
 .pl-txt:last-child{border-right:none;padding-right:0;}
 .pl-break{flex-basis:100%;height:0;}
 .pl-sm{border-right:none;padding-right:0;}
-.pl-txt .pv{color:var(--grn);font-weight:800;font-size:12px;}
+.pl-txt .pv{color:#5fb98d;font-weight:800;font-size:12px;}
 .sm-avs{display:flex;align-items:flex-start;gap:6px;flex-wrap:nowrap;overflow:visible;padding:4px 2px 2px;}
 
 /* 詳細トグルボタン */
@@ -345,9 +348,12 @@ body{background:var(--bg);color:var(--t1);}
 .modal-handle{width:36px;height:4px;background:var(--bb);border-radius:2px;margin:0 auto 12px;}
 .modal-title{font-size:16px;font-weight:700;color:var(--t1);margin-bottom:13px;}
 .ref-box{display:flex;flex-direction:column;gap:8px;}
-.ref-copy{display:inline-flex;align-items:center;gap:6px;align-self:flex-start;background:var(--card2);color:var(--t1);border:1px solid var(--bb);border-radius:8px;padding:7px 13px;font-size:12px;font-weight:700;cursor:pointer;}
+.ref-copy{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;background:var(--card2);color:var(--t1);border:1px solid var(--bb);border-radius:8px;padding:9px 13px;font-size:12px;font-weight:700;cursor:pointer;}
 .ref-copy:active{background:var(--inp);}
-.ref-link{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;background:var(--card2);border:1px solid var(--bb);border-radius:8px;padding:10px 12px;cursor:pointer;text-align:left;}
+.ref-btns{display:flex;gap:8px;}
+.ref-open{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;background:var(--grn);color:#041408;border:none;border-radius:8px;padding:9px 13px;font-size:12px;font-weight:800;cursor:pointer;}
+.ref-open:active{opacity:.85;}
+.ref-link{display:flex;align-items:center;gap:10px;width:100%;background:var(--card2);border:1px solid var(--bb);border-radius:8px;padding:10px 12px;cursor:pointer;text-align:left;}
 .ref-link:active{background:var(--inp);}
 .ref-u{font-size:12px;color:var(--grn);word-break:break-all;line-height:1.5;}
 .ref-go{font-size:12px;color:var(--t3);white-space:nowrap;font-weight:700;}
@@ -1333,10 +1339,9 @@ function renderList(id,mode){
 
       // ── Row 1: medal | icon | name+meta(2 lines) | X | score ──
       +'<div class="card-r1">'
-      +'<div class="rank-col"><div class="rank-md '+rankCls+'">'+rankNum+'</div>'+(p.endDate?'<span class="ended-badge">🏁終了</span>':'')+'</div>'
-      +projAvHtml(p,42)
+      +'<div class="pj-av-wrap">'+projAvHtml(p,54)+'<span class="rank-badge '+rankCls+'">'+rankNum+'</span></div>'
       +'<div class="pj-inf">'
-      +'<div class="pj-nmr"><span class="pj-name">'+esc(p.name)+'</span>'+catTag(p.cat)+'</div>'
+      +'<div class="pj-nmr"><span class="pj-name">'+esc(p.name)+'</span>'+catTag(p.cat)+(p.endDate?'<span class="ended-badge">🏁終了</span>':'')+'</div>'
       +'<div class="pj-meta1"><span class="pj-lbl">仕込みLv</span><span class="pj-stars">'+starsHtml(p.lv||0)+'</span></div>'
       +'<div class="pj-meta2"><span class="pj-lbl">仕込み額</span> '+stakeHtml+'</div>'
       +(burn_>0?'<div class="pj-meta3"><span class="pj-lbl">削り額</span> <span class="pj-dv pj-burn">🔥'+fmtU(burn_)+'</span></div>':'')
@@ -1351,8 +1356,8 @@ function renderList(id,mode){
       // ── Row 2: stats (調達額 TVL 参加者) + eff number (no label) ──
       +'<div class="card-r2">'
       +'<div class="st-col"><div class="st-lbl">調達額</div><div class="st-val">'+(p.fund?'$'+num(p.fund)+'M':'—')+'</div></div>'
-      +'<div class="st-col"><div class="st-lbl">TVL/Vol</div><div class="st-val">'+(p.tvl?'$'+num(p.tvl)+'M':'—')+'</div></div>'
       +'<div class="st-col"><div class="st-lbl">参加者</div><div class="st-val">'+(p.usr?num(p.usr)+'万':'—')+'</div></div>'
+      +'<div class="st-col"><div class="st-lbl">TVL/Vol</div><div class="st-val">'+(p.tvl?'$'+num(p.tvl)+'M':'—')+'</div></div>'
       +'<div class="st-col"><div class="st-lbl">&nbsp;</div><div class="st-val eff">'+(eff_disp!=='—'?eff_disp+'pt':'—')+'</div></div>'
       +'</div>'
 
@@ -1386,8 +1391,11 @@ function renderList(id,mode){
       +'<div class="detail-h">🔗 紹介リンク（リファラル）</div>'
       +(p.postUrl
         ?'<div class="ref-box">'
+          +'<button class="ref-link" data-url="'+esc(p.postUrl)+'" onclick="event.stopPropagation();askRef(this)"><span class="ref-u">'+esc(p.postUrl)+'</span></button>'
+          +'<div class="ref-btns">'
           +'<button class="ref-copy" data-url="'+esc(p.postUrl)+'" onclick="event.stopPropagation();copyRef(this)">🔗 リンクをコピー</button>'
-          +'<button class="ref-link" data-url="'+esc(p.postUrl)+'" onclick="event.stopPropagation();askRef(this)"><span class="ref-u">'+esc(p.postUrl)+'</span><span class="ref-go">開く ›</span></button>'
+          +'<button class="ref-open" data-url="'+esc(p.postUrl)+'" onclick="event.stopPropagation();askRef(this)">リンクを開く ›</button>'
+          +'</div>'
         +'</div>'
         :'<div class="detail-txt"><span style="color:var(--t3);">紹介リンクは未登録です</span></div>')
       +'</div>'
