@@ -1472,6 +1472,7 @@ function isStandalone(){
       || (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
 }
 function openXApp(appUrl,webUrl){
+  markExtNav();
   if(isIOS() || isStandalone()){
     try{ window.location.assign(webUrl); }
     catch(e){ window.location.href=webUrl; }
@@ -1539,6 +1540,7 @@ function askRef(btn){
   document.getElementById('m-ref').classList.add('open');
 }
 function openRefGo(){
+  markExtNav();
   var u=safeUrl(_refURL);
   cm('m-ref');
   if(!u)return;
@@ -1546,6 +1548,7 @@ function openRefGo(){
   else { var w=window.open(u,'_blank','noopener,noreferrer'); if(!w){try{window.top.location.href=u;}catch(e){window.location.href=u;}} }
 }
 function openUrl(u){
+  markExtNav();
   var url=safeUrl(u);
   if(!url)return;
   // x.com / twitter.com のポストURLならアプリのstatus画面へ
@@ -1680,6 +1683,26 @@ function refreshFromCloud(opts){
 // ── 実ビューポート高さの監視＆自動復旧 ──
 // iOSのPWAでは外部サイト(アプリ内ブラウザ)を×で閉じて戻った時にJSイベントが一切発火せず、
 // さらにWebViewの高さが縮んだまま固定される既知バグがあるため、常時ウォッチドッグで監視して自動復旧する。
+// ── 外部リンクを開いた印。×で戻ってきた時にアプリを自動再起動して黒帯バグを確実に回避 ──
+function markExtNav(){
+  if(!isIOS())return; // このバグはiOSのみ。PC等は再起動不要
+  try{
+    var vn=((document.querySelector('.view.active')||{}).id||'').replace('view-','');
+    sessionStorage.setItem('extnav', String(Date.now()));
+    if(vn)sessionStorage.setItem('extview', vn);
+  }catch(e){ window._extNav=Date.now(); }
+}
+function maybeExtReload(){
+  var t=0;
+  try{ t=+(sessionStorage.getItem('extnav')||0); }catch(e){ t=window._extNav||0; }
+  if(!t)return false;
+  try{ sessionStorage.removeItem('extnav'); }catch(e){}
+  window._extNav=0;
+  if(Date.now()-t>30*60*1000)return false; // 古すぎる印は無視
+  if(vhModalOpen())return false;           // モーダル表示中（編集中など）は再起動しない
+  location.reload();
+  return true;
+}
 var _vhMax=0,_vhStuck=0,_vhReloadedOnce=false;
 function vhNow(){return Math.round((window.visualViewport&&window.visualViewport.height)||window.innerHeight);}
 function setAppH(){
@@ -1726,6 +1749,7 @@ function vhJiggle(){
 }
 // 外部サイト（アプリ内ブラウザ）から戻った直後は、数値が正常でも無条件で復旧を実行
 function vhRecover(){
+  if(maybeExtReload())return;
   setAppH();
   vhJiggle();
   [250,700,1400].forEach(function(ms){setTimeout(function(){setAppH();if(vhOffsetBug())vhJiggle();},ms);});
@@ -1771,6 +1795,11 @@ initData().then(function(){
   updateThemeBtns();
   renderTabs();
   renderAll();
+  // 自動再起動から復帰した場合、開いていたタブへ戻す
+  try{
+    var rv=sessionStorage.getItem('extview');
+    if(rv){ sessionStorage.removeItem('extview'); if(document.getElementById('view-'+rv)) sv(rv,null,'b'); }
+  }catch(e){}
 });
 
 </script>
