@@ -1677,23 +1677,82 @@ function refreshFromCloud(opts){
   }
 })();
 
-// 外部サイト（X等）から戻ってきた時にビューポート高さがズレて下側が黒くなるバグ対策
+// ── 実ビューポート高さの監視＆自動復旧 ──
+// iOSのPWAでは外部サイト(アプリ内ブラウザ)を×で閉じて戻った時にJSイベントが一切発火せず、
+// さらにWebViewの高さが縮んだまま固定される既知バグがあるため、常時ウォッチドッグで監視して自動復旧する。
+var _vhMax=0,_vhStuck=0,_vhReloadedOnce=false;
+function vhNow(){return Math.round((window.visualViewport&&window.visualViewport.height)||window.innerHeight);}
 function setAppH(){
-  var h=(window.visualViewport&&window.visualViewport.height)||window.innerHeight;
-  document.documentElement.style.setProperty('--app-h', Math.round(h)+'px');
+  var h=vhNow();
+  if(h>_vhMax)_vhMax=h;
+  document.documentElement.style.setProperty('--app-h',h+'px');
 }
-function setAppHRetry(){
-  // Safariのアドレスバー収縮アニメーション中は値が安定しないため複数回測り直す
+function vhKeyboardOpen(){
+  var a=document.activeElement,t=(a&&a.tagName||'').toLowerCase();
+  if(t==='input'||t==='textarea'||t==='select')return true;
+  return !!(window.visualViewport&&(window.innerHeight-window.visualViewport.height)>60);
+}
+function vhModalOpen(){
+  var m=document.querySelector('.modal-overlay');
+  return !!(m&&getComputedStyle(m).display!=='none');
+}
+// 高さの数値は正常でも、描画だけが下にズレて黒帯が残る（表示位置オフセット）ケースを検知
+function vhOffsetBug(){
+  var v=window.visualViewport;
+  if(!v||vhKeyboardOpen())return false;
+  return (v.offsetTop>1)||(v.pageTop>1)||(v.offsetLeft>1);
+}
+// WKWebViewにレイアウト＆合成レイヤの再構築を強制して黒帯を復旧させる
+function vhJiggle(){
+  try{
+    window.scrollTo(0,1);window.scrollTo(0,0);
+    if(document.scrollingElement)document.scrollingElement.scrollTop=0;
+    var de=document.documentElement,b=document.body;
+    de.style.minHeight='100.5vh';
+    if(b)b.style.transform='translateZ(0)';
+    requestAnimationFrame(function(){
+      void de.offsetHeight;
+      de.style.minHeight='';
+      if(b){
+        b.style.display='none';
+        void b.offsetHeight; // 強制リフロー（同一フレーム内のため見た目はチラつかない）
+        b.style.display='';
+        b.style.transform='';
+      }
+      window.scrollTo(0,0);
+      setAppH();
+    });
+  }catch(e){}
+}
+// 外部サイト（アプリ内ブラウザ）から戻った直後は、数値が正常でも無条件で復旧を実行
+function vhRecover(){
   setAppH();
-  [50,150,300,500,800].forEach(function(ms){ setTimeout(setAppH,ms); });
+  vhJiggle();
+  [250,700,1400].forEach(function(ms){setTimeout(function(){setAppH();if(vhOffsetBug())vhJiggle();},ms);});
 }
 setAppH();
-window.addEventListener('resize', setAppH);
-window.addEventListener('orientationchange', function(){ setAppHRetry(); });
-window.addEventListener('pageshow', function(){ setAppHRetry(); });
-document.addEventListener('visibilitychange', function(){ if(!document.hidden) setAppHRetry(); });
-window.addEventListener('focus', function(){ setAppHRetry(); });
-if(window.visualViewport){ window.visualViewport.addEventListener('resize', setAppH); }
+window.addEventListener('resize',setAppH);
+window.addEventListener('orientationchange',function(){_vhMax=0;setTimeout(vhRecover,300);});
+window.addEventListener('pageshow',vhRecover);
+window.addEventListener('focus',vhRecover);
+document.addEventListener('visibilitychange',function(){if(!document.hidden)vhRecover();});
+if(window.visualViewport){window.visualViewport.addEventListener('resize',setAppH);}
+setInterval(function(){
+  setAppH();
+  if(vhKeyboardOpen()){_vhStuck=0;return;}
+  if(_vhMax-vhNow()>120||vhOffsetBug()){
+    _vhStuck++;
+    if(_vhStuck===3)vhJiggle();          // 約1秒: 再レイアウト強制
+    if(_vhStuck===9&&!vhModalOpen()){    // 約3秒: 最終手段=リロード（連続実行はガード）
+      var ok=true;
+      try{
+        var ts=+(sessionStorage.getItem('vhfix')||0);
+        if(Date.now()-ts<15000)ok=false;else sessionStorage.setItem('vhfix',String(Date.now()));
+      }catch(e){ if(_vhReloadedOnce)ok=false;_vhReloadedOnce=true; }
+      if(ok)location.reload();
+    }
+  }else{_vhStuck=0;}
+},350);
 
 // アプリに戻った／再表示された時に自動チェック（iOSのPWAでも効くように複数イベントを使用）
 document.addEventListener('visibilitychange',function(){ if(!document.hidden)refreshFromCloud(); });
@@ -1703,8 +1762,6 @@ window.addEventListener('online',function(){ refreshFromCloud(); });
 
 // 開きっぱなしでも反映されるよう、表示中は一定間隔でチェック（非表示中は内部でスキップ）
 setInterval(function(){ refreshFromCloud(); },30000);
-
-// ── 実ビューポート高さをCSS変数に反映（iOSで外部サイトから戻ると下に余白ができるバグ対策） ──
 
 // 起動：クラウド→ローカルの順でデータ取得してから描画
 updateThemeBtns();
