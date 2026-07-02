@@ -225,6 +225,7 @@ body{background:var(--bg);color:var(--t1);}
   padding:0 10px;
   border-right:1px solid rgba(255,255,255,.14);
 }
+.st-col-sc{flex:0 0 52px;width:52px;padding:0 0 0 8px;align-items:center;}
 .st-col:first-child{padding-left:0;}
 .st-col:last-child{border-right:none;}
 .st-ico{width:12px;height:12px;vertical-align:-1px;margin-right:1px;display:inline-block;}
@@ -914,6 +915,7 @@ function sanProj(o,spLen){
     startDate:/^\d{4}-\d{2}-\d{2}$/.test(o.startDate)?o.startDate:null,
     endDate:/^\d{4}-\d{2}-\d{2}$/.test(o.endDate)?o.endDate:null,
     active:!!o.active,
+    forceActive:!!o.forceActive,
     results:sanResults(o)
   };
 }
@@ -1314,7 +1316,7 @@ var showActive=false, showEnded=false;
 // 案件が「仕込み中」か（残高あり or 削り額ありで未終了）
 function isActiveProj(p){
   if(p.endDate)return false;
-  return p.active&&(p.totalUsd>0||burnAmt(p)>0);
+  return p.active&&(p.totalUsd>0||burnAmt(p)>0||!!p.forceActive);
 }
 function flist(mode){
   var list;
@@ -1393,7 +1395,7 @@ function renderList(id,mode){
       +'<div class="st-col"><div class="st-lbl">'+ICO.fund+' 調達額</div><div class="st-val">'+(p.fund?'$'+num(p.fund)+'M':'—')+'</div></div>'
       +'<div class="st-col"><div class="st-lbl">'+ICO.usr+' 参加者</div><div class="st-val">'+(p.usr?num(p.usr)+'万':'—')+'</div></div>'
       +'<div class="st-col"><div class="st-lbl">'+ICO.tvl+' TVL/Vol</div><div class="st-val">'+(p.tvl?'$'+num(p.tvl)+'M':'—')+'</div></div>'
-      +'<div class="st-col"><div class="st-val eff">'+(eff_disp!=='—'?eff_disp+'pt':'—')+'</div></div>'
+      +'<div class="st-col st-col-sc"><div class="st-val eff">'+(eff_disp!=='—'?eff_disp:'—')+'</div></div>'
       +'</div>'
 
       // ── Row 3: head (colon-style) + avatars left ──
