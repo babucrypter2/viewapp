@@ -210,31 +210,31 @@ body{background:var(--bg);color:var(--t1);}
   align-items:stretch;
   justify-content:space-between;
   gap:0;
-  border-top:1px solid var(--b);
+  border-top:1px solid rgba(255,255,255,.16);
   padding-top:6px;
 }
 .st-col{
   flex:1;display:flex;flex-direction:column;min-width:0;
   padding:0 10px;
-  border-right:1px solid var(--b);
+  border-right:1px solid rgba(255,255,255,.14);
 }
 .st-col:first-child{padding-left:0;}
 .st-col:last-child{border-right:none;padding-right:0;}
-.st-lbl{font-size:10px;color:var(--t1);font-weight:600;margin-bottom:2px;white-space:nowrap;}
+.st-ico{width:12px;height:12px;vertical-align:-1px;margin-right:1px;display:inline-block;}
+.st-lbl{font-size:10px;color:var(--t3);font-weight:600;margin-bottom:2px;white-space:nowrap;}
 .st-val{font-size:18px;font-weight:700;color:var(--t1);line-height:1;white-space:nowrap;}
 .st-val.eff{color:#5fb98d;font-weight:800;}
 
 /* ── Row 3: head (colon-style) + avatars ── */
-.card-r3{border-top:1px solid var(--b);padding-top:6px;}
-.sm-head{display:flex;align-items:center;flex-wrap:wrap;gap:5px 8px;margin-bottom:6px;}
+.card-r3{border-top:1px solid rgba(255,255,255,.16);padding-top:6px;}
+.sm-head{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px 12px;margin-bottom:6px;}
 .pl-txt{
   font-size:11px;font-weight:600;color:var(--t1);white-space:nowrap;
   display:inline-flex;align-items:center;gap:3px;
-  padding-right:8px;border-right:1px solid var(--b);
 }
-.pl-txt:last-child{border-right:none;padding-right:0;}
+.pl-sep{width:1px;align-self:stretch;background:rgba(255,255,255,.16);flex-shrink:0;}
+.pl-sm{margin-right:14px;}
 .pl-break{flex-basis:100%;height:0;}
-.pl-sm{border-right:none;padding-right:0;}
 .pl-txt .pv{color:#5fb98d;font-weight:800;font-size:12px;}
 .sm-avs{display:flex;align-items:flex-start;gap:6px;flex-wrap:nowrap;overflow:visible;padding:4px 2px 2px;}
 
@@ -992,6 +992,11 @@ var CAT_PALETTE=[
   ['#280a20','#e860a0'],['#102a1a','#40d090'],['#2a1030','#c080e0']
 ];
 function catHash(c){var h=0;for(var i=0;i<c.length;i++)h=(h*31+c.charCodeAt(i))>>>0;return h;}
+var ICO={
+fund:'<svg class="st-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="7" ry="3"></ellipse><path d="M5 5v5c0 1.66 3.13 3 7 3s7-1.34 7-3V5"></path><path d="M5 10v5c0 1.66 3.13 3 7 3s7-1.34 7-3v-5"></path><path d="M5 15v4c0 1.66 3.13 3 7 3s7-1.34 7-3v-4"></path></svg>',
+usr:'<svg class="st-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"></circle><circle cx="17" cy="8" r="3"></circle><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"></path><path d="M15 14.5c2.8 0.3 5 2.7 5 5.5"></path></svg>',
+tvl:'<svg class="st-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 15 9 9 13 13 21 5"></polyline><polyline points="15 5 21 5 21 11"></polyline><line x1="3" y1="19" x2="21" y2="19"></line></svg>'
+};
 function catTag(c){
   if(CAT_KNOWN[c])return '<span class="tag tag-'+CAT_KNOWN[c]+'">'+esc(c)+'</span>';
   var pal=CAT_PALETTE[catHash(String(c))%CAT_PALETTE.length];
@@ -1360,18 +1365,20 @@ function renderList(id,mode){
 
       // ── Row 2: stats (調達額 TVL 参加者) + eff number (no label) ──
       +'<div class="card-r2">'
-      +'<div class="st-col"><div class="st-lbl">調達額</div><div class="st-val">'+(p.fund?'$'+num(p.fund)+'M':'—')+'</div></div>'
-      +'<div class="st-col"><div class="st-lbl">参加者</div><div class="st-val">'+(p.usr?num(p.usr)+'万':'—')+'</div></div>'
-      +'<div class="st-col"><div class="st-lbl">TVL/Vol</div><div class="st-val">'+(p.tvl?'$'+num(p.tvl)+'M':'—')+'</div></div>'
+      +'<div class="st-col"><div class="st-lbl">'+ICO.fund+' 調達額</div><div class="st-val">'+(p.fund?'$'+num(p.fund)+'M':'—')+'</div></div>'
+      +'<div class="st-col"><div class="st-lbl">'+ICO.usr+' 参加者</div><div class="st-val">'+(p.usr?num(p.usr)+'万':'—')+'</div></div>'
+      +'<div class="st-col"><div class="st-lbl">'+ICO.tvl+' TVL/Vol</div><div class="st-val">'+(p.tvl?'$'+num(p.tvl)+'M':'—')+'</div></div>'
       +'<div class="st-col"><div class="st-lbl">&nbsp;</div><div class="st-val eff">'+(eff_disp!=='—'?eff_disp+'pt':'—')+'</div></div>'
       +'</div>'
 
       // ── Row 3: head (colon-style) + avatars left ──
       +'<div class="card-r3">'
       +'<div class="sm-head">'
-      +'<span class="pl-txt">リファ無 '+msym(p.refa)+'：<span class="pv">'+fmtPt(rPt)+'pt</span></span>'
-      +'<span class="pl-txt">低資金 '+msym(p.low)+'：<span class="pv">'+fmtPt(lPt)+'pt</span></span>'
-      +'<span class="pl-txt pl-sm">運営の質 '+msym(p.quality||'b')+'：<span class="pv">'+fmtPt(qPt)+'pt</span></span>'
+      +'<span class="pl-txt">リファ無：'+msym(p.refa)+' <span class="pv">'+fmtPt(rPt)+'pt</span></span>'
+      +'<span class="pl-sep"></span>'
+      +'<span class="pl-txt">低資金：'+msym(p.low)+' <span class="pv">'+fmtPt(lPt)+'pt</span></span>'
+      +'<span class="pl-sep"></span>'
+      +'<span class="pl-txt pl-sm">運営の質：'+msym(p.quality||'b')+' <span class="pv">'+fmtPt(qPt)+'pt</span></span>'
       +'<span class="pl-break"></span>'
       +'<span class="pl-txt pl-sm">強い人の言及度：<span class="pv">'+smS+'pt</span></span>'
       +(p.endDate&&Array.isArray(p.results)&&p.results.length?'<span class="pl-txt">エアドロ結果：🎁 <span class="pv">'+fmtResultTotal(p.results)+'</span>'+(p.results.length>1?'（'+p.results.length+'回）':'')+(fmtMultiple(p)?' <span class="apr-tag mul-tag">削り '+fmtMultiple(p)+'</span>':'')+(fmtApr(p)?' <span class="apr-tag">年利'+fmtApr(p)+'</span>':'')+'</span>':(p.endDate?'<span class="pl-txt">🏁 終了日：'+esc(p.endDate)+'</span>':''))
