@@ -246,6 +246,10 @@ body{background:var(--bg);color:var(--t1);}
 .pl-sm{margin-right:14px;}
 .pl-break{flex-basis:100%;height:0;}
 .pl-txt .pv{color:#5fb98d;font-weight:800;font-size:12px;line-height:1;vertical-align:middle;display:inline-block;}
+.ms{font-weight:800;}
+.ms-g{color:#34D17B;}
+.ms-m{color:#f5c542;}
+.ms-b{color:#ff5c5c;}
 .sm-avs{display:flex;align-items:flex-start;gap:6px;flex-wrap:nowrap;overflow:visible;padding:4px 2px 2px;}
 
 /* 詳細トグルボタン */
@@ -958,7 +962,7 @@ function score(p){
 function scCls(s){return s>=20?'c-g':s>=12?'c-a':s>=8?'c-y':'c-r';}
 // ポイント表示（小数の余分なゼロを除去。負数はそのまま）
 function fmtPt(v){var n=num(v);return (Math.round(n*100)/100).toString();}
-function msym(v){return v==='g'?'○':v==='m'?'△':'✕';}
+function msym(v){var s=v==='g'?'○':v==='m'?'△':'✕';var c=v==='g'?'ms-g':v==='m'?'ms-m':'ms-b';return '<span class="ms '+c+'">'+s+'</span>';}
 function plCls(v){return v==='g'?'pl-g':v==='m'?'pl-m':'pl-b';}
 function ini(s){return(s||'?')[0].toUpperCase();}
 
