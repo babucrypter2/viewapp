@@ -230,7 +230,7 @@ body{background:var(--bg);color:var(--t1);}
 .st-col:last-child{border-right:none;}
 .st-ico{width:12px;height:12px;vertical-align:-1px;margin-right:1px;display:inline-block;}
 .st-lbl{display:inline-flex;align-items:center;gap:4px;font-size:10px;color:var(--t1);font-weight:600;margin-bottom:6px;white-space:nowrap;line-height:1;}
-.st-col:not(:last-child) .st-lbl{background:rgba(255,255,255,.085);display:flex;align-items:center;justify-content:center;margin:0 -10px 6px;padding:6px 10px;box-sizing:content-box;}
+.st-lbl{margin-bottom:6px;display:flex;align-items:center;justify-content:center;}
 .st-col:first-child .st-lbl{border-radius:10px 0 0 0;}
 .st-val{font-size:18px;font-weight:700;color:var(--t1);line-height:1;white-space:nowrap;text-align:center;}
 .st-val.eff{color:#5fb98d;font-weight:800;}
@@ -254,9 +254,9 @@ body{background:var(--bg);color:var(--t1);}
 
 /* 詳細トグルボタン */
 .detail-toggle{
-  width:100%;margin-top:8px;padding:9px;border:none;cursor:pointer;
-  background:var(--card2);border:1px solid var(--bb);border-radius:9px;
-  color:#fff;font-size:13px;font-weight:700;
+  width:100%;margin-top:8px;padding:10px;border:none;cursor:pointer;
+  background:rgba(255,255,255,.09);border:1.5px solid rgba(255,255,255,.28);border-radius:9px;
+  color:#fff;font-size:13px;font-weight:800;
   display:flex;align-items:center;justify-content:center;gap:6px;
   transition:background .15s;
 }
@@ -265,8 +265,8 @@ body{background:var(--bg);color:var(--t1);}
 .detail-toggle.open .dt-arrow{transform:rotate(180deg);}
 .detail-close{
   width:100%;margin-top:14px;padding:11px;border:none;cursor:pointer;
-  background:var(--card2);border:1px solid var(--bb);border-radius:9px;
-  color:#fff;font-size:13px;font-weight:700;
+  background:rgba(255,255,255,.09);border:1.5px solid rgba(255,255,255,.28);border-radius:9px;
+  color:#fff;font-size:13px;font-weight:800;
   display:flex;align-items:center;justify-content:center;gap:6px;
   transition:background .15s;
 }
@@ -1405,13 +1405,13 @@ function renderList(id,mode){
       // ── Row 3: head (colon-style) + avatars left ──
       +'<div class="card-r3">'
       +'<div class="sm-head">'
-      +'<span class="pl-txt">リファ無：'+msym(p.refa)+' <span class="pv">'+fmtPt(rPt)+'pt</span></span>'
+      +'<span class="pl-txt">リファ無：'+msym(p.refa)+' <span class="pv">'+fmtPt(rPt)+'</span></span>'
       +'<span class="pl-sep"></span>'
-      +'<span class="pl-txt">低資金：'+msym(p.low)+' <span class="pv">'+fmtPt(lPt)+'pt</span></span>'
+      +'<span class="pl-txt">低資金：'+msym(p.low)+' <span class="pv">'+fmtPt(lPt)+'</span></span>'
       +'<span class="pl-sep"></span>'
-      +'<span class="pl-txt pl-sm">運営の質：'+msym(p.quality||'b')+' <span class="pv">'+fmtPt(qPt)+'pt</span></span>'
+      +'<span class="pl-txt pl-sm">運営の質：'+msym(p.quality||'b')+' <span class="pv">'+fmtPt(qPt)+'</span></span>'
       +'<span class="pl-break"></span>'
-      +'<span class="pl-txt pl-sm">強い人の言及度：<span class="pv">'+smS+'pt</span></span>'
+      +'<span class="pl-txt pl-sm">強い人の言及度：<span class="pv">'+smS+'</span></span>'
       +(p.endDate&&Array.isArray(p.results)&&p.results.length?'<span class="pl-txt">エアドロ結果：🎁 <span class="pv">'+fmtResultTotal(p.results)+'</span>'+(p.results.length>1?'（'+p.results.length+'回）':'')+(fmtMultiple(p)?' <span class="apr-tag mul-tag">削り '+fmtMultiple(p)+'</span>':'')+(fmtApr(p)?' <span class="apr-tag">年利'+fmtApr(p)+'</span>':'')+'</span>':(p.endDate?'<span class="pl-txt">🏁 終了日：'+esc(p.endDate)+'</span>':''))
       +'</div>'
       +'<div class="sm-avs">'+smAvsHtml+'</div>'
