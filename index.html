@@ -1800,6 +1800,13 @@ setInterval(function(){
   }else{_vhStuck=0;}
 },350);
 
+// 入力欄フォーカス時、キーボード表示後に対象を可視領域中央へスクロール（黒い余白バグ対策）
+document.addEventListener('focusin',function(e){
+  var t=e.target,tag=(t&&t.tagName||'').toLowerCase();
+  if(tag!=='input'&&tag!=='textarea')return;
+  setTimeout(function(){ setAppH(); try{t.scrollIntoView({block:'center'});}catch(_){}} ,300);
+});
+
 // アプリに戻った／再表示された時に自動チェック（iOSのPWAでも効くように複数イベントを使用）
 document.addEventListener('visibilitychange',function(){ if(!document.hidden)refreshFromCloud(); });
 window.addEventListener('focus',function(){ refreshFromCloud(); });
