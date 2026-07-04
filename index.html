@@ -489,11 +489,11 @@ body{background:var(--bg);color:var(--t1);}
 .info-foot{text-align:center;font-size:11px;color:var(--t3);line-height:1.7;padding:6px 0 24px;}
 .info-note{font-size:11px;color:var(--t3);line-height:1.7;margin-top:12px;padding-top:10px;border-top:1px solid var(--b);}
 #achv-card{padding:13px 15px;}
-.achv-lbl{font-size:11px;color:var(--t3);letter-spacing:.05em;margin-bottom:4px;}
-.achv-amt{font-size:19px;font-weight:800;color:var(--t1);line-height:1.2;}
+.achv-lbl{font-size:11px;color:var(--t3);letter-spacing:.03em;margin-bottom:5px;line-height:1.4;}
+.achv-amt{font-size:16px;font-weight:700;color:var(--t1);line-height:1.2;}
 .achv-plus{color:var(--grn);margin-right:1px;}
-.achv-dur{font-size:12px;color:var(--t3);margin-top:4px;}
-.sec-proof{display:block;width:100%;border-radius:10px;border:1px solid var(--b);margin:10px 0 2px;}
+.sec-proof{display:block;width:100%;border-radius:10px;border:1.5px solid rgba(255,255,255,.22);margin:10px 0 2px;}
+.task-img{display:block;width:100%;border-radius:10px;border:1.5px solid rgba(255,255,255,.22);margin:10px 0;}
 /* スコア設定: グループ＋○△✕配点 */
 .w-group{background:var(--card2);border:1px solid var(--b);border-radius:10px;padding:10px 11px;}
 .w-group-t{font-size:12px;font-weight:700;color:var(--t1);margin-bottom:8px;}
@@ -788,9 +788,11 @@ function renderAchv(){
   var amt=ACHV.amount,head=amt.charAt(0);
   var amtHtml=(head==='+'||head==='＋')?'<span class="achv-plus">＋</span>'+esc(amt.slice(1)):esc(amt);
   var dur=achvDurTxt();
-  el.innerHTML='<div class="achv-lbl">エアドロ実績</div>'
-    +'<div class="achv-amt">'+amtHtml+'</div>'
-    +(dur?'<div class="achv-dur">歴 '+esc(dur)+'</div>':'');
+  var today=new Date();
+  var todayTxt=today.getFullYear()+'/'+(today.getMonth()+1)+'/'+today.getDate();
+  var lbl=todayTxt+'時点　エアドロ実績'+(dur?'　歴'+esc(dur):'');
+  el.innerHTML='<div class="achv-lbl">'+lbl+'</div>'
+    +'<div class="achv-amt">'+amtHtml+'</div>';
   el.style.display='block';
 }
 var EMOJI_ICON_MAP={'\u2705':'<svg class="in-ico" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M8 12.5l2.5 2.5L16 9.5"></path></svg>','\uD83D\uDCF5':'<svg class="in-ico" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><line x1="5.5" y1="18.5" x2="18.5" y2="5.5"></line></svg>','\uD83D\uDD12':'<svg class="in-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="9" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg>','\uD83D\uDD11':'<svg class="in-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="4.5"></circle><path d="M10.9 12.1L20 3"></path><path d="M16 7l3 3"></path><path d="M13 4l3 3"></path></svg>','\uD83D\uDD17':'<svg class="in-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>','\u26A0\uFE0F':'<svg class="in-ico" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l10 18H2L12 3z"></path><line x1="12" y1="10" x2="12" y2="14.5"></line><circle cx="12" cy="17.2" r="0.9" fill="#f59e0b" stroke="none"></circle></svg>','\u26A0':'<svg class="in-ico" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l10 18H2L12 3z"></path><line x1="12" y1="10" x2="12" y2="14.5"></line><circle cx="12" cy="17.2" r="0.9" fill="#f59e0b" stroke="none"></circle></svg>'};
@@ -969,6 +971,7 @@ function sanProj(o,spLen){
     lv:Math.max(0,Math.min(5,Math.round(num(o.lv)))),
     memo:clampStr(o.memo,1000),
     task:clampStr(o.task,1000),
+    taskImg:(Array.isArray(o.taskImg)?o.taskImg.filter(function(d){return typeof d==='string'&&safeImg(d);}).slice(0,5):[]),
     postUrl:safeUrl(o.postUrl),
     sm:sm,
     deps:deps,
@@ -1009,22 +1012,28 @@ function updateThemeBtns(){}
 // SCORE
 // 期待値スコア（100点満点）: 強い人の言及 + 調達効率 + 減点方式の3ブロック
 function scoreBreakdown(p){
-  // ① 強い人の言及（生pt合計を上限で正規化 → w_sm点）
+  // ① 強い人の言及（生pt合計を上限で正規化 → w_sm点。マイナスにはしない）
   var smPts=(p.sm||[]).reduce(function(a,v,j){var q=SP[j];if(!q)return a;return a+(v==='g'?q.ptG:v==='m'?q.ptM:(q.ptB||0));},0);
   var smFull=W.sm_full>0?W.sm_full:12;
-  var smScore=Math.min(smPts/smFull,1)*(W.w_sm||0);
+  var smScore=Math.max(0,Math.min(smPts/smFull,1))*(W.w_sm||0);
   // ② 調達効率（調達÷参加者、調達÷TVL を各0〜1に正規化し、利用可能な指標の平均 → w_ef点）
-  var parts=[];
-  if(p.fund&&p.usr)parts.push(Math.min((p.fund/p.usr)/(W.ef_full||25),1));
-  if(p.fund&&p.tvl)parts.push(Math.min((p.fund/p.tvl)/(W.et_full||3),1));
-  var effNorm=parts.length?parts.reduce(function(a,b){return a+b;},0)/parts.length:0;
-  var effScore=effNorm*(W.w_ef||0);
+  //    調達額そのものが未記入で計算不可能な場合は、判定不能として満点の半分を暫定表示（0点にして不当に差が開くのを防ぐ）
+  var effScore;
+  if(!p.fund){
+    effScore=(W.w_ef||0)/2;
+  }else{
+    var parts=[];
+    if(p.usr)parts.push(Math.min((p.fund/p.usr)/(W.ef_full||25),1));
+    if(p.tvl)parts.push(Math.min((p.fund/p.tvl)/(W.et_full||3),1));
+    var effNorm=parts.length?parts.reduce(function(a,b){return a+b;},0)/parts.length:0;
+    effScore=parts.length?effNorm*(W.w_ef||0):(W.w_ef||0)/2;
+  }
   // ③ 減点方式（満点 w_deduct から、△✕で3項目それぞれ減点）
   function ded(v){return v==='g'?0:(v==='m'?(W.d_m||0):(W.d_b||0));}
   var deductTotal=ded(p.refa)+ded(p.low)+ded(p.quality||'b');
   var deductScore=Math.max(0,(W.w_deduct||0)-deductTotal);
   var total=smScore+effScore+deductScore;
-  return {total:Math.round(total*10)/10, sm:smScore, eff:effScore, deduct:deductScore, smPts:smPts};
+  return {total:Math.round(total), sm:smScore, eff:effScore, deduct:deductScore, smPts:smPts};
 }
 function score(p){return scoreBreakdown(p).total;}
 // 満点の合計（設定変更に追従。表示の「/100」用）
@@ -1032,6 +1041,8 @@ function scoreMax(){return (W.w_sm||0)+(W.w_ef||0)+(W.w_deduct||0);}
 function scCls(s){var m=scoreMax()||100;var pct=s/m*100;return pct>=75?'c-g':pct>=55?'c-a':pct>=35?'c-y':'c-r';}
 // ポイント表示（小数の余分なゼロを除去。負数はそのまま）
 function fmtPt(v){var n=num(v);return (Math.round(n*100)/100).toString();}
+// スコア内訳表示専用：小数点を四捨五入して整数化
+function fmtPtR(v){return Math.round(num(v)).toString();}
 function msym(v){var s=v==='g'?'○':v==='m'?'△':'✕';var c=v==='g'?'ms-g':v==='m'?'ms-m':'ms-b';return '<span class="ms '+c+'">'+s+'</span>';}
 function plCls(v){return v==='g'?'pl-g':v==='m'?'pl-m':'pl-b';}
 function ini(s){return(s||'?')[0].toUpperCase();}
@@ -1426,8 +1437,7 @@ function renderList(id,mode){
     var rPt=_per-((p.refa==='g')?0:(p.refa==='m'?(W.d_m||0):(W.d_b||0)));
     var lPt=_per-((p.low==='g')?0:(p.low==='m'?(W.d_m||0):(W.d_b||0)));
     var qPt=_per-(((p.quality||'b')==='g')?0:((p.quality||'b')==='m'?(W.d_m||0):(W.d_b||0)));
-    var _hasEff=!!(p.fund&&(p.usr||p.tvl));
-    var eff_disp=_hasEff?(Math.round(bd.eff*10)/10).toString():'—';
+    var eff_disp=Math.round(bd.eff).toString();
 
     // Rank medal
     var rankCls=i===0?'rank-1':i===1?'rank-2':i===2?'rank-3':'rank-n';
@@ -1471,13 +1481,13 @@ function renderList(id,mode){
       // ── Row 3: head (colon-style) + avatars left ──
       +'<div class="card-r3">'
       +'<div class="sm-head">'
-      +'<span class="pl-txt">リファ無：'+msym(p.refa)+' <span class="pv pv-'+(p.refa==='g'?'g':p.refa==='m'?'m':'b')+'">'+fmtPt(rPt)+'</span></span>'
+      +'<span class="pl-txt">リファ無：'+msym(p.refa)+' <span class="pv pv-'+(p.refa==='g'?'g':p.refa==='m'?'m':'b')+'">'+fmtPtR(rPt)+'</span></span>'
       +'<span class="pl-sep"></span>'
-      +'<span class="pl-txt">低資金：'+msym(p.low)+' <span class="pv pv-'+(p.low==='g'?'g':p.low==='m'?'m':'b')+'">'+fmtPt(lPt)+'</span></span>'
+      +'<span class="pl-txt">低資金：'+msym(p.low)+' <span class="pv pv-'+(p.low==='g'?'g':p.low==='m'?'m':'b')+'">'+fmtPtR(lPt)+'</span></span>'
       +'<span class="pl-sep"></span>'
-      +'<span class="pl-txt pl-sm">運営の質：'+msym(p.quality||'b')+' <span class="pv pv-'+((p.quality||'b')==='g'?'g':(p.quality||'b')==='m'?'m':'b')+'">'+fmtPt(qPt)+'</span></span>'
+      +'<span class="pl-txt pl-sm">運営の質：'+msym(p.quality||'b')+' <span class="pv pv-'+((p.quality||'b')==='g'?'g':(p.quality||'b')==='m'?'m':'b')+'">'+fmtPtR(qPt)+'</span></span>'
       +'<span class="pl-break"></span>'
-      +'<span class="pl-txt pl-sm">強い人の言及度：<span class="pv">'+fmtPt(bd.sm)+'</span></span>'
+      +'<span class="pl-txt pl-sm">強い人の言及度：<span class="pv">'+fmtPtR(bd.sm)+'</span></span>'
       +(p.endDate&&Array.isArray(p.results)&&p.results.length?'<span class="pl-txt">エアドロ結果：🎁 <span class="pv">'+fmtResultTotal(p.results)+'</span>'+(p.results.length>1?'（'+p.results.length+'回）':'')+(fmtMultiple(p)?' <span class="apr-tag mul-tag">削り '+fmtMultiple(p)+'</span>':'')+(fmtApr(p)?' <span class="apr-tag">年利'+fmtApr(p)+'</span>':'')+'</span>':(p.endDate?'<span class="pl-txt">🏁 終了日：'+esc(p.endDate)+'</span>':''))
       +'</div>'
       +'<div class="sm-avs">'+smAvsHtml+'</div>'
@@ -1494,7 +1504,7 @@ function renderList(id,mode){
       +'</div>'
       +'<div class="detail-sec">'
       +'<div class="detail-h"><span class="dh-i">'+ICO.clip+'やってること</span></div>'
-      +'<div class="detail-txt">'+(p.task?linkifyMemo(p.task):'<span style="color:var(--t3);">未入力です</span>')+'</div>'
+      +'<div class="detail-txt">'+renderTaskHtml(p)+'</div>'
       +'</div>'
       +'<div class="detail-sec">'
       +'<div class="detail-h"><span class="dh-i">'+ICO.link+'紹介リンク（リファラル）</span></div>'
@@ -1576,6 +1586,24 @@ function linkifyMemo(raw){
   }
   out+=esc(raw.slice(last)).replace(/\n/g,'<br>');
   return out;
+}
+// やってることの本文：[写真N]トークンを、その場で枠線付き画像に変換して表示（他の行は通常通りlinkify）
+function renderTaskHtml(p){
+  if(!p||!p.task)return '<span style="color:var(--t3);">未入力です</span>';
+  var imgs=Array.isArray(p.taskImg)?p.taskImg:[];
+  var lines=String(p.task).split(/\r?\n/);
+  var html='',buf=[];
+  function flush(){ if(buf.length){ html+=linkifyMemo(buf.join('\n')); buf=[]; } }
+  lines.forEach(function(line){
+    var m=line.trim().match(/^\[写真(\d+)\]$/);
+    if(m){
+      var src=imgs[parseInt(m[1],10)-1];
+      if(src&&safeImg(src)){ flush(); html+='<img class="task-img" src="'+esc(src)+'" alt="添付画像">'; return; }
+    }
+    buf.push(line);
+  });
+  flush();
+  return html;
 }
 function copyRefFromModal(){ if(_refURL)copyToClip(_refURL); cm('m-ref'); }
 function copyRef(btn){
