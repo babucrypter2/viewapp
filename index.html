@@ -206,6 +206,8 @@ body{background:var(--bg);color:var(--t1);}
 .sc-lbl{font-size:12px;color:var(--t1);font-weight:700;margin-bottom:3px;text-align:center;}
 .sc-val{font-size:40px;font-weight:900;line-height:1;text-align:center;}
 .sc-val.sc-sm{font-size:32px;}
+.sc-max{font-size:14px;font-weight:700;color:var(--t3);opacity:.7;margin-left:1px;letter-spacing:0;}
+.sc-val.sc-sm .sc-max{font-size:12px;}
 .c-g{color:var(--grn);}
 .c-a{color:var(--acc);}
 .c-y{color:var(--ylw);}
@@ -691,11 +693,13 @@ var SP=[
   {name:'Kudasai',handle:'kudasai_jp',bg:'#5e35b1',img:null,ptG:2,ptM:0.5},
   {name:'Yama',handle:'yamacrypto',bg:'#ef6c00',img:null,ptG:2,ptM:1},
 ];
-var W={refa_g:2,refa_m:0,refa_b:0,low_g:1.5,low_m:0,low_b:0,qual_g:0,qual_m:0,qual_b:0};
+var W={refa_g:2,refa_m:0,refa_b:0,low_g:1.5,low_m:0,low_b:0,qual_g:0,qual_m:0,qual_b:0,
+  w_sm:40,sm_full:12,w_ef:40,ef_full:25,et_full:3,w_deduct:20,d_m:4,d_b:7};
 // 保存データからWを安全に読込（未定義キーはデフォルト維持、マイナス許容）
 function mergeW(src){
   if(!src||typeof src!=='object')return;
-  ['refa_g','refa_m','refa_b','low_g','low_m','low_b','qual_g','qual_m','qual_b'].forEach(function(k){
+  ['refa_g','refa_m','refa_b','low_g','low_m','low_b','qual_g','qual_m','qual_b',
+   'w_sm','sm_full','w_ef','ef_full','et_full','w_deduct','d_m','d_b'].forEach(function(k){
     if(src[k]!==undefined&&src[k]!==null&&src[k]!=='')W[k]=num(src[k]);
   });
 }
@@ -962,22 +966,29 @@ function sanResults(o){
 function updateThemeBtns(){}
 
 // SCORE
-function score(p){
-  var sm=(p.sm||[]).reduce(function(a,v,j){var q=SP[j];if(!q)return a;return a+(v==='g'?q.ptG:v==='m'?q.ptM:(q.ptB||0));},0);
-  // 調達÷参加者 と 調達÷TVL: 両方あれば平均、片方だけならその値
-  var ef=(p.fund&&p.usr)?(p.fund/p.usr):null;
-  var et=(p.fund&&p.tvl)?(p.fund/p.tvl):null;
-  var fin;
-  if(ef!=null&&et!=null)fin=(ef+et)/2;
-  else if(ef!=null)fin=ef;
-  else if(et!=null)fin=et;
-  else fin=0;
-  var r=p.refa==='g'?W.refa_g:p.refa==='m'?W.refa_m:W.refa_b;
-  var l=p.low==='g'?W.low_g:p.low==='m'?W.low_m:W.low_b;
-  var q=(function(v){return v==='g'?W.qual_g:v==='m'?W.qual_m:W.qual_b;})(p.quality||'b');
-  return Math.round((sm+fin+r+l+q)*10)/10;
+// 期待値スコア（100点満点）: 強い人の言及 + 調達効率 + 減点方式の3ブロック
+function scoreBreakdown(p){
+  // ① 強い人の言及（生pt合計を上限で正規化 → w_sm点）
+  var smPts=(p.sm||[]).reduce(function(a,v,j){var q=SP[j];if(!q)return a;return a+(v==='g'?q.ptG:v==='m'?q.ptM:(q.ptB||0));},0);
+  var smFull=W.sm_full>0?W.sm_full:12;
+  var smScore=Math.min(smPts/smFull,1)*(W.w_sm||0);
+  // ② 調達効率（調達÷参加者、調達÷TVL を各0〜1に正規化し、利用可能な指標の平均 → w_ef点）
+  var parts=[];
+  if(p.fund&&p.usr)parts.push(Math.min((p.fund/p.usr)/(W.ef_full||25),1));
+  if(p.fund&&p.tvl)parts.push(Math.min((p.fund/p.tvl)/(W.et_full||3),1));
+  var effNorm=parts.length?parts.reduce(function(a,b){return a+b;},0)/parts.length:0;
+  var effScore=effNorm*(W.w_ef||0);
+  // ③ 減点方式（満点 w_deduct から、△✕で3項目それぞれ減点）
+  function ded(v){return v==='g'?0:(v==='m'?(W.d_m||0):(W.d_b||0));}
+  var deductTotal=ded(p.refa)+ded(p.low)+ded(p.quality||'b');
+  var deductScore=Math.max(0,(W.w_deduct||0)-deductTotal);
+  var total=smScore+effScore+deductScore;
+  return {total:Math.round(total*10)/10, sm:smScore, eff:effScore, deduct:deductScore, smPts:smPts};
 }
-function scCls(s){return s>=20?'c-g':s>=12?'c-a':s>=8?'c-y':'c-r';}
+function score(p){return scoreBreakdown(p).total;}
+// 満点の合計（設定変更に追従。表示の「/100」用）
+function scoreMax(){return (W.w_sm||0)+(W.w_ef||0)+(W.w_deduct||0);}
+function scCls(s){var m=scoreMax()||100;var pct=s/m*100;return pct>=75?'c-g':pct>=55?'c-a':pct>=35?'c-y':'c-r';}
 // ポイント表示（小数の余分なゼロを除去。負数はそのまま）
 function fmtPt(v){var n=num(v);return (Math.round(n*100)/100).toString();}
 function msym(v){var s=v==='g'?'○':v==='m'?'△':'✕';var c=v==='g'?'ms-g':v==='m'?'ms-m':'ms-b';return '<span class="ms '+c+'">'+s+'</span>';}
@@ -1409,7 +1420,7 @@ function renderList(id,mode){
       +'<div class="pj-meta2"><span class="pj-lbl">仕込み額</span> '+stakeHtml+'</div>'
       +(burn_>0?'<div class="pj-meta3"><span class="pj-lbl">削り額</span> <span class="pj-dv pj-burn">🔥'+fmtU(burn_)+'</span></div>':'')
       +'</div>'
-      +'<div class="sc-wrap"><div class="sc-lbl">期待値</div><div class="sc-val '+scCls(s)+' '+(String(s).length>=5?'sc-sm':'')+'">'+s+'</div></div>'
+      +'<div class="sc-wrap"><div class="sc-lbl">期待値</div><div class="sc-val '+scCls(s)+' '+(String(s).length>=5?'sc-sm':'')+'">'+s+'<span class="sc-max">/'+scoreMax()+'</span></div></div>'
       +'</div>'
 
       // ── Row 2: stats (調達額 TVL 参加者) + eff number (no label) ──
