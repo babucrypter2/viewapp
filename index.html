@@ -206,8 +206,8 @@ body{background:var(--bg);color:var(--t1);}
 .sc-lbl{font-size:12px;color:var(--t1);font-weight:700;margin-bottom:3px;text-align:center;}
 .sc-val{font-size:40px;font-weight:900;line-height:1;text-align:center;}
 .sc-val.sc-sm{font-size:32px;}
-.sc-max{font-size:14px;font-weight:700;color:var(--t3);opacity:.7;margin-left:1px;letter-spacing:0;}
-.sc-val.sc-sm .sc-max{font-size:12px;}
+.sc-max{font-size:11px;font-weight:700;color:var(--t3);opacity:.55;margin-left:1px;letter-spacing:0;}
+.sc-val.sc-sm .sc-max{font-size:9px;}
 .c-g{color:var(--grn);}
 .c-a{color:var(--acc);}
 .c-y{color:var(--ylw);}
@@ -488,6 +488,11 @@ body{background:var(--bg);color:var(--t1);}
 .safe-ico{flex-shrink:0;font-size:14px;}
 .info-foot{text-align:center;font-size:11px;color:var(--t3);line-height:1.7;padding:6px 0 24px;}
 .info-note{font-size:11px;color:var(--t3);line-height:1.7;margin-top:12px;padding-top:10px;border-top:1px solid var(--b);}
+#achv-card{padding:13px 15px;}
+.achv-lbl{font-size:11px;color:var(--t3);letter-spacing:.05em;margin-bottom:4px;}
+.achv-amt{font-size:19px;font-weight:800;color:var(--t1);line-height:1.2;}
+.achv-plus{color:var(--grn);margin-right:1px;}
+.achv-dur{font-size:12px;color:var(--t3);margin-top:4px;}
 .sec-proof{display:block;width:100%;border-radius:10px;border:1px solid var(--b);margin:10px 0 2px;}
 /* スコア設定: グループ＋○△✕配点 */
 .w-group{background:var(--card2);border:1px solid var(--b);border-radius:10px;padding:10px 11px;}
@@ -626,6 +631,8 @@ body{background:var(--bg);color:var(--t1);}
         </div>
       </div>
 
+      <div class="set-card" id="achv-card" style="display:none;"></div>
+
       <div class="set-card info-card">
         <div class="set-card-title"><span class="dh-i2"><svg class="dh-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><line x1="12" y1="11" x2="12" y2="16.5"></line><circle cx="12" cy="7.7" r="1" fill="currentColor" stroke="none"></circle></svg>このアプリについて</span></div>
         <div class="info-body" id="info-about"></div>
@@ -694,7 +701,7 @@ var SP=[
   {name:'Yama',handle:'yamacrypto',bg:'#ef6c00',img:null,ptG:2,ptM:1},
 ];
 var W={refa_g:2,refa_m:0,refa_b:0,low_g:1.5,low_m:0,low_b:0,qual_g:0,qual_m:0,qual_b:0,
-  w_sm:40,sm_full:12,w_ef:40,ef_full:25,et_full:3,w_deduct:20,d_m:4,d_b:7};
+  w_sm:35,sm_full:12,w_ef:35,ef_full:25,et_full:3,w_deduct:30,d_m:5,d_b:10};
 // 保存データからWを安全に読込（未定義キーはデフォルト維持、マイナス許容）
 function mergeW(src){
   if(!src||typeof src!=='object')return;
@@ -722,11 +729,11 @@ var INFO_DEFAULTS={
   seccheck:`このアプリは **Claude（Opus 4.8・最大設定）** を使い、繰り返しセキュリティチェックを実施しています。
 ✅ XSS（不正スクリプト）・外部への情報送信・ウォレット接続/送金などの観点を点検
 ※ 万全を期していますが、Web上のサービスである以上、絶対的な安全を保証するものではありません。`,
-  score:`次の要素を合計した独自指標です。
-**調達効率**：調達額÷参加者 と 調達額÷TVL の平均
-**強い人の言及度**：注目アカウントの言及
-**リファなし / 低資金向き / 運営の質**：○△✕評価
-カードの「詳細を見る」で履歴やFDV試算も確認できます。`,
+  score:`**期待値スコア（100点満点）**：3ブロックの合計です。
+**強い人の言及（35点）**：注目アカウントの言及状況。
+**調達効率（35点）**：調達額÷参加者 と 調達額÷TVL。基準値に達すると満点。
+**評価3項目（30点）**：リファ無・低資金向き・運営の質。各10点満点で、△や✕は減点。
+カードに表示している内訳の数字を足すと、そのまま期待値になります。`,
   glossary:`**TVL / Vol**：預けられた総額 or 取引高
 **FDV**：トークン全体の理論時価総額
 **削り**：手数料などで消費した額
@@ -753,6 +760,38 @@ function renderSecProof(){
   el.innerHTML=SEC_PROOF.map(function(d){
     return '<img class="sec-proof" src="'+esc(d)+'" alt="セキュリティチェックの記録">';
   }).join('');
+}
+// ── エアドロ実績カード（開始日・実績額。書込アプリから設定、未設定なら非表示） ──
+var ACHV={startDate:'',amount:''};
+function sanAchv(o){
+  var out={startDate:'',amount:''};
+  if(o&&typeof o==='object'){
+    if(typeof o.startDate==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(o.startDate))out.startDate=o.startDate;
+    if(typeof o.amount==='string')out.amount=clampStr(o.amount,40);
+  }
+  return out;
+}
+function achvDurTxt(){
+  if(!ACHV.startDate)return '';
+  var d0=new Date(ACHV.startDate+'T00:00:00');
+  var days=Math.floor((Date.now()-d0.getTime())/86400000);
+  if(!(days>=0))return '';
+  var tm=Math.floor(days/30.44);
+  if(tm<1)return '1ヶ月未満';
+  var y=Math.floor(tm/12),m=tm%12;
+  return (y>0?y+'年':'')+(m>0?m+'ヶ月':'');
+}
+function renderAchv(){
+  var el=document.getElementById('achv-card');
+  if(!el)return;
+  if(!ACHV.amount){el.style.display='none';return;}
+  var amt=ACHV.amount,head=amt.charAt(0);
+  var amtHtml=(head==='+'||head==='＋')?'<span class="achv-plus">＋</span>'+esc(amt.slice(1)):esc(amt);
+  var dur=achvDurTxt();
+  el.innerHTML='<div class="achv-lbl">エアドロ実績</div>'
+    +'<div class="achv-amt">'+amtHtml+'</div>'
+    +(dur?'<div class="achv-dur">歴 '+esc(dur)+'</div>':'');
+  el.style.display='block';
 }
 var EMOJI_ICON_MAP={'\u2705':'<svg class="in-ico" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M8 12.5l2.5 2.5L16 9.5"></path></svg>','\uD83D\uDCF5':'<svg class="in-ico" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><line x1="5.5" y1="18.5" x2="18.5" y2="5.5"></line></svg>','\uD83D\uDD12':'<svg class="in-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="9" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg>','\uD83D\uDD11':'<svg class="in-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="4.5"></circle><path d="M10.9 12.1L20 3"></path><path d="M16 7l3 3"></path><path d="M13 4l3 3"></path></svg>','\uD83D\uDD17':'<svg class="in-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>','\u26A0\uFE0F':'<svg class="in-ico" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l10 18H2L12 3z"></path><line x1="12" y1="10" x2="12" y2="14.5"></line><circle cx="12" cy="17.2" r="0.9" fill="#f59e0b" stroke="none"></circle></svg>','\u26A0':'<svg class="in-ico" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l10 18H2L12 3z"></path><line x1="12" y1="10" x2="12" y2="14.5"></line><circle cx="12" cy="17.2" r="0.9" fill="#f59e0b" stroke="none"></circle></svg>'};
 function emojiToIcon(line){
@@ -873,6 +912,7 @@ function applyLoadedData(d){
   if(typeof d.pid==='number'&&isFinite(d.pid))pid=d.pid;
   INFO=sanInfo(d.info);
   SEC_PROOF=sanSecProof(d.secProof);
+  ACHV=sanAchv(d.achv);
   // テーマはダークモード固定（保存値は反映しない）
 }
 // 起動時：クラウドから読み込むだけ（書き込みなし）
@@ -884,6 +924,7 @@ function initData(){
     renderUpdated();
     renderInfoText();
     renderSecProof();
+    renderAchv();
     return ok;
   });
 }
@@ -1380,17 +1421,13 @@ function renderList(id,mode){
     var s=score(p);
     var smS=(p.sm||[]).reduce(function(a,v,j){var q=SP[j];if(!q)return a;return a+(v==='g'?q.ptG:v==='m'?q.ptM:(q.ptB||0));},0);
     var perT_=depPeriodTxt(p);
-    var rPt=p.refa==='g'?W.refa_g:p.refa==='m'?W.refa_m:W.refa_b;
-    var lPt=p.low==='g'?W.low_g:p.low==='m'?W.low_m:W.low_b;
-    var qPt=(p.quality||'b')==='g'?W.qual_g:(p.quality||'b')==='m'?W.qual_m:W.qual_b;
-    var ef_v=(p.fund&&p.usr)?(p.fund/p.usr):null;
-    var et_v=(p.fund&&p.tvl)?(p.fund/p.tvl):null;
-    var eff_combined;
-    if(ef_v!=null&&et_v!=null)eff_combined=((ef_v+et_v)/2);
-    else if(ef_v!=null)eff_combined=ef_v;
-    else if(et_v!=null)eff_combined=et_v;
-    else eff_combined=null;
-    var eff_disp=eff_combined!=null?eff_combined.toFixed(1):'—';
+    var bd=scoreBreakdown(p);
+    var _per=(W.w_deduct||0)/3;
+    var rPt=_per-((p.refa==='g')?0:(p.refa==='m'?(W.d_m||0):(W.d_b||0)));
+    var lPt=_per-((p.low==='g')?0:(p.low==='m'?(W.d_m||0):(W.d_b||0)));
+    var qPt=_per-(((p.quality||'b')==='g')?0:((p.quality||'b')==='m'?(W.d_m||0):(W.d_b||0)));
+    var _hasEff=!!(p.fund&&(p.usr||p.tvl));
+    var eff_disp=_hasEff?(Math.round(bd.eff*10)/10).toString():'—';
 
     // Rank medal
     var rankCls=i===0?'rank-1':i===1?'rank-2':i===2?'rank-3':'rank-n';
@@ -1440,7 +1477,7 @@ function renderList(id,mode){
       +'<span class="pl-sep"></span>'
       +'<span class="pl-txt pl-sm">運営の質：'+msym(p.quality||'b')+' <span class="pv pv-'+((p.quality||'b')==='g'?'g':(p.quality||'b')==='m'?'m':'b')+'">'+fmtPt(qPt)+'</span></span>'
       +'<span class="pl-break"></span>'
-      +'<span class="pl-txt pl-sm">強い人の言及度：<span class="pv">'+smS+'</span></span>'
+      +'<span class="pl-txt pl-sm">強い人の言及度：<span class="pv">'+fmtPt(bd.sm)+'</span></span>'
       +(p.endDate&&Array.isArray(p.results)&&p.results.length?'<span class="pl-txt">エアドロ結果：🎁 <span class="pv">'+fmtResultTotal(p.results)+'</span>'+(p.results.length>1?'（'+p.results.length+'回）':'')+(fmtMultiple(p)?' <span class="apr-tag mul-tag">削り '+fmtMultiple(p)+'</span>':'')+(fmtApr(p)?' <span class="apr-tag">年利'+fmtApr(p)+'</span>':'')+'</span>':(p.endDate?'<span class="pl-txt">🏁 終了日：'+esc(p.endDate)+'</span>':''))
       +'</div>'
       +'<div class="sm-avs">'+smAvsHtml+'</div>'
@@ -1696,7 +1733,7 @@ function refreshFromCloud(opts){
     // 変化あり（または初回未取得）→ 全データを取り直して反映
     setCloudStatus('loading');
     return cloudLoad().then(function(ok){
-      if(ok){ renderTabs(); renderAll(); renderUpdated(); renderInfoText(); renderSecProof(); setCloudStatus('ok'); showToast('🔄 最新データに更新しました'); }
+      if(ok){ renderTabs(); renderAll(); renderUpdated(); renderInfoText(); renderSecProof(); renderAchv(); setCloudStatus('ok'); showToast('🔄 最新データに更新しました'); }
       else  { setCloudStatus('err'); }
       _refreshing=false;
     });
