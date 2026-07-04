@@ -470,7 +470,7 @@ body{background:var(--bg);color:var(--t1);}
 .info-hero-icon:active{transform:scale(.94);}
 .info-hero-title{font-size:21px;font-weight:800;color:var(--t1);}
 .info-hero-sub{font-size:12px;color:var(--t3);margin-top:4px;}
-.x-link{display:inline-flex;align-items:center;justify-content:center;gap:6px;margin-top:11px;cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none;}
+.x-link{display:inline-flex;align-items:center;justify-content:center;gap:6px;margin-top:6px;margin-bottom:8px;cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none;}
 .x-link-logo{width:14px;height:14px;flex-shrink:0;color:var(--t1);}
 .x-link-handle{font-size:14px;font-weight:700;color:#4aa3ff;text-decoration:underline;text-underline-offset:2px;}
 .x-link:active .x-link-handle{opacity:.6;}
@@ -490,8 +490,12 @@ body{background:var(--bg);color:var(--t1);}
 .info-note{font-size:11px;color:var(--t3);line-height:1.7;margin-top:12px;padding-top:10px;border-top:1px solid var(--b);}
 #achv-card{padding:13px 15px;}
 .achv-lbl{font-size:11px;color:var(--t3);letter-spacing:.03em;margin-bottom:5px;line-height:1.4;}
+.achv-lbl-hi{color:var(--t1);font-weight:700;}
 .achv-amt{font-size:16px;font-weight:700;color:var(--t1);line-height:1.2;}
 .achv-plus{color:var(--grn);margin-right:1px;}
+.strategy-bar{background:var(--card2);border-radius:12px;padding:12px 14px;margin:10px 12px 4px;box-shadow:var(--shadow);}
+.strategy-lbl{font-size:11px;color:var(--t3);letter-spacing:.03em;margin-bottom:5px;line-height:1.4;}
+.strategy-txt{font-size:13px;color:var(--t1);line-height:1.7;white-space:pre-wrap;word-break:break-word;}
 .sec-proof{display:block;width:100%;border-radius:10px;border:1.5px solid rgba(255,255,255,.22);margin:10px 0 2px;}
 .task-img{display:block;width:100%;border-radius:10px;border:1.5px solid rgba(255,255,255,.22);margin:10px 0;}
 /* スコア設定: グループ＋○△✕配点 */
@@ -604,7 +608,7 @@ body{background:var(--bg);color:var(--t1);}
   <div class="updated-bar" id="updated-bar" style="display:none;"></div>
 
   <div class="view active" id="view-active">
-    <div class="scroll-area"><div class="content"><div class="card-list" id="list-active"></div><div class="bnav-spacer" aria-hidden="true"></div></div></div>
+    <div class="scroll-area"><div class="content"><div class="strategy-bar" id="strategy-bar" style="display:none;"></div><div class="card-list" id="list-active"></div><div class="bnav-spacer" aria-hidden="true"></div></div></div>
   </div>
   <div class="view" id="view-all">
     <div class="scroll-area"><div class="content">
@@ -771,6 +775,17 @@ function sanAchv(o){
   }
   return out;
 }
+// 「今の戦略」固定カード（ホーム上部・データ最終更新の下に常時表示。書込アプリで編集）
+var STRATEGY='';
+function sanStrategy(v){ return typeof v==='string'?clampStr(v,300):''; }
+function renderStrategy(){
+  var el=document.getElementById('strategy-bar');
+  if(!el)return;
+  if(!STRATEGY){el.style.display='none';return;}
+  el.innerHTML='<div class="strategy-lbl">📌 今の戦略</div><div class="strategy-txt">'+esc(STRATEGY)+'</div>';
+  el.style.display='block';
+}
+
 function achvDurTxt(){
   if(!ACHV.startDate)return '';
   var d0=new Date(ACHV.startDate+'T00:00:00');
@@ -790,7 +805,7 @@ function renderAchv(){
   var dur=achvDurTxt();
   var today=new Date();
   var todayTxt=today.getFullYear()+'/'+(today.getMonth()+1)+'/'+today.getDate();
-  var lbl=todayTxt+'時点　エアドロ実績'+(dur?'　歴'+esc(dur):'');
+  var lbl='<span class="achv-lbl-hi">エアドロ実績</span>'+(dur?'　歴'+esc(dur):'')+'　'+todayTxt+'時点';
   el.innerHTML='<div class="achv-lbl">'+lbl+'</div>'
     +'<div class="achv-amt">'+amtHtml+'</div>';
   el.style.display='block';
@@ -915,6 +930,7 @@ function applyLoadedData(d){
   INFO=sanInfo(d.info);
   SEC_PROOF=sanSecProof(d.secProof);
   ACHV=sanAchv(d.achv);
+  STRATEGY=sanStrategy(d.strategy);
   // テーマはダークモード固定（保存値は反映しない）
 }
 // 起動時：クラウドから読み込むだけ（書き込みなし）
@@ -927,6 +943,7 @@ function initData(){
     renderInfoText();
     renderSecProof();
     renderAchv();
+    renderStrategy();
     return ok;
   });
 }
@@ -1761,7 +1778,7 @@ function refreshFromCloud(opts){
     // 変化あり（または初回未取得）→ 全データを取り直して反映
     setCloudStatus('loading');
     return cloudLoad().then(function(ok){
-      if(ok){ renderTabs(); renderAll(); renderUpdated(); renderInfoText(); renderSecProof(); renderAchv(); setCloudStatus('ok'); showToast('🔄 最新データに更新しました'); }
+      if(ok){ renderTabs(); renderAll(); renderUpdated(); renderInfoText(); renderSecProof(); renderAchv(); renderStrategy(); setCloudStatus('ok'); showToast('🔄 最新データに更新しました'); }
       else  { setCloudStatus('err'); }
       _refreshing=false;
     });
