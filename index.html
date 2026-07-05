@@ -1664,15 +1664,17 @@ function earlyHtml(p){
   if(!p.earlyStart)return '';
   function fmtD(d){return d.getFullYear()+'/'+(d.getMonth()+1)+'/'+d.getDate();}
   var d0=new Date(p.earlyStart+'T00:00:00');
-  // 終了予定日が未入力：開始日だけの簡易表示（バー・進行度は出せない）。経過期間は月表示。
+  // 終了予定日が未入力：経過期間から簡易判定（3ヶ月以下=○序盤/半年経過=△中盤/1年以上=×終盤）
   if(!p.earlyEnd){
     var elapsedDays=Math.max(0,Math.floor((Date.now()-d0.getTime())/86400000));
-    var tm=Math.floor(elapsedDays/30.44);
-    var ey=Math.floor(tm/12),em=tm%12;
-    var elapsedTxt=(ey>0?ey+'年':'')+(em>0?em+'ヶ月':(ey>0?'':'1ヶ月未満'));
+    var elapsedMonths=elapsedDays/30.44;
+    var emk = elapsedMonths<=3?'<span class="tge-g"><span class="tge-ico">○</span> 序盤</span>' : elapsedMonths<12?'<span class="tge-m"><span class="tge-ico">△</span> 中盤</span>' : '<span class="tge-b"><span class="tge-ico">✕</span> 終盤</span>';
+    var tmE=Math.floor(elapsedDays/30.44);
+    var eyE=Math.floor(tmE/12),emE=tmE%12,ewE=Math.round((elapsedDays-tmE*30.44)/7);
+    var elapsedTxt=(eyE>0?eyE+'年':'')+(emE>0?emE+'ヶ月':'')+(ewE>0?ewE+'週':'')||'1週未満';
     return '<div class="early-wrap">'
-      +'<div class="early-top"><span class="early-lbl">アーリー度：不明</span><span class="early-wk">'+elapsedTxt+' 経過</span></div>'
-      +'<div class="early-dates"><span class="early-date-w">開始 '+fmtD(d0)+'</span><span class="early-date-w">終了日 未設定</span></div>'
+      +'<div class="early-top"><span class="early-lbl">アーリー度：</span>'+emk+'<span class="early-sep"></span><span class="early-wk">開始から'+elapsedTxt+' 経過</span></div>'
+      +'<div class="early-dates"><span class="early-date-w">開始 '+fmtD(d0)+'</span><span class="early-date-w">終了 不明</span></div>'
       +'</div>';
   }
   var d1=new Date(p.earlyEnd+'T00:00:00');
