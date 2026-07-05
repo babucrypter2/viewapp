@@ -829,7 +829,7 @@ function renderAchv(){
   var today=new Date();
   var todayTxt=today.getFullYear()+'/'+(today.getMonth()+1)+'/'+today.getDate();
   el.innerHTML='<div class="achv-line">'
-    +'<span class="achv-lbl-hi">エアドロ実績</span>'
+    +'<span class="achv-lbl-hi">エアドロ実績：</span>'
     +'<span class="achv-amt">'+esc(amt)+'</span>'
     +'<span class="early-sep"></span>'
     +(dur?'<span class="achv-sub">歴'+esc(dur)+'</span>':'')
@@ -1556,18 +1556,6 @@ function renderList(id,mode){
       +'<div class="detail-sec">'
       +'<div class="detail-h"><span class="dh-i">'+ICO.clip+'やってること</span></div>'
       +'<div class="detail-txt">'+renderTaskHtml(p)+'</div>'
-      +'</div>'
-      +'<div class="detail-sec">'
-      +'<div class="detail-h"><span class="dh-i">'+ICO.link+'紹介リンク（リファラル）</span></div>'
-      +(p.postUrl
-        ?'<div class="ref-box">'
-          +'<button class="ref-link" data-url="'+esc(p.postUrl)+'" onclick="event.stopPropagation();askRef(this)"><span class="ref-u">'+esc(p.postUrl)+'</span></button>'
-          +'<div class="ref-btns">'
-          +'<button class="ref-copy" data-url="'+esc(p.postUrl)+'" onclick="event.stopPropagation();copyRef(this)">🔗 リンクをコピー</button>'
-          +'<button class="ref-open" data-url="'+esc(p.postUrl)+'" onclick="event.stopPropagation();askRef(this)">リンクを開く ›</button>'
-          +'</div>'
-        +'</div>'
-        :'<div class="detail-txt"><span style="color:var(--t3);">紹介リンクは未登録です</span></div>')
       +'</div>'
       +fdvTableHtml(p)
       +'<button class="detail-close" onclick="event.stopPropagation();toggleDetail(\''+mode+'\','+idx+')">閉じる ▲</button>'
