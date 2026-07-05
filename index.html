@@ -508,14 +508,15 @@ body{background:var(--bg);color:var(--t1);}
 .safe-ico{flex-shrink:0;font-size:14px;}
 .info-foot{text-align:center;font-size:11px;color:var(--t3);line-height:1.7;padding:6px 0 24px;}
 .info-note{font-size:11px;color:var(--t3);line-height:1.7;margin-top:12px;padding-top:10px;border-top:1px solid var(--b);}
-#achv-card{padding:13px 15px;}
-.achv-lbl{font-size:11px;color:var(--t3);letter-spacing:.03em;margin-bottom:5px;line-height:1.4;}
-.achv-lbl-hi{color:var(--t1);font-weight:700;}
-.achv-amt{font-size:16px;font-weight:700;color:var(--t1);line-height:1.2;}
-.achv-plus{color:var(--grn);margin-right:1px;}
-.strategy-bar{background:var(--card2);border:1px solid var(--bb);border-radius:13px;padding:9px 13px 11px;margin:0 12px 4px;box-shadow:0 2px 6px rgba(0,0,0,.22);}
-.strategy-bar .detail-h{margin:-9px -13px 7px;padding:8px 13px 6px;font-size:13.5px;}
-.strategy-txt{font-size:12.5px;color:var(--t1);line-height:1.55;white-space:pre-wrap;word-break:break-word;}
+#achv-card{padding:11px 15px;}
+.achv-line{display:flex;align-items:baseline;gap:8px;flex-wrap:nowrap;white-space:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;font-size:11px;}
+.achv-line::-webkit-scrollbar{display:none;}
+.achv-lbl-hi{color:var(--t1);font-weight:700;flex-shrink:0;}
+.achv-amt{font-size:15px;font-weight:800;color:var(--t1);flex-shrink:0;}
+.achv-sub{color:var(--t3);flex-shrink:0;}
+.strategy-bar{background:var(--card2);border:1px solid var(--bb);border-radius:13px;padding:8px 10px 9px;margin:0 0 8px;box-shadow:0 2px 6px rgba(0,0,0,.22);}
+.strategy-bar .detail-h{margin:-8px -10px 6px;padding:7px 10px 5px;font-size:13px;}
+.strategy-txt{font-size:12px;color:var(--t1);line-height:1.45;white-space:pre-wrap;word-break:break-word;}
 .sec-proof{display:block;width:100%;border-radius:10px;border:1.5px solid rgba(255,255,255,.22);margin:10px 0 2px;}
 .task-img{display:block;width:100%;border-radius:10px;border:1.5px solid rgba(255,255,255,.22);margin:10px 0;}
 /* スコア設定: グループ＋○△✕配点 */
@@ -823,14 +824,17 @@ function renderAchv(){
   var el=document.getElementById('achv-card');
   if(!el)return;
   if(!ACHV.amount){el.style.display='none';return;}
-  var amt=ACHV.amount,head=amt.charAt(0);
-  var amtHtml=(head==='+'||head==='＋')?'<span class="achv-plus">＋</span>'+esc(amt.slice(1)):esc(amt);
+  var amt=ACHV.amount;
   var dur=achvDurTxt();
   var today=new Date();
   var todayTxt=today.getFullYear()+'/'+(today.getMonth()+1)+'/'+today.getDate();
-  var lbl='<span class="achv-lbl-hi">エアドロ実績</span>'+(dur?'　歴'+esc(dur):'')+'　'+todayTxt+'時点';
-  el.innerHTML='<div class="achv-lbl">'+lbl+'</div>'
-    +'<div class="achv-amt">'+amtHtml+'</div>';
+  el.innerHTML='<div class="achv-line">'
+    +'<span class="achv-lbl-hi">エアドロ実績</span>'
+    +'<span class="achv-amt">'+esc(amt)+'</span>'
+    +'<span class="early-sep"></span>'
+    +(dur?'<span class="achv-sub">歴'+esc(dur)+'</span>':'')
+    +'<span class="achv-sub">'+todayTxt+'時点</span>'
+    +'</div>';
   el.style.display='block';
 }
 var EMOJI_ICON_MAP={'\u2705':'<svg class="in-ico" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M8 12.5l2.5 2.5L16 9.5"></path></svg>','\uD83D\uDCF5':'<svg class="in-ico" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><line x1="5.5" y1="18.5" x2="18.5" y2="5.5"></line></svg>','\uD83D\uDD12':'<svg class="in-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="9" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg>','\uD83D\uDD11':'<svg class="in-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="4.5"></circle><path d="M10.9 12.1L20 3"></path><path d="M16 7l3 3"></path><path d="M13 4l3 3"></path></svg>','\uD83D\uDD17':'<svg class="in-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>','\u26A0\uFE0F':'<svg class="in-ico" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l10 18H2L12 3z"></path><line x1="12" y1="10" x2="12" y2="14.5"></line><circle cx="12" cy="17.2" r="0.9" fill="#f59e0b" stroke="none"></circle></svg>','\u26A0':'<svg class="in-ico" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l10 18H2L12 3z"></path><line x1="12" y1="10" x2="12" y2="14.5"></line><circle cx="12" cy="17.2" r="0.9" fill="#f59e0b" stroke="none"></circle></svg>'};
