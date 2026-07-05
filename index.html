@@ -195,6 +195,18 @@ body{background:var(--bg);color:var(--t1);}
 .pj-meta1{display:flex;align-items:center;gap:5px;font-size:11px;line-height:1.2;white-space:nowrap;}
 .pj-meta2{font-size:11px;line-height:1.2;white-space:nowrap;}
 .pj-meta3{font-size:11px;line-height:1.2;white-space:nowrap;}
+.tge-g{color:#34D17B;font-weight:800;}
+.tge-m{color:#f5c542;font-weight:800;}
+.tge-b{color:#ff5c5c;font-weight:800;}
+
+.early-wrap{margin:8px 0 2px;padding:8px 10px;background:rgba(255,255,255,.06);border-radius:9px;}
+.early-top{font-size:11px;color:var(--t1);display:flex;align-items:center;gap:6px;flex-wrap:wrap;line-height:1.3;}
+.early-lbl{color:var(--t1);font-weight:600;}
+.early-pct{color:var(--t1);font-weight:700;}
+.early-wk{color:var(--t1);font-weight:600;margin-left:4px;}
+.early-track{height:6px;background:rgba(255,255,255,.14);border-radius:3px;overflow:hidden;margin-top:6px;}
+.early-fill{height:100%;background:linear-gradient(90deg,#34D17B,#5FB98D);border-radius:3px;}
+.early-dates{display:flex;justify-content:space-between;font-size:9.5px;color:var(--t1);margin-top:4px;}
 .pj-lbl{color:var(--t1);font-weight:600;}
 .pj-stars{display:inline-flex;}
 .pj-star{font-size:11px;color:var(--t3);}
@@ -591,6 +603,9 @@ body{background:var(--bg);color:var(--t1);}
   <div class="topbar">
     <div class="topbar-title" id="ttl"><svg class="bni-svg" viewBox="0 0 24 24" fill="none" stroke="#ff7a1a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 17a2.5 2.5 0 0 0 2.5-2.5c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7.5 7.5 0 1 1-15 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg>仕込み中</div>
     <span class="cloud-status cs-loading" id="cloud-status"></span>
+    <div class="sort-wrap" id="cat-wrap">
+      <select class="sort-sel" id="cat-sel" onchange="setCatFilter(this.value)"><option value="">全カテゴリ</option></select>
+    </div>
     <div class="sort-wrap" id="sort-wrap">
       <span class="sort-ico">⇅</span>
       <span class="sort-lbl">並び替え</span>
@@ -944,6 +959,7 @@ function initData(){
     renderSecProof();
     renderAchv();
     renderStrategy();
+    populateCatFilter();
     return ok;
   });
 }
@@ -996,6 +1012,9 @@ function sanProj(o,spLen){
     aType:(o.aType==='burn'?'burn':'stake'),
     burnUsd:Math.max(0,num(o.burnUsd)),
     quality:sanMark(o.quality),
+    tge:(o.tge==='g'||o.tge==='m'||o.tge==='b')?o.tge:'',
+    earlyStart:/^\d{4}-\d{2}-\d{2}$/.test(o.earlyStart)?o.earlyStart:null,
+    earlyEnd:/^\d{4}-\d{2}-\d{2}$/.test(o.earlyEnd)?o.earlyEnd:null,
     totalPts:Math.max(0,num(o.totalPts)),
     myPts:Math.max(0,num(o.myPts)),
     allocPct:Math.max(0,num(o.allocPct)),
@@ -1426,7 +1445,6 @@ function flist(mode){
   else if(mode==='ended')list=PROJ.filter(function(p){return!!p.endDate;});
   else {
     list=PROJ.filter(function(p){
-      if(curF!=='all'&&p.cat!==curF)return false;
       var isActive=isActiveProj(p);
       var isEnded=!!p.endDate;
       if(isActive&&!showActive)return false;
@@ -1434,6 +1452,8 @@ function flist(mode){
       return true;
     });
   }
+  // カテゴリ絞り込み（全タブ共通。空=全カテゴリ）
+  if(curF&&curF!=='all')list=list.filter(function(p){return p.cat===curF;});
   return list.slice().sort(function(a,b){return sortVal(b)-sortVal(a);});
 }
 function toggleHideActive(cb){showActive=cb.checked;renderList('list-all','all');}
@@ -1483,9 +1503,11 @@ function renderList(id,mode){
       +'<div class="pj-meta1"><span class="pj-lbl">仕込みLv</span><span class="pj-stars">'+starsHtml(p.lv||0)+'</span></div>'
       +'<div class="pj-meta2"><span class="pj-lbl">仕込み額</span> '+stakeHtml+'</div>'
       +(burn_>0?'<div class="pj-meta3"><span class="pj-lbl">削り額</span> <span class="pj-dv pj-burn">🔥'+fmtU(burn_)+'</span></div>':'')
+      +(p.tge?'<div class="pj-meta3"><span class="pj-lbl">TGE予定</span> <span class="pj-dv">'+tgeSym(p.tge)+'</span></div>':'')
       +'</div>'
       +'<div class="sc-wrap"><div class="sc-lbl">期待値</div><div class="sc-val '+scCls(s)+' '+(String(s).length>=5?'sc-sm':'')+'">'+s+'<span class="sc-max">/'+scoreMax()+'</span></div></div>'
       +'</div>'
+      +earlyHtml(p)
 
       // ── Row 2: stats (調達額 TVL 参加者) + eff number (no label) ──
       +'<div class="card-r2">'
@@ -1622,6 +1644,44 @@ function renderTaskHtml(p){
   flush();
   return html;
 }
+// TGE予定の記号（○有/△匂わせ/×無、未設定は空）
+function tgeSym(v){
+  if(v==='g')return '<span class="tge-g"><span class="tge-ico">○</span> 有</span>';
+  if(v==='m')return '<span class="tge-m"><span class="tge-ico">△</span> 匂わせ</span>';
+  if(v==='b')return '<span class="tge-b"><span class="tge-ico">✕</span> 無</span>';
+  return '';
+}
+// アーリー度：開始〜終了予定に対する現在位置を横帯で可視化（コンパクト）
+function earlyHtml(p){
+  if(!p.earlyStart)return '';
+  function fmtD(d){return d.getFullYear()+'/'+(d.getMonth()+1)+'/'+d.getDate();}
+  var d0=new Date(p.earlyStart+'T00:00:00');
+  // 終了予定日が未入力：開始日だけの簡易表示（バー・進行度は出せない）。経過期間は月表示。
+  if(!p.earlyEnd){
+    var elapsedDays=Math.max(0,Math.floor((Date.now()-d0.getTime())/86400000));
+    var tm=Math.floor(elapsedDays/30.44);
+    var ey=Math.floor(tm/12),em=tm%12;
+    var elapsedTxt=(ey>0?ey+'年':'')+(em>0?em+'ヶ月':(ey>0?'':'1ヶ月未満'));
+    return '<div class="early-wrap">'
+      +'<div class="early-top"><span class="early-lbl">アーリー度：不明</span><span class="early-wk">'+elapsedTxt+' 経過</span></div>'
+      +'<div class="early-dates"><span class="early-date-w">開始 '+fmtD(d0)+'</span><span class="early-date-w">終了日 未設定</span></div>'
+      +'</div>';
+  }
+  var d1=new Date(p.earlyEnd+'T00:00:00');
+  var t0=d0.getTime(),t1=d1.getTime(),now=Date.now();
+  if(!(t1>t0))return '';
+  var totalW=Math.max(1,Math.round((t1-t0)/(7*86400000)));
+  var curW=Math.floor((now-t0)/(7*86400000));
+  var pct=Math.max(0,Math.min(100,Math.round((now-t0)/(t1-t0)*100)));
+  var curWClamped=Math.max(0,Math.min(totalW,curW));
+  // アーリー度の評価：序盤ほどアーリー（○）、終盤は×（TGE予定と同じ配色・記号に統一）
+  var mark = pct<33?'<span class="tge-g"><span class="tge-ico">○</span> 序盤</span>' : pct<70?'<span class="tge-m"><span class="tge-ico">△</span> 中盤</span>' : '<span class="tge-b"><span class="tge-ico">✕</span> 終盤</span>';
+  return '<div class="early-wrap">'
+    +'<div class="early-top"><span class="early-lbl">アーリー度</span> '+mark+' <span class="early-pct">進行'+pct+'%</span> <span class="early-wk">'+curWClamped+'週 / '+totalW+'週</span></div>'
+    +'<div class="early-track"><div class="early-fill" style="width:'+pct+'%;"></div></div>'
+    +'<div class="early-dates"><span class="early-date-w">開始 '+fmtD(d0)+'</span><span class="early-date-w">終了 '+fmtD(d1)+'</span></div>'
+    +'</div>';
+}
 function copyRefFromModal(){ if(_refURL)copyToClip(_refURL); cm('m-ref'); }
 function copyRef(btn){
   var u=btn.getAttribute('data-url')||'';
@@ -1710,6 +1770,15 @@ function setSort(v){
   sortBy=v;
   renderAll();
 }
+// カテゴリ絞り込み（ヘッダーのプルダウン。全タブ共通）
+function setCatFilter(v){ curF=v||'all'; renderAll(); }
+function populateCatFilter(){
+  var sel=document.getElementById('cat-sel');if(!sel)return;
+  var cur=curF&&curF!=='all'?curF:'';
+  var html='<option value="">全カテゴリ</option>';
+  CATS.forEach(function(c){ html+='<option value="'+esc(c)+'"'+(c===cur?' selected':'')+'>'+esc(c)+'</option>'; });
+  sel.innerHTML=html;
+}
 function setF(cat){
   curF=cat;
   renderTabs();
@@ -1778,7 +1847,7 @@ function refreshFromCloud(opts){
     // 変化あり（または初回未取得）→ 全データを取り直して反映
     setCloudStatus('loading');
     return cloudLoad().then(function(ok){
-      if(ok){ renderTabs(); renderAll(); renderUpdated(); renderInfoText(); renderSecProof(); renderAchv(); renderStrategy(); setCloudStatus('ok'); showToast('🔄 最新データに更新しました'); }
+      if(ok){ renderTabs(); renderAll(); renderUpdated(); renderInfoText(); renderSecProof(); renderAchv(); renderStrategy(); populateCatFilter(); setCloudStatus('ok'); showToast('🔄 最新データに更新しました'); }
       else  { setCloudStatus('err'); }
       _refreshing=false;
     });
