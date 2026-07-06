@@ -206,6 +206,7 @@ body{background:var(--bg);color:var(--t1);}
 .tge-g{color:#34D17B;font-weight:800;}
 .tge-m{color:#f5c542;font-weight:800;}
 .tge-b{color:#ff5c5c;font-weight:800;}
+.tge-ico-o{-webkit-text-stroke:0.6px currentColor;}
 
 .early-wrap{margin:0 0 2px;padding:8px 9px;background:rgba(255,255,255,.06);border-radius:9px;}
 .early-top{font-size:10.5px;color:var(--t1);display:flex;align-items:baseline;gap:9px;flex-wrap:nowrap;line-height:1.3;white-space:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;}
@@ -279,6 +280,7 @@ body{background:var(--bg);color:var(--t1);}
 .pl-txt .pv.pv-m{color:#f5c542;}
 .pl-txt .pv.pv-b{color:#ff5c5c;}
 .ms{font-weight:800;}
+.ms-o{-webkit-text-stroke:0.5px currentColor;}
 .ms-g{color:#34D17B;}
 .ms-m{color:#f5c542;}
 .ms-b{color:#ff5c5c;}
@@ -367,6 +369,7 @@ body{background:var(--bg);color:var(--t1);}
 /* 言及マーク（アイコンの下に表示） */
 .sm-item{display:flex;flex-direction:column;align-items:center;gap:3px;flex-shrink:0;}
 .sm-item .sm-badge{font-size:12px;font-weight:900;line-height:1;}
+.sm-badge-o{-webkit-text-stroke:0.5px currentColor;}
 .sm-item.av-g .sm-badge{color:var(--grn);}
 .sm-item.av-m .sm-badge{color:var(--ylw);}
 .sm-item.av-b .sm-badge{color:var(--red);}
@@ -1205,7 +1208,7 @@ function scCls(s){var m=scoreMax()||100;var pct=s/m*100;return pct>=75?'c-g':pct
 function fmtPt(v){var n=num(v);return (Math.round(n*100)/100).toString();}
 // スコア内訳表示専用：小数点を四捨五入して整数化
 function fmtPtR(v){return Math.round(num(v)).toString();}
-function msym(v){var s=v==='g'?'○':v==='m'?'△':'✕';var c=v==='g'?'ms-g':v==='m'?'ms-m':'ms-b';return '<span class="ms '+c+'">'+s+'</span>';}
+function msym(v){var s=v==='g'?'○':v==='m'?'△':'✕';var c=v==='g'?'ms-g':v==='m'?'ms-m':'ms-b';var o=(v==='g'||v==='m')?' ms-o':'';return '<span class="ms '+c+o+'">'+s+'</span>';}
 function plCls(v){return v==='g'?'pl-g':v==='m'?'pl-m':'pl-b';}
 function ini(s){return(s||'?')[0].toUpperCase();}
 
@@ -1540,13 +1543,14 @@ function smAvHtml(per,v,sz){
   sz=sz||26;
   var cls=v==='g'?'av-g':v==='m'?'av-m':'av-b';
   var badge=v==='g'?'○':v==='m'?'△':'✕';
+  var badgeCls=(v==='g'||v==='m')?' sm-badge-o':'';
   var bg=safeColor(per&&per.bg);
   var img=safeImg(per&&per.img);
   var inner=img?'<img src="'+esc(img)+'" style="width:100%;height:100%;object-fit:cover;">':
     '<span style="font-size:'+(sz*.38)+'px;font-weight:700;color:#fff;">'+esc(ini(per.name||per.handle))+'</span>';
   return '<div class="sm-item '+cls+'" title="@'+esc(safeHandle(per.handle))+'">'
     +'<div class="sm-av '+cls+'" style="background:'+bg+';width:'+sz+'px;height:'+sz+'px;">'+inner+'</div>'
-    +'<span class="sm-badge">'+badge+'</span>'
+    +'<span class="sm-badge'+badgeCls+'">'+badge+'</span>'
     +'</div>';
 }
 
@@ -1629,7 +1633,7 @@ function renderList(id,mode){
       +'<div class="pj-meta1"><span class="pj-lbl-row">仕込みLv：</span><span class="pj-stars">'+starsHtml(p.lv||0)+'</span></div>'
       +'<div class="pj-meta2"><span class="pj-lbl-row">仕込み額：</span> '+stakeHtml+'</div>'
       +(burn_>0?'<div class="pj-meta3"><span class="pj-lbl-row">削り額：</span> <span class="pj-dv pj-burn">'+fmtU(burn_)+'</span></div>':'')
-      +(p.tge&&!p.earlyStart?'<div class="pj-meta3"><span class="pj-lbl-row">TGE：</span> <span class="pj-dv">'+tgeSym(p.tge)+'</span></div>':'')
+      +(p.tge&&!p.earlyStart?'<div class="pj-meta3"><span class="pj-lbl-row">TGE予定：</span> <span class="pj-dv">'+tgeSym(p.tge)+'</span></div>':'')
       +'</div>'
       +'<div class="sc-wrap"><div class="sc-lbl">期待値</div><div class="sc-val '+scCls(s)+' '+(String(s).length>=5?'sc-sm':'')+'">'+s+'<span class="sc-max">/'+scoreMax()+'</span></div></div>'
       +'</div>'
@@ -1760,8 +1764,8 @@ function renderTaskHtml(p){
 }
 // TGE予定の記号（○有/△匂わせ/×無、未設定は空）
 function tgeSym(v){
-  if(v==='g')return '<span class="tge-g"><span class="tge-ico">○</span> 有</span>';
-  if(v==='m')return '<span class="tge-m"><span class="tge-ico">△</span> 匂わせ</span>';
+  if(v==='g')return '<span class="tge-g"><span class="tge-ico tge-ico-o">○</span> 有</span>';
+  if(v==='m')return '<span class="tge-m"><span class="tge-ico tge-ico-o">△</span> 匂わせ</span>';
   if(v==='b')return '<span class="tge-b"><span class="tge-ico">✕</span> 無</span>';
   return '';
 }
@@ -1769,13 +1773,13 @@ function tgeSym(v){
 function earlyHtml(p){
   if(!p.earlyStart)return '';
   function fmtD(d){return d.getFullYear()+'/'+(d.getMonth()+1)+'/'+d.getDate();}
-  var tgeTail=p.tge?'<span class="early-sep"></span><span class="early-wk">TGE：</span>'+tgeSym(p.tge):'';
+  var tgeTail=p.tge?'<span class="early-sep"></span><span class="early-wk">TGE予定：</span>'+tgeSym(p.tge):'';
   var d0=new Date(p.earlyStart+'T00:00:00');
   // 終了予定日が未入力：経過期間から簡易判定（3ヶ月以下=○序盤/半年経過=△中盤/1年以上=×終盤）
   if(!p.earlyEnd){
     var elapsedDays=Math.max(0,Math.floor((Date.now()-d0.getTime())/86400000));
     var elapsedMonths=elapsedDays/30.44;
-    var emk = elapsedMonths<=6?'<span class="tge-g"><span class="tge-ico">○</span> 序盤</span>' : elapsedMonths<12?'<span class="tge-m"><span class="tge-ico">△</span> 中盤</span>' : '<span class="tge-b"><span class="tge-ico">✕</span> 終盤</span>';
+    var emk = elapsedMonths<=6?'<span class="tge-g"><span class="tge-ico tge-ico-o">○</span> 序盤</span>' : elapsedMonths<12?'<span class="tge-m"><span class="tge-ico tge-ico-o">△</span> 中盤</span>' : '<span class="tge-b"><span class="tge-ico">✕</span> 終盤</span>';
     var tmE=Math.floor(elapsedDays/30.44);
     var eyE=Math.floor(tmE/12),emE=tmE%12,ewE=Math.round(elapsedDays/7);
     var elapsedTxt=(eyE>0?eyE+'年':'')+(emE>0?emE+'ヶ月':'')||(ewE>0?ewE+'週':'1週未満');
@@ -1792,7 +1796,7 @@ function earlyHtml(p){
   var pct=Math.max(0,Math.min(100,Math.round((now-t0)/(t1-t0)*100)));
   var curWClamped=Math.max(0,Math.min(totalW,curW));
   // アーリー度の評価：序盤ほどアーリー（○）、終盤は×（TGE予定と同じ配色・記号に統一）
-  var mark = pct<33?'<span class="tge-g"><span class="tge-ico">○</span> 序盤</span>' : pct<70?'<span class="tge-m"><span class="tge-ico">△</span> 中盤</span>' : '<span class="tge-b"><span class="tge-ico">✕</span> 終盤</span>';
+  var mark = pct<33?'<span class="tge-g"><span class="tge-ico tge-ico-o">○</span> 序盤</span>' : pct<70?'<span class="tge-m"><span class="tge-ico tge-ico-o">△</span> 中盤</span>' : '<span class="tge-b"><span class="tge-ico">✕</span> 終盤</span>';
   // 残り期間（日数→年月換算。終了済みなら「終了」表示）
   var remDays=Math.round((t1-now)/86400000);
   var remTxt;
