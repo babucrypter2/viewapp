@@ -170,7 +170,7 @@ body{background:var(--bg);color:var(--t1);}
 .pj-row2{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;}
 
 /* name + meta block — takes remaining space */
-.pj-inf{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:4px;}
+.pj-inf{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:flex-start;gap:4px;}
 .card-r1b{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;margin-top:9px;}
 .pj-nmr{display:flex;align-items:center;gap:8px;margin-bottom:1px;}
 .pj-ttl{flex:1;min-width:0;line-height:1.25;}
@@ -207,7 +207,7 @@ body{background:var(--bg);color:var(--t1);}
 .tge-m{color:#f5c542;font-weight:800;}
 .tge-b{color:#ff5c5c;font-weight:800;}
 
-.early-wrap{margin:8px 0 2px;padding:8px 9px;background:rgba(255,255,255,.06);border-radius:9px;}
+.early-wrap{margin:6px 0 2px;padding:8px 9px;background:rgba(255,255,255,.06);border-radius:9px;}
 .early-top{font-size:10.5px;color:var(--t1);display:flex;align-items:baseline;gap:6px;flex-wrap:nowrap;line-height:1.3;white-space:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;}
 .early-top::-webkit-scrollbar{display:none;}
 .early-lbl{color:var(--t1);font-weight:600;flex-shrink:0;}
@@ -1801,7 +1801,7 @@ function earlyHtml(p){
     var rtm=Math.floor(remDays/30.44);
     var rw=Math.round((remDays-rtm*30.44)/7);
     if(rw>=4){rtm+=1;rw=0;}
-    remTxt=(rtm>0?rtm+'ヶ月':'')+(rw>0?rw+'週':(rtm>0?'':'1週未満'));
+    remTxt=rtm>0?(rtm+'ヶ月'):(rw>0?(rw+'週'):'1週未満');
   }
   // 上段は状態＋残りのみ（週内訳は下段の進行%に集約して1行に収める）
   var topInner=remDays<=0?'<span class="early-wk">終了</span>':'<span class="early-wk">残り：'+remTxt+'</span>';
