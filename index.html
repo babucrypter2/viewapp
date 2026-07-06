@@ -1664,7 +1664,7 @@ function earlyHtml(p){
   if(!p.earlyEnd){
     var elapsedDays=Math.max(0,Math.floor((Date.now()-d0.getTime())/86400000));
     var elapsedMonths=elapsedDays/30.44;
-    var emk = elapsedMonths<=3?'<span class="tge-g"><span class="tge-ico">○</span> 序盤</span>' : elapsedMonths<12?'<span class="tge-m"><span class="tge-ico">△</span> 中盤</span>' : '<span class="tge-b"><span class="tge-ico">✕</span> 終盤</span>';
+    var emk = elapsedMonths<=6?'<span class="tge-g"><span class="tge-ico">○</span> 序盤</span>' : elapsedMonths<12?'<span class="tge-m"><span class="tge-ico">△</span> 中盤</span>' : '<span class="tge-b"><span class="tge-ico">✕</span> 終盤</span>';
     var tmE=Math.floor(elapsedDays/30.44);
     var eyE=Math.floor(tmE/12),emE=tmE%12,ewE=Math.round((elapsedDays-tmE*30.44)/7);
     var elapsedTxt=(eyE>0?eyE+'年':'')+(emE>0?emE+'ヶ月':'')+(ewE>0?ewE+'週':'')||'1週未満';
