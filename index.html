@@ -525,17 +525,15 @@ body{background:var(--bg);color:var(--t1);}
 .achv-toggle.open{background:var(--acc);border-color:var(--acc);}
 .achv-toggle.open .dt-arrow{transform:rotate(180deg);}
 .achv-rank-list{margin-top:10px;display:flex;flex-direction:column;gap:6px;animation:detailIn .2s ease;}
-.achv-rank-row{display:flex;flex-direction:column;gap:8px;background:var(--card2);border:1px solid var(--b);border-radius:9px;padding:8px 10px;}
-.achv-rank-info{display:flex;align-items:center;gap:9px;}
+.achv-rank-row{display:flex;align-items:center;gap:9px;background:var(--card2);border:1px solid var(--b);border-radius:9px;padding:7px 10px;}
 .achv-rank-badge{width:22px;height:22px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:#fff;flex-shrink:0;}
 .achv-rank-name{flex:1;min-width:0;font-size:13px;font-weight:700;color:var(--t1);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .achv-rank-amt{font-size:13px;font-weight:800;color:var(--grn);flex-shrink:0;white-space:nowrap;}
 .achv-rank-amt.neg{color:var(--red);}
 .achv-rank-empty{font-size:12px;color:var(--t3);padding:6px 2px;}
 .achv-rank-clk{cursor:pointer;}
-.achv-rank-clk:active .achv-rank-jumpbtn{filter:brightness(.85);}
-.achv-rank-jumpbtn{display:flex;align-items:center;justify-content:center;gap:5px;background:var(--acc);color:#fff;font-size:13px;font-weight:800;padding:10px;border-radius:8px;}
-.achv-rank-go{font-size:17px;font-weight:900;line-height:1;}
+.achv-rank-clk:active{background:var(--b);}
+.achv-rank-go{color:#fff;font-size:12px;font-weight:800;flex-shrink:0;white-space:nowrap;}
 .achv-pager{display:flex;align-items:center;justify-content:space-between;margin-top:4px;gap:8px;}
 .achv-pg-btn{flex:0 0 auto;padding:7px 12px;border-radius:8px;border:1.5px solid var(--bb);background:var(--card2);color:var(--t1);font-size:12px;font-weight:700;cursor:pointer;}
 .achv-pg-btn:disabled{opacity:.35;cursor:default;}
@@ -916,18 +914,12 @@ function renderAchv(){
       var rank=pageStart+i;
       var rc=rank===0?'rank-1':rank===1?'rank-2':rank===2?'rank-3':'rank-n';
       var clk=it.pid!=null;
-      var rowInfo='<div class="achv-rank-info">'
+      return '<div class="achv-rank-row'+(clk?' achv-rank-clk':'')+'"'+(clk?' onclick="jumpToProject('+it.pid+')"':'')+'>'
         +'<span class="achv-rank-badge '+rc+'">'+(rank+1)+'</span>'
         +'<span class="achv-rank-name">'+esc(it.name)+'</span>'
         +'<span class="achv-rank-amt'+(it._eq<0?' neg':'')+'">'+fmtAchvItemAmt(it)+'</span>'
+        +(clk?'<span class="achv-rank-go">詳細カードへ ›</span>':'')
         +'</div>';
-      if(clk){
-        return '<div class="achv-rank-row achv-rank-clk" onclick="jumpToProject('+it.pid+')">'
-          +rowInfo
-          +'<div class="achv-rank-jumpbtn">詳細カードへ <span class="achv-rank-go">›</span></div>'
-          +'</div>';
-      }
-      return '<div class="achv-rank-row">'+rowInfo+'</div>';
     }).join('')
     :'<div class="achv-rank-empty">まだエアドロ結果がありません</div>';
   var pagerHtml=totalPages>1?(
