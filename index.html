@@ -1627,11 +1627,8 @@ function renderList(id,mode){
       +'<div class="pj-nmr"><span class="pj-name">'+esc(p.name)+'</span>'+catTag(p.cat)+'</div>'
       +'<div class="pj-meta1"><span class="pj-lbl-row">仕込みLv：</span><span class="pj-stars">'+starsHtml(p.lv||0)+'</span></div>'
       +'<div class="pj-meta2"><span class="pj-lbl-row">仕込み額：</span> '+stakeHtml+'</div>'
-      +(burn_>0
-        ?('<div class="pj-meta3"><span class="pj-lbl-row">削り額：</span> <span class="pj-dv pj-burn">🔥'+fmtU(burn_)+'</span>'
-          +(p.tge?'<span class="early-sep"></span><span class="pj-lbl">TGE予定：</span> <span class="pj-dv">'+tgeSym(p.tge)+'</span>':'')
-          +'</div>')
-        :(p.tge?'<div class="pj-meta3"><span class="pj-lbl-row">TGE予定：</span> <span class="pj-dv">'+tgeSym(p.tge)+'</span></div>':''))
+      +(burn_>0?'<div class="pj-meta3"><span class="pj-lbl-row">削り額：</span> <span class="pj-dv pj-burn">'+fmtU(burn_)+'</span></div>':'')
+      +(p.tge&&!p.earlyStart?'<div class="pj-meta3"><span class="pj-lbl-row">TGE：</span> <span class="pj-dv">'+tgeSym(p.tge)+'</span></div>':'')
       +'</div>'
       +'<div class="sc-wrap"><div class="sc-lbl">期待値</div><div class="sc-val '+scCls(s)+' '+(String(s).length>=5?'sc-sm':'')+'">'+s+'<span class="sc-max">/'+scoreMax()+'</span></div></div>'
       +'</div>'
@@ -1771,7 +1768,8 @@ function tgeSym(v){
 function zNum(n){return String(n).replace(/[0-9]/g,function(d){return '０１２３４５６７８９'[+d];});}
 function earlyHtml(p){
   if(!p.earlyStart)return '';
-  function fmtD(d){return zNum(d.getFullYear())+'/'+zNum(d.getMonth()+1)+'/'+zNum(d.getDate());}
+  function fmtD(d){return d.getFullYear()+'/'+(d.getMonth()+1)+'/'+d.getDate();}
+  var tgeTail=p.tge?'<span class="early-sep"></span><span class="early-wk">TGE：</span>'+tgeSym(p.tge):'';
   var d0=new Date(p.earlyStart+'T00:00:00');
   // 終了予定日が未入力：経過期間から簡易判定（3ヶ月以下=○序盤/半年経過=△中盤/1年以上=×終盤）
   if(!p.earlyEnd){
@@ -1782,7 +1780,7 @@ function earlyHtml(p){
     var eyE=Math.floor(tmE/12),emE=tmE%12,ewE=Math.round((elapsedDays-tmE*30.44)/7);
     var elapsedTxt=(eyE>0?zNum(eyE)+'年':'')+(emE>0?zNum(emE)+'ヶ月':'')+(ewE>0?zNum(ewE)+'週':'')||'１週未満';
     return '<div class="early-wrap">'
-      +'<div class="early-top"><span class="early-lbl">アーリー度：</span>'+emk+'<span class="early-sep"></span><span class="early-wk">開始から'+elapsedTxt+' 経過</span></div>'
+      +'<div class="early-top"><span class="early-lbl">アーリー度：</span>'+emk+'<span class="early-sep"></span><span class="early-wk">開始から'+elapsedTxt+' 経過</span>'+tgeTail+'</div>'
       +'<div class="early-dates"><span class="early-date-w">開始 '+fmtD(d0)+'</span><span class="early-pct-mid"></span><span class="early-date-w">終了 不明</span></div>'
       +'</div>';
   }
@@ -1797,27 +1795,21 @@ function earlyHtml(p){
   var mark = pct<33?'<span class="tge-g"><span class="tge-ico">○</span> 序盤</span>' : pct<70?'<span class="tge-m"><span class="tge-ico">△</span> 中盤</span>' : '<span class="tge-b"><span class="tge-ico">✕</span> 終盤</span>';
   // 残り期間（日数→年月換算。終了済みなら「終了」表示）
   var remDays=Math.round((t1-now)/86400000);
-  var remTxt,rtm=0,rw=0;
+  var remTxt;
   if(remDays<=0){remTxt='終了';}
   else{
-    rtm=Math.floor(remDays/30.44);
-    rw=Math.round((remDays-rtm*30.44)/7);
+    var rtm=Math.floor(remDays/30.44);
+    var rw=Math.round((remDays-rtm*30.44)/7);
     if(rw>=4){rtm+=1;rw=0;}
     remTxt=(rtm>0?zNum(rtm)+'ヶ月':'')+(rw>0?zNum(rw)+'週':(rtm>0?'':'１週未満'));
   }
-  // 残り1ヶ月以上ある時は週の内訳を省略してすっきり表示、1ヶ月未満は週数まで表示
-  var topInner;
-  if(remDays<=0){
-    topInner='<span class="early-wk">終了</span>';
-  }else if(rtm>=1){
-    topInner='<span class="early-wk">残り：'+remTxt+'</span>';
-  }else{
-    topInner='<span class="early-wk">'+zNum(curWClamped)+'週/'+zNum(totalW)+'週</span><span class="early-arrow">→</span><span class="early-wk">残り：'+remTxt+'</span>';
-  }
+  var topInner=remDays<=0
+    ?'<span class="early-wk">終了</span>'
+    :'<span class="early-wk">'+zNum(curWClamped)+'週/'+zNum(totalW)+'週</span><span class="early-arrow">→</span><span class="early-wk">残り：'+remTxt+'</span>';
   return '<div class="early-wrap">'
-    +'<div class="early-top"><span class="early-lbl">アーリー度：</span>'+mark+'<span class="early-sep"></span>'+topInner+'</div>'
+    +'<div class="early-top"><span class="early-lbl">アーリー度：</span>'+mark+'<span class="early-sep"></span>'+topInner+tgeTail+'</div>'
     +'<div class="early-track"><div class="early-fill" style="width:'+pct+'%;"></div></div>'
-    +'<div class="early-dates"><span class="early-date-w">開始 '+fmtD(d0)+'</span><span class="early-pct-mid">進行：'+zNum(pct)+'%</span><span class="early-date-w">終了 '+fmtD(d1)+'</span></div>'
+    +'<div class="early-dates"><span class="early-date-w">開始 '+fmtD(d0)+'</span><span class="early-pct-mid">'+zNum(pct)+'%</span><span class="early-date-w">終了 '+fmtD(d1)+'</span></div>'
     +'</div>';
 }
 function copyRefFromModal(){ if(_refURL)copyToClip(_refURL); cm('m-ref'); }
