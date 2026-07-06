@@ -519,14 +519,21 @@ body{background:var(--bg);color:var(--t1);}
 .achv-lbl-hi{font-size:15px;color:var(--t1);font-weight:700;flex-shrink:0;}
 .achv-amt{font-size:15px;font-weight:800;color:var(--t1);flex-shrink:0;}
 .achv-sub{color:var(--t3);flex-shrink:0;}
-.achv-fold-h{cursor:pointer;}
-.achv-fold-arrow{margin-left:auto;font-size:9px;color:var(--t3);flex-shrink:0;transition:transform .2s;}
+.achv-toggle{width:100%;margin-top:10px;padding:10px;border:none;cursor:pointer;background:rgba(255,255,255,.09);border:1.5px solid rgba(255,255,255,.28);border-radius:9px;color:#fff;font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:6px;transition:background .15s;}
+.achv-toggle:active{background:var(--b);}
+.achv-toggle .dt-arrow{font-size:9px;transition:transform .2s;}
+.achv-toggle.open{background:var(--acc);border-color:var(--acc);}
+.achv-toggle.open .dt-arrow{transform:rotate(180deg);}
 .achv-rank-list{margin-top:10px;display:flex;flex-direction:column;gap:6px;animation:detailIn .2s ease;}
 .achv-rank-row{display:flex;align-items:center;gap:9px;background:var(--card2);border:1px solid var(--b);border-radius:9px;padding:7px 10px;}
 .achv-rank-badge{width:22px;height:22px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:#fff;flex-shrink:0;}
 .achv-rank-name{flex:1;min-width:0;font-size:13px;font-weight:700;color:var(--t1);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .achv-rank-amt{font-size:13px;font-weight:800;color:var(--grn);flex-shrink:0;white-space:nowrap;}
 .achv-rank-empty{font-size:12px;color:var(--t3);padding:6px 2px;}
+.achv-pager{display:flex;align-items:center;justify-content:space-between;margin-top:4px;gap:8px;}
+.achv-pg-btn{flex:0 0 auto;padding:7px 12px;border-radius:8px;border:1.5px solid var(--bb);background:var(--card2);color:var(--t1);font-size:12px;font-weight:700;cursor:pointer;}
+.achv-pg-btn:disabled{opacity:.35;cursor:default;}
+.achv-pg-txt{font-size:12px;color:var(--t3);font-weight:700;}
 .strategy-bar{background:var(--card2);border:1px solid var(--bb);border-radius:13px;padding:8px 10px 9px;margin:0 0 8px;box-shadow:0 2px 6px rgba(0,0,0,.22);}
 .strategy-bar .detail-h{margin:-8px -10px 6px;padding:7px 10px 5px;font-size:13px;}
 .strategy-txt{font-size:12px;color:var(--t1);line-height:1.45;white-space:pre-wrap;word-break:break-word;}
@@ -873,6 +880,9 @@ function achvDurTxt(){
   var y=Math.floor(tm/12),m=tm%12;
   return (y>0?y+'年':'')+(m>0?m+'ヶ月':'');
 }
+var achvFoldOpen=false;
+var achvRankPage=0;
+var ACHV_PAGE_SIZE=15;
 function renderAchv(){
   var el=document.getElementById('achv-card');
   if(!el)return;
@@ -889,31 +899,46 @@ function renderAchv(){
       +(dur?'<span class="achv-sub">歴'+esc(dur)+'</span>':'')
       +'<span class="achv-sub">'+todayTxt+'時点</span>'
     ):'<span class="achv-lbl-hi">エアドロ実績</span>';
-  var rankHtml=rankItems.length
-    ?rankItems.map(function(it,i){
-      var rc=i===0?'rank-1':i===1?'rank-2':i===2?'rank-3':'rank-n';
+  var totalPages=Math.max(1,Math.ceil(rankItems.length/ACHV_PAGE_SIZE));
+  if(achvRankPage>totalPages-1)achvRankPage=totalPages-1;
+  if(achvRankPage<0)achvRankPage=0;
+  var pageStart=achvRankPage*ACHV_PAGE_SIZE;
+  var pageItems=rankItems.slice(pageStart,pageStart+ACHV_PAGE_SIZE);
+  var rankHtml=pageItems.length
+    ?pageItems.map(function(it,i){
+      var rank=pageStart+i;
+      var rc=rank===0?'rank-1':rank===1?'rank-2':rank===2?'rank-3':'rank-n';
       return '<div class="achv-rank-row">'
-        +'<span class="achv-rank-badge '+rc+'">'+(i+1)+'</span>'
+        +'<span class="achv-rank-badge '+rc+'">'+(rank+1)+'</span>'
         +'<span class="achv-rank-name">'+esc(it.name)+'</span>'
         +'<span class="achv-rank-amt">'+fmtAchvItemAmt(it)+'</span>'
         +'</div>';
     }).join('')
     :'<div class="achv-rank-empty">まだエアドロ結果がありません</div>';
-  el.innerHTML='<div class="achv-line achv-fold-h" onclick="toggleAchvFold()">'
-    +summaryHtml
-    +'<span class="achv-fold-arrow" id="achv-fold-arrow">▼</span>'
+  var pagerHtml=totalPages>1?(
+    '<div class="achv-pager">'
+    +'<button class="achv-pg-btn" '+(achvRankPage<=0?'disabled':'')+' onclick="achvRankPrev()">‹ 前へ</button>'
+    +'<span class="achv-pg-txt">'+(achvRankPage+1)+' / '+totalPages+'</span>'
+    +'<button class="achv-pg-btn" '+(achvRankPage>=totalPages-1?'disabled':'')+' onclick="achvRankNext()">次へ ›</button>'
     +'</div>'
-    +'<div class="achv-rank-list" id="achv-rank-list" style="display:none;">'+rankHtml+'</div>';
+  ):'';
+  var toggleHtml=rankItems.length
+    ?'<button class="achv-toggle'+(achvFoldOpen?' open':'')+'" id="achv-fold-btn" onclick="toggleAchvFold()">'
+      +'<span class="dt-label">🏆 ランキングを'+(achvFoldOpen?'閉じる':'見る（'+rankItems.length+'件）')+'</span>'
+      +'<span class="dt-arrow">▼</span>'
+      +'</button>'
+    :'';
+  el.innerHTML='<div class="achv-line">'+summaryHtml+'</div>'
+    +toggleHtml
+    +'<div class="achv-rank-list" id="achv-rank-list" style="display:'+(achvFoldOpen?'block':'none')+';">'+rankHtml+pagerHtml+'</div>';
   el.style.display='block';
 }
 function toggleAchvFold(){
-  var list=document.getElementById('achv-rank-list');
-  var arrow=document.getElementById('achv-fold-arrow');
-  if(!list||!arrow)return;
-  var open=list.style.display!=='none';
-  list.style.display=open?'none':'block';
-  arrow.style.transform=open?'rotate(0deg)':'rotate(180deg)';
+  achvFoldOpen=!achvFoldOpen;
+  renderAchv();
 }
+function achvRankPrev(){ if(achvRankPage>0){achvRankPage--;renderAchv();} }
+function achvRankNext(){ achvRankPage++;renderAchv(); }
 var EMOJI_ICON_MAP={'\u2705':'<svg class="in-ico" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M8 12.5l2.5 2.5L16 9.5"></path></svg>','\uD83D\uDCF5':'<svg class="in-ico" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><line x1="5.5" y1="18.5" x2="18.5" y2="5.5"></line></svg>','\uD83D\uDD12':'<svg class="in-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="9" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg>','\uD83D\uDD11':'<svg class="in-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="4.5"></circle><path d="M10.9 12.1L20 3"></path><path d="M16 7l3 3"></path><path d="M13 4l3 3"></path></svg>','\uD83D\uDD17':'<svg class="in-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>','\u26A0\uFE0F':'<svg class="in-ico" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l10 18H2L12 3z"></path><line x1="12" y1="10" x2="12" y2="14.5"></line><circle cx="12" cy="17.2" r="0.9" fill="#f59e0b" stroke="none"></circle></svg>','\u26A0':'<svg class="in-ico" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l10 18H2L12 3z"></path><line x1="12" y1="10" x2="12" y2="14.5"></line><circle cx="12" cy="17.2" r="0.9" fill="#f59e0b" stroke="none"></circle></svg>'};
 function emojiToIcon(line){
   var m=line.match(/^([\u2600-\u27BF\uD83C-\uDBFF][\uDC00-\uDFFF]?\uFE0F?)\s*/);
