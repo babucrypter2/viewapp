@@ -208,7 +208,7 @@ body{background:var(--bg);color:var(--t1);}
 .tge-b{color:#ff5c5c;font-weight:800;}
 
 .early-wrap{margin:0 0 2px;padding:8px 9px;background:rgba(255,255,255,.06);border-radius:9px;}
-.early-top{font-size:10.5px;color:var(--t1);display:flex;align-items:baseline;gap:6px;flex-wrap:nowrap;line-height:1.3;white-space:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.early-top{font-size:10.5px;color:var(--t1);display:flex;align-items:baseline;gap:9px;flex-wrap:nowrap;line-height:1.3;white-space:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;}
 .early-top::-webkit-scrollbar{display:none;}
 .early-lbl{color:var(--t1);font-weight:600;flex-shrink:0;}
 .early-pct{color:var(--t1);font-weight:700;flex-shrink:0;}
@@ -1777,8 +1777,8 @@ function earlyHtml(p){
     var elapsedMonths=elapsedDays/30.44;
     var emk = elapsedMonths<=6?'<span class="tge-g"><span class="tge-ico">○</span> 序盤</span>' : elapsedMonths<12?'<span class="tge-m"><span class="tge-ico">△</span> 中盤</span>' : '<span class="tge-b"><span class="tge-ico">✕</span> 終盤</span>';
     var tmE=Math.floor(elapsedDays/30.44);
-    var eyE=Math.floor(tmE/12),emE=tmE%12;
-    var elapsedTxt=(eyE>0?eyE+'年':'')+(emE>0?emE+'ヶ月':'')||'1ヶ月未満';
+    var eyE=Math.floor(tmE/12),emE=tmE%12,ewE=Math.round(elapsedDays/7);
+    var elapsedTxt=(eyE>0?eyE+'年':'')+(emE>0?emE+'ヶ月':'')||(ewE>0?ewE+'週':'1週未満');
     return '<div class="early-wrap">'
       +'<div class="early-top"><span class="early-lbl">アーリー度：</span>'+emk+tgeTail+'</div>'
       +'<div class="early-dates"><span class="early-date-w">開始 '+fmtD(d0)+'</span><span class="early-pct-mid">'+elapsedTxt+' 経過</span><span class="early-date-w">終了 不明</span></div>'
