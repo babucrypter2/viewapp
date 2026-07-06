@@ -531,6 +531,9 @@ body{background:var(--bg);color:var(--t1);}
 .achv-rank-amt{font-size:13px;font-weight:800;color:var(--grn);flex-shrink:0;white-space:nowrap;}
 .achv-rank-amt.neg{color:var(--red);}
 .achv-rank-empty{font-size:12px;color:var(--t3);padding:6px 2px;}
+.achv-rank-clk{cursor:pointer;}
+.achv-rank-clk:active{background:var(--b);}
+.achv-rank-go{color:var(--acc);font-size:17px;font-weight:900;flex-shrink:0;}
 .achv-pager{display:flex;align-items:center;justify-content:space-between;margin-top:4px;gap:8px;}
 .achv-pg-btn{flex:0 0 auto;padding:7px 12px;border-radius:8px;border:1.5px solid var(--bb);background:var(--card2);color:var(--t1);font-size:12px;font-weight:700;cursor:pointer;}
 .achv-pg-btn:disabled{opacity:.35;cursor:default;}
@@ -845,7 +848,7 @@ function achvRankItems(){
     if(p.endDate&&Array.isArray(p.results)&&p.results.length){
       var su=0,sj=0;
       p.results.forEach(function(r){su+=num(r.usd);sj+=num(r.jpy);});
-      if(su!==0||sj!==0)items.push({name:p.name||'（無題）',usd:su,jpy:sj});
+      if(su!==0||sj!==0)items.push({name:p.name||'（無題）',usd:su,jpy:sj,pid:p.id});
     }
   });
   (Array.isArray(ACHV.extra)?ACHV.extra:[]).forEach(function(e){
@@ -910,10 +913,12 @@ function renderAchv(){
     ?pageItems.map(function(it,i){
       var rank=pageStart+i;
       var rc=rank===0?'rank-1':rank===1?'rank-2':rank===2?'rank-3':'rank-n';
-      return '<div class="achv-rank-row">'
+      var clk=it.pid!=null;
+      return '<div class="achv-rank-row'+(clk?' achv-rank-clk':'')+'"'+(clk?' onclick="jumpToProject('+it.pid+')"':'')+'>'
         +'<span class="achv-rank-badge '+rc+'">'+(rank+1)+'</span>'
         +'<span class="achv-rank-name">'+esc(it.name)+'</span>'
         +'<span class="achv-rank-amt'+(it._eq<0?' neg':'')+'">'+fmtAchvItemAmt(it)+'</span>'
+        +(clk?'<span class="achv-rank-go">›</span>':'')
         +'</div>';
     }).join('')
     :'<div class="achv-rank-empty">まだエアドロ結果がありません</div>';
@@ -1869,6 +1874,20 @@ function toggleDetail(mode,idx){
     btn.classList.add('open');
     btn.querySelector('.dt-label').textContent='✕ 閉じる';
   }
+}
+// ランキングの案件行タップ→「仕込み終了」タブの該当カードへ移動し、詳細を開いた状態にする
+function jumpToProject(pid){
+  var idx=PROJ.findIndex(function(p){return p.id===pid;});
+  if(idx<0)return;
+  var navBtn=document.getElementById('bni-ended');
+  sv('ended',navBtn,'b');
+  setTimeout(function(){
+    var body=document.getElementById('dt-body-ended-'+idx);
+    var btn=document.getElementById('dt-btn-ended-'+idx);
+    if(body&&btn&&body.style.display==='none')toggleDetail('ended',idx);
+    var card=btn&&btn.closest('.proj-card');
+    if(card)card.scrollIntoView({behavior:'smooth',block:'start'});
+  },60);
 }
 function cm(id){document.getElementById(id).classList.remove('open');}
 document.querySelectorAll('.modal-overlay').forEach(function(el){
