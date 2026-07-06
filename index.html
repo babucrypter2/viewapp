@@ -207,8 +207,8 @@ body{background:var(--bg);color:var(--t1);}
 .tge-m{color:#f5c542;font-weight:800;}
 .tge-b{color:#ff5c5c;font-weight:800;}
 
-.early-wrap{margin:8px 0 2px;padding:8px 10px;background:rgba(255,255,255,.06);border-radius:9px;}
-.early-top{font-size:10.5px;color:var(--t1);display:flex;align-items:baseline;gap:8px;flex-wrap:nowrap;line-height:1.3;white-space:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.early-wrap{margin:8px 0 2px;padding:8px 8px;background:rgba(255,255,255,.06);border-radius:9px;}
+.early-top{font-size:10px;color:var(--t1);display:flex;align-items:baseline;gap:5px;flex-wrap:nowrap;line-height:1.3;white-space:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;}
 .early-top::-webkit-scrollbar{display:none;}
 .early-lbl{color:var(--t1);font-weight:600;flex-shrink:0;}
 .early-pct{color:var(--t1);font-weight:700;flex-shrink:0;}
@@ -1693,7 +1693,7 @@ function earlyHtml(p){
     remTxt=(rtm>0?rtm+'ヶ月':'')+(rw>0?rw+'週':(rtm>0?'':'1週未満'));
   }
   return '<div class="early-wrap">'
-    +'<div class="early-top"><span class="early-lbl">アーリー度：</span>'+mark+'<span class="early-sep"></span><span class="early-wk">'+curWClamped+'週/'+totalW+'週</span><span class="early-arrow">→</span><span class="early-wk">残り：'+remTxt+'</span><span class="early-sep"></span><span class="early-pct">進行：'+pct+'%</span></div>'
+    +'<div class="early-top"><span class="early-lbl">アーリー度：</span>'+mark+'<span class="early-sep"></span><span class="early-wk">'+curWClamped+'/'+totalW+'週</span><span class="early-arrow">→</span><span class="early-wk">残'+remTxt+'</span><span class="early-sep"></span><span class="early-pct">進行'+pct+'%</span></div>'
     +'<div class="early-track"><div class="early-fill" style="width:'+pct+'%;"></div></div>'
     +'<div class="early-dates"><span class="early-date-w">開始 '+fmtD(d0)+'</span><span class="early-date-w">終了 '+fmtD(d1)+'</span></div>'
     +'</div>';
