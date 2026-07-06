@@ -173,6 +173,19 @@ body{background:var(--bg);color:var(--t1);}
 .pj-inf{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:flex-start;gap:4px;}
 .card-r1b{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;margin-top:9px;}
 .pj-nmr{display:flex;align-items:center;gap:8px;margin-bottom:1px;}
+.pj-badge{display:inline-block;padding:2px 6px;border-radius:5px;font-size:9px;font-weight:900;letter-spacing:.04em;flex-shrink:0;line-height:1.2;}
+.pj-badge-new{background:var(--grn);color:#04180c;}
+.pj-badge-upd{background:var(--acc);color:#fff;}
+.sc-band-row{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--t1);padding:5px 2px;border-bottom:1px solid var(--b);}
+.sc-band-row:last-of-type{border-bottom:none;}
+.sc-band-lbl{font-weight:800;flex:0 0 74px;}
+.sc-band-cnt{color:var(--t3);flex:0 0 auto;}
+.sc-band-avg{margin-left:auto;font-weight:800;color:var(--grn);white-space:nowrap;}
+.sc-band-avg.neg{color:var(--red);}
+.sc-score-pill{min-width:30px;height:20px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:#fff;flex-shrink:0;padding:0 4px;background:var(--bb);}
+.sc-score-pill.hi{background:#1d7a4a;}
+.sc-score-pill.mid{background:#8a6a14;}
+.sc-note{font-size:10px;color:var(--t3);margin-top:8px;line-height:1.6;}
 .pj-ttl{flex:1;min-width:0;line-height:1.25;}
 .pj-ttl .tag{margin-left:6px;vertical-align:middle;}
 .x-wrap{position:relative;display:inline-flex;align-items:center;flex-shrink:0;cursor:pointer;}
@@ -651,11 +664,8 @@ body{background:var(--bg);color:var(--t1);}
       <span class="sort-lbl">並び替え</span>
       <select class="sort-sel" id="sort-sel" onchange="setSort(this.value)">
         <option value="score">期待値順</option>
+        <option value="new">新着順</option>
         <option value="lv">仕込みLv順</option>
-        <option value="fund">調達額順</option>
-        <option value="usr">参加者順</option>
-        <option value="tvl">TVL順</option>
-        <option value="dep">仕込み額順</option>
       </select>
     </div>
   </div>
@@ -691,6 +701,8 @@ body{background:var(--bg);color:var(--t1);}
       </div>
 
       <div class="set-card" id="achv-card" style="display:none;"></div>
+
+      <div class="set-card" id="scorecheck-card" style="display:none;"></div>
 
       <div class="set-card info-card">
         <div class="set-card-title"><span class="dh-i2"><svg class="dh-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><line x1="12" y1="11" x2="12" y2="16.5"></line><circle cx="12" cy="7.7" r="1" fill="currentColor" stroke="none"></circle></svg>このアプリについて</span></div>
@@ -953,6 +965,112 @@ function toggleAchvFold(){
 }
 function achvRankPrev(){ if(achvRankPage>0){achvRankPage--;renderAchv();} }
 function achvRankNext(){ achvRankPage++;renderAchv(); }
+
+// ─────────── NEW/更新バッジ（各ユーザーのローカル基準）───────────
+// NEW: 案件idが作成時タイムスタンプなので、登録から14日以内をNEW表示
+// 更新: 前回訪問時に保存した各案件のハッシュと比較し、変化があれば「更新」表示（localStorageに保存＝人によって違う）
+var SEEN_KEY='babu_viewer_seen_v1';
+var NEW_DAYS=14;
+var updatedPids={};
+function projHash(p){
+  // 重い画像データは長さのみ反映（画像の追加・差し替えも検知しつつ高速化）
+  var lite={};
+  for(var k in p){ if(k==='taskImg'){lite[k]=(p[k]||[]).map(function(s){return (s||'').length;});} else {lite[k]=p[k];} }
+  var s=JSON.stringify(lite);
+  var h=5381;
+  for(var i=0;i<s.length;i++){h=((h<<5)+h+s.charCodeAt(i))|0;}
+  return h;
+}
+function computeUpdatedPids(){
+  var prev=null;
+  try{ prev=JSON.parse(localStorage.getItem(SEEN_KEY)||'null'); }catch(e){ prev=null; }
+  var cur={};
+  (Array.isArray(PROJ)?PROJ:[]).forEach(function(p){ if(p&&p.id!=null)cur[p.id]=projHash(p); });
+  if(prev&&typeof prev==='object'){
+    for(var pid in cur){
+      if(prev[pid]!==undefined && prev[pid]!==cur[pid])updatedPids[pid]=true;
+    }
+  }
+  // 初回訪問（prevなし）は更新バッジなし。現状を記録して次回以降の比較基準にする
+  try{ localStorage.setItem(SEEN_KEY,JSON.stringify(cur)); }catch(e){}
+}
+function isRecentProj(p){
+  // idが妥当なmsタイムスタンプ（2020年以降）かつ14日以内
+  return typeof p.id==='number' && p.id>1577836800000 && (Date.now()-p.id)<NEW_DAYS*86400000;
+}
+function projBadge(p){
+  if(isRecentProj(p))return '<span class="pj-badge pj-badge-new">NEW</span>';
+  if(updatedPids[p.id])return '<span class="pj-badge pj-badge-upd">更新</span>';
+  return '';
+}
+
+// ─────────── スコア答え合わせ（期待値 vs 実績）───────────
+var scFoldOpen=false;
+function scoreCheckItems(){
+  var items=[];
+  (Array.isArray(PROJ)?PROJ:[]).forEach(function(p){
+    if(p.endDate&&Array.isArray(p.results)&&p.results.length){
+      var su=0,sj=0;
+      p.results.forEach(function(r){su+=num(r.usd);sj+=num(r.jpy);});
+      if(su!==0||sj!==0){
+        var sc=score(p);
+        items.push({name:p.name||'（無題）',usd:su,jpy:sj,sc:Math.round(sc),pid:p.id,_eq:sj+su*ACHV_FX});
+      }
+    }
+  });
+  items.sort(function(a,b){return b.sc-a.sc;});
+  return items;
+}
+function renderScoreCheck(){
+  var el=document.getElementById('scorecheck-card');
+  if(!el)return;
+  var items=scoreCheckItems();
+  if(!items.length){el.style.display='none';return;}
+  // スコア帯ごとの集計（80+/60-79/40-59/〜39）
+  var bands=[
+    {lbl:'80点以上',min:80,max:1000,list:[]},
+    {lbl:'60〜79点',min:60,max:79,list:[]},
+    {lbl:'40〜59点',min:40,max:59,list:[]},
+    {lbl:'39点以下',min:-1000,max:39,list:[]}
+  ];
+  items.forEach(function(it){
+    for(var i=0;i<bands.length;i++){ if(it.sc>=bands[i].min&&it.sc<=bands[i].max){bands[i].list.push(it);break;} }
+  });
+  var bandHtml=bands.filter(function(b){return b.list.length;}).map(function(b){
+    var sum=b.list.reduce(function(a,it){return a+it._eq;},0);
+    var avg=sum/b.list.length;
+    return '<div class="sc-band-row">'
+      +'<span class="sc-band-lbl">'+b.lbl+'</span>'
+      +'<span class="sc-band-cnt">'+b.list.length+'件</span>'
+      +'<span class="sc-band-avg'+(avg<0?' neg':'')+'">平均 '+(fmtManyen(Math.round(avg))||'0円')+'</span>'
+      +'</div>';
+  }).join('');
+  var rowsHtml=items.map(function(it){
+    var pc=it.sc>=80?'hi':it.sc>=60?'mid':'';
+    return '<div class="achv-rank-row achv-rank-clk" onclick="jumpToProject('+it.pid+')">'
+      +'<span class="sc-score-pill '+pc+'">'+it.sc+'</span>'
+      +'<span class="achv-rank-name">'+esc(it.name)+'</span>'
+      +'<span class="achv-rank-amt'+(it._eq<0?' neg':'')+'">'+fmtAchvItemAmt(it)+'</span>'
+      +'<span class="achv-rank-go">詳細カードへ ›</span>'
+      +'</div>';
+  }).join('');
+  el.innerHTML='<div class="set-card-title"><span class="dh-i2"><svg class="dh-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"></path><path d="M7 14l4-4 3 3 5-6"></path></svg>スコア答え合わせ</span></div>'
+    +'<div style="font-size:11px;color:var(--t3);margin-bottom:8px;line-height:1.6;">仕込み終了案件の「事前の期待値スコア」と「実際のエアドロ結果」の照合です。</div>'
+    +bandHtml
+    +'<button class="achv-toggle'+(scFoldOpen?' open':'')+'" onclick="toggleScFold()">'
+    +'<span class="dt-label">案件別の内訳を'+(scFoldOpen?'閉じる':'見る（'+items.length+'件）')+'</span>'
+    +'<span class="dt-arrow">▼</span>'
+    +'</button>'
+    +'<div style="display:'+(scFoldOpen?'block':'none')+';margin-top:10px;">'
+    +'<div style="display:flex;flex-direction:column;gap:6px;">'+rowsHtml+'</div>'
+    +'</div>'
+    +'<div class="sc-note">※ $は1ドル150円換算で集計 ／ スコアは現在の配点設定で算出</div>';
+  el.style.display='block';
+}
+function toggleScFold(){
+  scFoldOpen=!scFoldOpen;
+  renderScoreCheck();
+}
 var EMOJI_ICON_MAP={'\u2705':'<svg class="in-ico" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M8 12.5l2.5 2.5L16 9.5"></path></svg>','\uD83D\uDCF5':'<svg class="in-ico" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><line x1="5.5" y1="18.5" x2="18.5" y2="5.5"></line></svg>','\uD83D\uDD12':'<svg class="in-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="9" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg>','\uD83D\uDD11':'<svg class="in-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="4.5"></circle><path d="M10.9 12.1L20 3"></path><path d="M16 7l3 3"></path><path d="M13 4l3 3"></path></svg>','\uD83D\uDD17':'<svg class="in-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>','\u26A0\uFE0F':'<svg class="in-ico" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l10 18H2L12 3z"></path><line x1="12" y1="10" x2="12" y2="14.5"></line><circle cx="12" cy="17.2" r="0.9" fill="#f59e0b" stroke="none"></circle></svg>','\u26A0':'<svg class="in-ico" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l10 18H2L12 3z"></path><line x1="12" y1="10" x2="12" y2="14.5"></line><circle cx="12" cy="17.2" r="0.9" fill="#f59e0b" stroke="none"></circle></svg>'};
 function emojiToIcon(line){
   var m=line.match(/^([\u2600-\u27BF\uD83C-\uDBFF][\uDC00-\uDFFF]?\uFE0F?)\s*/);
@@ -996,7 +1114,7 @@ var PROJ=[
    sm:['g','m','g','m','g'],deps:[],totalUsd:0,startDate:null,endDate:null,active:false,result:''},
 ];
 var curF='all',editIdx=-1,pid=10,isNewProj=false;
-var sortBy='score';  // score | fund | usr | tvl | dep
+var sortBy='score';  // score | new | lv
 var sortDir=-1; // -1=降順(高い順・デフォルト), 1=昇順(低い順)
 var editImg=null,newPImg=null,curSM=[];
 
@@ -1075,6 +1193,7 @@ function applyLoadedData(d){
   SEC_PROOF=sanSecProof(d.secProof);
   ACHV=sanAchv(d.achv);
   STRATEGY=sanStrategy(d.strategy);
+  computeUpdatedPids();
   // テーマはダークモード固定（保存値は反映しない）
 }
 // 起動時：クラウドから読み込むだけ（書き込みなし）
@@ -1087,6 +1206,7 @@ function initData(){
     renderInfoText();
     renderSecProof();
     renderAchv();
+    renderScoreCheck();
     renderStrategy();
     populateCatFilter();
     return ok;
@@ -1557,10 +1677,7 @@ function smAvHtml(per,v,sz){
 // LIST
 function sortVal(p){
   if(sortBy==='lv')return p.lv||0;
-  if(sortBy==='fund')return p.fund||0;
-  if(sortBy==='usr')return p.usr||0;
-  if(sortBy==='tvl')return p.tvl||0;
-  if(sortBy==='dep')return p.totalUsd||0;
+  if(sortBy==='new')return p.id||0; // idは作成時のタイムスタンプ由来
   return score(p); // default 期待値
 }
 var showActive=false, showEnded=false;
@@ -1629,7 +1746,7 @@ function renderList(id,mode){
       +'<div class="card-r1">'
       +'<div class="pj-av-wrap">'+projAvHtml(p,60)+'<span class="rank-badge '+rankCls+'">'+rankNum+'</span>'+(p.endDate?'<span class="ended-badge">🏁終了</span>':'')+'</div>'
       +'<div class="pj-inf">'
-      +'<div class="pj-nmr"><span class="pj-name">'+esc(p.name)+'</span>'+catTag(p.cat)+'</div>'
+      +'<div class="pj-nmr"><span class="pj-name">'+esc(p.name)+'</span>'+catTag(p.cat)+projBadge(p)+'</div>'
       +'<div class="pj-meta1"><span class="pj-lbl-row">仕込みLv：</span><span class="pj-stars">'+starsHtml(p.lv||0)+'</span></div>'
       +'<div class="pj-meta2"><span class="pj-lbl-row">仕込み額：</span> '+stakeHtml+'</div>'
       +(burn_>0?'<div class="pj-meta3"><span class="pj-lbl-row">削り額：</span> <span class="pj-dv pj-burn">'+fmtU(burn_)+'</span></div>':'')
@@ -2006,7 +2123,7 @@ function refreshFromCloud(opts){
     // 変化あり（または初回未取得）→ 全データを取り直して反映
     setCloudStatus('loading');
     return cloudLoad().then(function(ok){
-      if(ok){ renderTabs(); renderAll(); renderUpdated(); renderInfoText(); renderSecProof(); renderAchv(); renderStrategy(); populateCatFilter(); setCloudStatus('ok'); showToast('🔄 最新データに更新しました'); }
+      if(ok){ renderTabs(); renderAll(); renderUpdated(); renderInfoText(); renderSecProof(); renderAchv(); renderScoreCheck(); renderStrategy(); populateCatFilter(); setCloudStatus('ok'); showToast('🔄 最新データに更新しました'); }
       else  { setCloudStatus('err'); }
       _refreshing=false;
     });
