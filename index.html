@@ -884,7 +884,7 @@ var PROJ=[
 ];
 var curF='all',editIdx=-1,pid=10,isNewProj=false;
 var sortBy='score';  // score | fund | usr | tvl | dep
-var sortDir=-1; // -1=降順(デフォルト), 1=昇順
+var sortDir=-1; // -1=降順(高い順・デフォルト), 1=昇順(低い順)
 var editImg=null,newPImg=null,curSM=[];
 
 // ─────────── データ保存（localStorage） ───────────
@@ -1470,7 +1470,7 @@ function flist(mode){
   }
   // カテゴリ絞り込み（全タブ共通。空=全カテゴリ）
   if(curF&&curF!=='all')list=list.filter(function(p){return p.cat===curF;});
-  return list.slice().sort(function(a,b){return (sortVal(b)-sortVal(a))*sortDir;});
+  return list.slice().sort(function(a,b){return sortDir===1?(sortVal(a)-sortVal(b)):(sortVal(b)-sortVal(a));});
 }
 function toggleHideActive(cb){showActive=cb.checked;renderList('list-all','all');}
 function toggleHideEnded(cb){showEnded=cb.checked;renderList('list-all','all');}
@@ -1787,7 +1787,7 @@ function setSort(v){
   renderAll();
 }
 function toggleSortDir(){
-  sortDir=sortDir===-1?1:-1;
+  sortDir=sortDir===1?-1:1;
   var btn=document.getElementById('sort-dir-btn');
   if(btn)btn.classList.toggle('asc',sortDir===1);
   renderAll();
