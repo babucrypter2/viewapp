@@ -529,6 +529,7 @@ body{background:var(--bg);color:var(--t1);}
 .achv-rank-badge{width:22px;height:22px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:#fff;flex-shrink:0;}
 .achv-rank-name{flex:1;min-width:0;font-size:13px;font-weight:700;color:var(--t1);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .achv-rank-amt{font-size:13px;font-weight:800;color:var(--grn);flex-shrink:0;white-space:nowrap;}
+.achv-rank-amt.neg{color:var(--red);}
 .achv-rank-empty{font-size:12px;color:var(--t3);padding:6px 2px;}
 .achv-pager{display:flex;align-items:center;justify-content:space-between;margin-top:4px;gap:8px;}
 .achv-pg-btn{flex:0 0 auto;padding:7px 12px;border-radius:8px;border:1.5px solid var(--bb);background:var(--card2);color:var(--t1);font-size:12px;font-weight:700;cursor:pointer;}
@@ -817,14 +818,14 @@ function sanAchv(o){
     if(typeof o.startDate==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(o.startDate))out.startDate=o.startDate;
     if(typeof o.amount==='string')out.amount=clampStr(o.amount,40);
     if(Array.isArray(o.extra)){
-      out.extra=o.extra.slice(0,100).map(function(e){
+      out.extra=o.extra.slice(0,300).map(function(e){
         return {
           name:(e&&typeof e.name==='string')?clampStr(e.name,30):'',
-          jpy:(e&&num(e.jpy)>0)?num(e.jpy):0,
-          usd:(e&&num(e.usd)>0)?num(e.usd):0,
+          jpy:e?num(e.jpy):0,
+          usd:e?num(e.usd):0,
           date:(e&&typeof e.date==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(e.date))?e.date:null
         };
-      }).filter(function(e){return e.name&&(e.jpy>0||e.usd>0);});
+      }).filter(function(e){return e.name&&(e.jpy!==0||e.usd!==0);});
     }
   }
   return out;
@@ -832,10 +833,11 @@ function sanAchv(o){
 // エアドロ結果ランキング（案件のresultsを自動集計＋手動追加分ACHV.extraを統合、金額順）
 var ACHV_FX=150; // USD→JPY概算換算レート（並び替え専用。表示は$/¥そのまま）
 function fmtManyen(jpy){
-  if(!(jpy>0))return '';
-  var man=jpy/10000;
+  if(!jpy)return '';
+  var neg=jpy<0;
+  var man=Math.abs(jpy)/10000;
   var r=(man>=100)?Math.round(man).toLocaleString('en-US'):(Math.round(man*10)/10);
-  return r+'万円';
+  return (neg?'-':'')+r+'万円';
 }
 function achvRankItems(){
   var items=[];
@@ -843,11 +845,11 @@ function achvRankItems(){
     if(p.endDate&&Array.isArray(p.results)&&p.results.length){
       var su=0,sj=0;
       p.results.forEach(function(r){su+=num(r.usd);sj+=num(r.jpy);});
-      if(su>0||sj>0)items.push({name:p.name||'（無題）',usd:su,jpy:sj});
+      if(su!==0||sj!==0)items.push({name:p.name||'（無題）',usd:su,jpy:sj});
     }
   });
   (Array.isArray(ACHV.extra)?ACHV.extra:[]).forEach(function(e){
-    if(num(e.jpy)>0||num(e.usd)>0)items.push({name:e.name||'（手動追加）',usd:num(e.usd),jpy:num(e.jpy)});
+    if(num(e.jpy)!==0||num(e.usd)!==0)items.push({name:e.name||'（手動追加）',usd:num(e.usd),jpy:num(e.jpy)});
   });
   items.forEach(function(it){it._eq=it.jpy+it.usd*ACHV_FX;});
   items.sort(function(a,b){return b._eq-a._eq;});
@@ -855,8 +857,8 @@ function achvRankItems(){
 }
 function fmtAchvItemAmt(it){
   var parts=[];
-  if(it.jpy>0)parts.push(fmtManyen(it.jpy));
-  if(it.usd>0)parts.push('$'+num(it.usd).toLocaleString('en-US'));
+  if(it.jpy)parts.push(fmtManyen(it.jpy));
+  if(it.usd)parts.push((it.usd<0?'-$':'$')+Math.abs(num(it.usd)).toLocaleString('en-US'));
   return parts.join(' / ')||'—';
 }
 // 「今の戦略」固定カード（ホーム上部・データ最終更新の下に常時表示。書込アプリで編集）
@@ -911,7 +913,7 @@ function renderAchv(){
       return '<div class="achv-rank-row">'
         +'<span class="achv-rank-badge '+rc+'">'+(rank+1)+'</span>'
         +'<span class="achv-rank-name">'+esc(it.name)+'</span>'
-        +'<span class="achv-rank-amt">'+fmtAchvItemAmt(it)+'</span>'
+        +'<span class="achv-rank-amt'+(it._eq<0?' neg':'')+'">'+fmtAchvItemAmt(it)+'</span>'
         +'</div>';
     }).join('')
     :'<div class="achv-rank-empty">まだエアドロ結果がありません</div>';
