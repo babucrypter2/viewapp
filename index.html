@@ -1977,6 +1977,8 @@ function linkifyMemo(raw,pid){
     }
     else out+=esc(orig);
     last=m.index+orig.length;
+    // コピーボタン自体が改行相当（ブロック表示）なので、直後の改行1つは二重にしない
+    if(safe&&raw.charAt(last)==='\n')last++;
   }
   out+=esc(raw.slice(last)).replace(/\n/g,'<br>');
   return out;
