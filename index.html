@@ -1932,10 +1932,13 @@ function earlyHtml(p){
   var remTxt;
   if(remDays<=0){remTxt='終了';}
   else{
-    var rtm=Math.floor(remDays/30.44);
-    var rw=Math.round((remDays-rtm*30.44)/7);
-    if(rw>=4){rtm+=1;rw=0;}
-    remTxt=rtm>0?(rtm+'ヶ月'):(rw>0?(rw+'週'):'1週未満');
+    var remMonths=remDays/30.44;
+    if(remMonths>=1){
+      remTxt=(Math.round(remMonths*10)/10)+'ヶ月';
+    }else{
+      var rw=Math.round(remDays/7);
+      remTxt=rw>0?(rw+'週'):'1週未満';
+    }
   }
   // 上段は状態＋残りのみ（週内訳は下段の進行%に集約して1行に収める）
   var topInner=remDays<=0?'<span class="early-wk">終了</span>':'<span class="early-wk">残り：'+remTxt+'</span>';
