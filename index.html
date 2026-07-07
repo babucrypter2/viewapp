@@ -200,6 +200,16 @@ body{background:var(--bg);color:var(--t1);}
 .sc-score-pill.hi{background:#1d7a4a;}
 .sc-score-pill.mid{background:#8a6a14;}
 .sc-note{font-size:10px;color:var(--t3);margin-top:8px;line-height:1.6;}
+.fa-total{font-size:12px;font-weight:800;color:var(--t1);margin-bottom:8px;}
+.fa-warn{font-size:11px;font-weight:700;border-radius:8px;padding:7px 10px;margin-bottom:9px;line-height:1.5;}
+.fa-warn-r{background:rgba(232,80,80,.14);color:var(--red);border:1px solid rgba(232,80,80,.4);}
+.fa-warn-y{background:rgba(232,160,32,.13);color:var(--ylw);border:1px solid rgba(232,160,32,.4);}
+.fa-list{display:flex;flex-direction:column;gap:7px;}
+.fa-row-top{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:3px;}
+.fa-name{font-size:12px;font-weight:700;color:var(--t1);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.fa-amt{font-size:11px;font-weight:700;color:var(--t3);flex-shrink:0;white-space:nowrap;}
+.fa-track{height:6px;background:rgba(255,255,255,.1);border-radius:3px;overflow:hidden;}
+.fa-fill{height:100%;border-radius:3px;}
 .pj-ttl{flex:1;min-width:0;line-height:1.25;}
 .pj-ttl .tag{margin-left:6px;vertical-align:middle;}
 .x-wrap{position:relative;display:inline-flex;align-items:center;flex-shrink:0;cursor:pointer;}
@@ -263,6 +273,7 @@ body{background:var(--bg);color:var(--t1);}
 .sc-val{font-size:40px;font-weight:900;line-height:1;text-align:center;}
 .sc-val.sc-sm{font-size:32px;}
 .sc-max{font-size:11px;font-weight:700;color:var(--t3);opacity:.55;margin-left:1px;letter-spacing:0;}
+.sc-prov{font-size:8.5px;color:var(--ylw);font-weight:700;text-align:center;margin-top:2px;line-height:1.25;max-width:78px;}
 .sc-val.sc-sm .sc-max{font-size:9px;}
 .c-g{color:var(--grn);}
 .c-a{color:var(--acc);}
@@ -342,6 +353,8 @@ body{background:var(--bg);color:var(--t1);}
 .detail-h{font-size:15px;font-weight:800;color:var(--t1);letter-spacing:.01em;margin:-15px -16px 12px;padding:12px 16px 10px;border-bottom:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.085);border-radius:13px 13px 0 0;}
 .detail-txt{font-size:13.5px;line-height:1.8;color:var(--t1);white-space:normal;word-break:break-word;}
 .memo-link{color:var(--grn);text-decoration:underline;text-underline-offset:2px;cursor:pointer;word-break:break-all;}
+.memo-copy{display:block;width:fit-content;margin:3px 0 6px;padding:3px 10px;border:1px solid var(--bb);border-radius:7px;background:var(--card2);color:var(--t1);font-size:11px;font-weight:700;cursor:pointer;}
+.memo-copy:active{background:var(--b);}
 .memo-link:active{opacity:.55;}
 /* FDV換算表 */
 .fdv-inputs{display:flex;flex-direction:column;gap:1px;margin-bottom:10px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.14);border-radius:9px;overflow:hidden;}
@@ -714,6 +727,8 @@ body{background:var(--bg);color:var(--t1);}
           <span class="x-link-handle">@babucrypter</span>
         </div>
       </div>
+
+      <div class="set-card" id="fundalloc-card" style="display:none;"></div>
 
       <div class="set-card" id="achv-card" style="display:none;"></div>
 
@@ -1095,6 +1110,40 @@ function toggleScFold(){
   scFoldOpen=!scFoldOpen;
   renderScoreCheck();
 }
+
+// ─────────── 資金配分（仕込み中の案件を対象に、投下額の集中度を可視化）───────────
+function renderFundAlloc(){
+  var el=document.getElementById('fundalloc-card');
+  if(!el)return;
+  // 仕込み中（未終了かつ投下額>0）の案件だけを対象
+  var items=[];
+  (Array.isArray(PROJ)?PROJ:[]).forEach(function(p){
+    if(p.endDate)return;
+    var amt=Math.max(0,num(p.totalUsd))+burnAmt(p); // 現在の預入＋これまでの削り
+    if(amt>0)items.push({name:p.name||'（無題）',amt:amt,pid:p.id});
+  });
+  if(!items.length){el.style.display='none';return;}
+  var total=items.reduce(function(a,it){return a+it.amt;},0);
+  items.sort(function(a,b){return b.amt-a.amt;});
+  var topShare=total>0?(items[0].amt/total*100):0;
+  // 集中度の警告レベル（1案件が半分以上＝赤、3分の1以上＝黄）
+  var warn='';
+  if(topShare>=50)warn='<div class="fa-warn fa-warn-r">⚠️ '+esc(items[0].name)+' に資金の'+Math.round(topShare)+'%が集中しています</div>';
+  else if(topShare>=34)warn='<div class="fa-warn fa-warn-y">'+esc(items[0].name)+' の比率が'+Math.round(topShare)+'%とやや高めです</div>';
+  var barsHtml=items.map(function(it,i){
+    var pctv=total>0?(it.amt/total*100):0;
+    var colr=i===0?'var(--acc)':'var(--bb)';
+    return '<div class="fa-row">'
+      +'<div class="fa-row-top"><span class="fa-name">'+esc(it.name)+'</span><span class="fa-amt">'+fmtU(Math.round(it.amt))+'（'+Math.round(pctv)+'%）</span></div>'
+      +'<div class="fa-track"><div class="fa-fill" style="width:'+pctv.toFixed(1)+'%;background:'+colr+';"></div></div>'
+      +'</div>';
+  }).join('');
+  el.innerHTML='<div class="set-card-title"><span class="dh-i2"><svg class="dh-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path><path d="M12 12l0-9"></path><path d="M12 12l7 4"></path></svg>資金配分（仕込み中）</span></div>'
+    +'<div class="fa-total">投下合計：'+fmtU(Math.round(total))+' ／ '+items.length+'案件</div>'
+    +warn
+    +'<div class="fa-list">'+barsHtml+'</div>';
+  el.style.display='block';
+}
 var EMOJI_ICON_MAP={'\u2705':'<svg class="in-ico" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M8 12.5l2.5 2.5L16 9.5"></path></svg>','\uD83D\uDCF5':'<svg class="in-ico" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><line x1="5.5" y1="18.5" x2="18.5" y2="5.5"></line></svg>','\uD83D\uDD12':'<svg class="in-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="9" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg>','\uD83D\uDD11':'<svg class="in-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="4.5"></circle><path d="M10.9 12.1L20 3"></path><path d="M16 7l3 3"></path><path d="M13 4l3 3"></path></svg>','\uD83D\uDD17':'<svg class="in-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>','\u26A0\uFE0F':'<svg class="in-ico" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l10 18H2L12 3z"></path><line x1="12" y1="10" x2="12" y2="14.5"></line><circle cx="12" cy="17.2" r="0.9" fill="#f59e0b" stroke="none"></circle></svg>','\u26A0':'<svg class="in-ico" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l10 18H2L12 3z"></path><line x1="12" y1="10" x2="12" y2="14.5"></line><circle cx="12" cy="17.2" r="0.9" fill="#f59e0b" stroke="none"></circle></svg>'};
 function emojiToIcon(line){
   var m=line.match(/^([\u2600-\u27BF\uD83C-\uDBFF][\uDC00-\uDFFF]?\uFE0F?)\s*/);
@@ -1231,6 +1280,7 @@ function initData(){
     renderSecProof();
     renderAchv();
     renderScoreCheck();
+    renderFundAlloc();
     renderStrategy();
     populateCatFilter();
     return ok;
@@ -1260,6 +1310,16 @@ function sanDep(o){
   return {date:date,cur:clampStr(o.cur,12),amt:num(o.amt),usd:num(o.usd),note:clampStr(o.note,120)};
 }
 function sanMark(v){return (v==='g'||v==='m'||v==='b')?v:'b';}
+function sanFrozen(f){
+  if(!f||typeof f!=='object')return null;
+  if(typeof f.total!=='number'||!isFinite(f.total))return null;
+  return {
+    total:Math.round(f.total),
+    sm:num(f.sm), eff:num(f.eff), deduct:num(f.deduct), smPts:num(f.smPts),
+    effImputed:!!f.effImputed,
+    at:(typeof f.at==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(f.at))?f.at:''
+  };
+}
 function sanProj(o,spLen){
   o=o||{};
   var sm=Array.isArray(o.sm)?o.sm.slice(0,spLen).map(sanMark):[];
@@ -1268,6 +1328,7 @@ function sanProj(o,spLen){
   return {
     id:num(o.id)||(Date.now()+Math.floor(Math.random()*1000)),
     createdAt:(typeof o.createdAt==='number'&&isFinite(o.createdAt)&&o.createdAt>0)?o.createdAt:0,
+    frozen:sanFrozen(o.frozen),
     name:clampStr(o.name,60),
     url:safeHandle(o.url),
     cat:clampStr(o.cat,30),
@@ -1321,29 +1382,58 @@ function updateThemeBtns(){}
 
 // SCORE
 // 期待値スコア（100点満点）: 強い人の言及 + 調達効率 + 減点方式の3ブロック
+// 記入済み案件の調達効率スコアの中央値（未記入案件の暫定値に使う。5件未満は半分点にフォールバック）
+function _effMedianCache(){
+  var vals=[];
+  (Array.isArray(PROJ)?PROJ:[]).forEach(function(q){
+    if(q&&q.fund){
+      var parts=[];
+      if(q.usr)parts.push(Math.min((q.fund/q.usr)/(W.ef_full||25),1));
+      if(q.tvl)parts.push(Math.min((q.fund/q.tvl)/(W.et_full||3),1));
+      var n=parts.length?parts.reduce(function(a,b){return a+b;},0)/parts.length:0;
+      vals.push(n*(W.w_ef||0));
+    }
+  });
+  if(vals.length<5)return null; // 母数が少ないうちは中央値を使わない
+  vals.sort(function(a,b){return a-b;});
+  var m=Math.floor(vals.length/2);
+  return vals.length%2?vals[m]:(vals[m-1]+vals[m])/2;
+}
 function scoreBreakdown(p){
+  // 終了時に凍結したスコアがあれば、それをそのまま使う（配点を後から変えても答え合わせが壊れないように）
+  if(p&&p.frozen&&typeof p.frozen.total==='number'){
+    var fz=p.frozen;
+    return {total:fz.total, sm:fz.sm||0, eff:fz.eff||0, deduct:fz.deduct||0, smPts:fz.smPts||0, effImputed:!!fz.effImputed, frozen:true};
+  }
   // ① 強い人の言及（生pt合計を上限で正規化 → w_sm点。マイナスにはしない）
   var smPts=(p.sm||[]).reduce(function(a,v,j){var q=SP[j];if(!q)return a;return a+(v==='g'?q.ptG:v==='m'?q.ptM:(q.ptB||0));},0);
   var smFull=W.sm_full>0?W.sm_full:12;
   var smScore=Math.max(0,Math.min(smPts/smFull,1))*(W.w_sm||0);
   // ② 調達効率（調達÷参加者、調達÷TVL を各0〜1に正規化し、利用可能な指標の平均 → w_ef点）
-  //    調達額そのものが未記入で計算不可能な場合は、判定不能として満点の半分を暫定表示（0点にして不当に差が開くのを防ぐ）
-  var effScore;
+  //    調達額が未記入で計算不可能な場合は、記入済み案件の中央値を暫定値に（母数5件未満は満点の半分）
+  var effScore, effImputed=false;
   if(!p.fund){
-    effScore=(W.w_ef||0)/2;
+    var med=_effMedianCache();
+    if(med===null){ effScore=(W.w_ef||0)/2; } else { effScore=med; }
+    effImputed=true;
   }else{
     var parts=[];
     if(p.usr)parts.push(Math.min((p.fund/p.usr)/(W.ef_full||25),1));
     if(p.tvl)parts.push(Math.min((p.fund/p.tvl)/(W.et_full||3),1));
     var effNorm=parts.length?parts.reduce(function(a,b){return a+b;},0)/parts.length:0;
-    effScore=parts.length?effNorm*(W.w_ef||0):(W.w_ef||0)/2;
+    if(parts.length){ effScore=effNorm*(W.w_ef||0); }
+    else { // 調達額はあるが参加者もTVLも無い→効率計算不能。これも暫定扱い（中央値→無ければ半分）
+      var med2=_effMedianCache();
+      effScore=(med2===null)?(W.w_ef||0)/2:med2;
+      effImputed=true;
+    }
   }
   // ③ 減点方式（満点 w_deduct から、△✕で3項目それぞれ減点）
   function ded(v){return v==='g'?0:(v==='m'?(W.d_m||0):(W.d_b||0));}
   var deductTotal=ded(p.refa)+ded(p.low)+ded(p.quality||'b');
   var deductScore=Math.max(0,(W.w_deduct||0)-deductTotal);
   var total=smScore+effScore+deductScore;
-  return {total:Math.round(total), sm:smScore, eff:effScore, deduct:deductScore, smPts:smPts};
+  return {total:Math.round(total), sm:smScore, eff:effScore, deduct:deductScore, smPts:smPts, effImputed:effImputed};
 }
 function score(p){return scoreBreakdown(p).total;}
 // 満点の合計（設定変更に追従。表示の「/100」用）
@@ -1777,7 +1867,7 @@ function renderList(id,mode){
       +(burn_>0?'<div class="pj-meta3"><span class="pj-lbl-row">削り額：</span> <span class="pj-dv pj-burn">'+fmtU(burn_)+'</span></div>':'')
       +(p.tge&&!p.earlyStart?'<div class="pj-meta3"><span class="pj-lbl-row">TGE予定：</span> <span class="pj-dv">'+tgeSym(p.tge)+'</span></div>':'')
       +'</div>'
-      +'<div class="sc-wrap"><div class="sc-lbl">期待値</div><div class="sc-val '+scCls(s)+' '+(String(s).length>=5?'sc-sm':'')+'">'+s+'<span class="sc-max">/'+scoreMax()+'</span></div></div>'
+      +'<div class="sc-wrap"><div class="sc-lbl">期待値</div><div class="sc-val '+scCls(s)+' '+(String(s).length>=5?'sc-sm':'')+'">'+s+'<span class="sc-max">/'+scoreMax()+'</span></div>'+(bd.effImputed?'<div class="sc-prov">未記入のため暫定値</div>':'')+'</div>'
       +'</div>'
       +earlyHtml(p)
 
@@ -1869,8 +1959,9 @@ function openX(handle){
 // ── 紹介リンク：コピー＆「確認してから開く」（X限定を外す代わりの安全策） ──
 var _refURL='';
 // メモ本文中の URL / ドメイン / @ハンドル を、タップで確認(→開く/コピー)できる安全なリンクに変換
-function linkifyMemo(raw){
+function linkifyMemo(raw,pid){
   if(!raw)return '';
+  var pidAttr=(pid!=null)?' data-pid="'+esc(String(pid))+'"':'';
   var re=/(https?:\/\/[^\s<>"']+)|((?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z]{2,}(?:\/[^\s<>"']*)?)|(@[A-Za-z0-9_]{1,15})/gi;
   var out='',last=0,m;
   while((m=re.exec(raw))!==null){
@@ -1879,7 +1970,10 @@ function linkifyMemo(raw){
     if(!m[3]){ var tm=token.match(/[.,;:!?)\]）」』｝]+$/); if(tm){ trail=tm[0]; token=token.slice(0,token.length-trail.length); } }
     if(m[1])url=token; else if(m[2])url='https://'+token; else url='https://x.com/'+token.slice(1);
     var safe=safeUrl(url);
-    if(safe)out+='<span class="memo-link" data-url="'+esc(safe)+'" onclick="event.stopPropagation();askRef(this)">'+esc(token)+'</span>'+esc(trail);
+    if(safe){
+      out+='<span class="memo-link" data-url="'+esc(safe)+'"'+pidAttr+' onclick="event.stopPropagation();askRef(this)">'+esc(token)+'</span>'+esc(trail)
+        +'<span class="memo-copy" data-url="'+esc(safe)+'" onclick="event.stopPropagation();copyRef(this)">🔗をコピー</span>';
+    }
     else out+=esc(orig);
     last=m.index+orig.length;
   }
@@ -1892,7 +1986,7 @@ function renderTaskHtml(p){
   var imgs=Array.isArray(p.taskImg)?p.taskImg:[];
   var lines=String(p.task).split(/\r?\n/);
   var html='',buf=[];
-  function flush(){ if(buf.length){ html+=linkifyMemo(buf.join('\n')); buf=[]; } }
+  function flush(){ if(buf.length){ html+=linkifyMemo(buf.join('\n'),p.id); buf=[]; } }
   lines.forEach(function(line){
     var m=line.trim().match(/^\[写真(\d+)\]$/);
     if(m){
@@ -1983,10 +2077,25 @@ function fallbackCopy(text){
     showToast(ok?'リンクをコピーしました':'コピーできませんでした');
   }catch(e){showToast('コピーできませんでした');}
 }
+// ── リンククリック計測（匿名INSERTのみ。閲覧側は集計を読み取れない） ──
+// 送信内容は「案件id」と「日付」だけ。個人情報や閲覧者を特定する情報は一切送らない。
+var _clickPid=null; // 現在開いている詳細パネルの案件id（クリック帰属用）
+function logLinkClick(pid){
+  if(pid==null)return;
+  try{
+    fetch(SB_URL+'/rest/v1/link_clicks',{
+      method:'POST',
+      headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json','Prefer':'return=minimal'},
+      body:JSON.stringify({pid:String(pid),day:new Date().toISOString().slice(0,10)}),
+      keepalive:true
+    }).catch(function(){});
+  }catch(e){}
+}
 function askRef(btn){
   var u=safeUrl(btn.getAttribute('data-url')||''); // http/https のみ・危険スキーム遮断
   if(!u)return;
   _refURL=u;
+  var pd=btn.getAttribute('data-pid'); _clickPid=(pd!=null&&pd!=='')?pd:null;
   var host='';
   try{host=(new URL(u)).host;}catch(e){host='';}
   var d=document.getElementById('m-ref-dom'); if(d)d.textContent=host||'(不明なドメイン)';
@@ -1996,6 +2105,7 @@ function askRef(btn){
 function openRefGo(){
   markExtNav();
   var u=safeUrl(_refURL);
+  logLinkClick(_clickPid); // 実際に開いた時だけ計測（コピーやキャンセルは除外）
   cm('m-ref');
   if(!u)return;
   if(isIOS()){ window.location.href=u; }
@@ -2151,7 +2261,7 @@ function refreshFromCloud(opts){
     // 変化あり（または初回未取得）→ 全データを取り直して反映
     setCloudStatus('loading');
     return cloudLoad().then(function(ok){
-      if(ok){ renderTabs(); renderAll(); renderUpdated(); renderInfoText(); renderSecProof(); renderAchv(); renderScoreCheck(); renderStrategy(); populateCatFilter(); setCloudStatus('ok'); showToast('🔄 最新データに更新しました'); }
+      if(ok){ renderTabs(); renderAll(); renderUpdated(); renderInfoText(); renderSecProof(); renderAchv(); renderScoreCheck(); renderFundAlloc(); renderStrategy(); populateCatFilter(); setCloudStatus('ok'); showToast('🔄 最新データに更新しました'); }
       else  { setCloudStatus('err'); }
       _refreshing=false;
     });
