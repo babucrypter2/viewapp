@@ -274,6 +274,7 @@ body{background:var(--bg);color:var(--t1);}
 .sc-val.sc-sm{font-size:32px;}
 .sc-max{font-size:11px;font-weight:700;color:var(--t3);opacity:.55;margin-left:1px;letter-spacing:0;}
 .sc-prov{font-size:8.5px;color:var(--ylw);font-weight:700;text-align:center;margin-top:2px;line-height:1.25;max-width:78px;}
+.st-prov{font-size:8px;color:var(--ylw);font-weight:700;text-align:center;margin-top:1px;line-height:1.2;white-space:nowrap;}
 .sc-val.sc-sm .sc-max{font-size:9px;}
 .c-g{color:var(--grn);}
 .c-a{color:var(--acc);}
@@ -1867,7 +1868,7 @@ function renderList(id,mode){
       +(burn_>0?'<div class="pj-meta3"><span class="pj-lbl-row">削り額：</span> <span class="pj-dv pj-burn">'+fmtU(burn_)+'</span></div>':'')
       +(p.tge&&!p.earlyStart?'<div class="pj-meta3"><span class="pj-lbl-row">TGE予定：</span> <span class="pj-dv">'+tgeSym(p.tge)+'</span></div>':'')
       +'</div>'
-      +'<div class="sc-wrap"><div class="sc-lbl">期待値</div><div class="sc-val '+scCls(s)+' '+(String(s).length>=5?'sc-sm':'')+'">'+s+'<span class="sc-max">/'+scoreMax()+'</span></div>'+(bd.effImputed?'<div class="sc-prov">未記入のため暫定値</div>':'')+'</div>'
+      +'<div class="sc-wrap"><div class="sc-lbl">期待値</div><div class="sc-val '+scCls(s)+' '+(String(s).length>=5?'sc-sm':'')+'">'+s+'<span class="sc-max">/'+scoreMax()+'</span></div></div>'
       +'</div>'
       +earlyHtml(p)
 
@@ -1876,7 +1877,7 @@ function renderList(id,mode){
       +'<div class="st-col"><div class="st-lbl">'+ICO.fund+' 調達額</div><div class="st-val">'+(p.fund?'$'+num(p.fund)+'M':'—')+'</div></div>'
       +'<div class="st-col"><div class="st-lbl">'+ICO.usr+' 参加者</div><div class="st-val">'+(p.usr?num(p.usr)+'万':'—')+'</div></div>'
       +'<div class="st-col"><div class="st-lbl">'+ICO.tvl+' TVL/Vol</div><div class="st-val">'+(p.tvl?'$'+num(p.tvl)+'M':'—')+'</div></div>'
-      +'<div class="st-col st-col-sc"><div class="st-val eff">'+(eff_disp!=='—'?eff_disp:'—')+'</div></div>'
+      +'<div class="st-col st-col-sc"><div class="st-val eff">'+(eff_disp!=='—'?eff_disp:'—')+'</div>'+(bd.effImputed?'<div class="st-prov">暫定値</div>':'')+'</div>'
       +'</div>'
 
       // ── Row 3: head (colon-style) + avatars left ──
