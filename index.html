@@ -200,6 +200,7 @@ body{background:var(--bg);color:var(--t1);}
 .sc-score-pill.hi{background:#1d7a4a;}
 .sc-score-pill.mid{background:#8a6a14;}
 .sc-note{font-size:10px;color:var(--t3);margin-top:8px;line-height:1.6;}
+.sc-desc{font-size:11px;color:var(--t1);line-height:1.7;margin-bottom:10px;background:rgba(255,255,255,.05);border-radius:8px;padding:9px 10px;}
 .fa-total{font-size:12px;font-weight:800;color:var(--t1);margin-bottom:8px;}
 .fa-title-row{display:flex;align-items:center;justify-content:space-between;gap:8px;}
 .fa-total-inline{font-size:11px;font-weight:700;color:var(--t1);text-transform:none;letter-spacing:normal;white-space:nowrap;flex-shrink:0;}
@@ -841,10 +842,11 @@ var INFO_DEFAULTS={
   glossary:`**TVL / Vol**：預けられた総額 or 取引高
 **FDV**：トークン全体の理論時価総額
 **削り**：手数料などで消費した額
-**年利 / 倍率**：投下額に対するエアドロの効率`
+**年利 / 倍率**：投下額に対するエアドロの効率`,
+  scorecheck:`期待値が高かったものが利益が出てるか？誰が言及してたか？等を見直してスコアの精度を向上させます。逆もしかり、儲からなかったものは期待値がどうだったか？誰が言及してたか？まで分析を行います。`
 };
 var INFO=Object.assign({},INFO_DEFAULTS);
-var INFO_KEYS=['about','safety','seccheck','score','glossary'];
+var INFO_KEYS=['about','safety','seccheck','score','glossary','scorecheck'];
 function sanInfo(o){
   var out=Object.assign({},INFO_DEFAULTS);
   if(o&&typeof o==='object'){
@@ -950,12 +952,11 @@ function renderAchv(){
   var today=new Date();
   var todayTxt=today.getFullYear()+'/'+(today.getMonth()+1)+'/'+today.getDate();
   var summaryHtml=amt?(
-      '<span class="achv-lbl-hi">エアドロ実績：</span>'
-      +'<span class="achv-amt">'+esc(amt)+'</span>'
+      '<span class="achv-amt">'+esc(amt)+'</span>'
       +'<span class="early-sep"></span>'
       +(dur?'<span class="achv-sub">歴'+esc(dur)+'</span>':'')
       +'<span class="achv-sub">'+todayTxt+'時点</span>'
-    ):'<span class="achv-lbl-hi">エアドロ実績</span>';
+    ):'<span class="achv-sub">記録がまだありません</span>';
   var totalPages=Math.max(1,Math.ceil(rankItems.length/ACHV_PAGE_SIZE));
   if(achvRankPage>totalPages-1)achvRankPage=totalPages-1;
   if(achvRankPage<0)achvRankPage=0;
@@ -987,7 +988,8 @@ function renderAchv(){
       +'<span class="dt-arrow">▼</span>'
       +'</button>'
     :'';
-  el.innerHTML='<div class="achv-line">'+summaryHtml+'</div>'
+  el.innerHTML='<div class="set-card-title"><span class="dh-i2">🪂 エアドロ実績</span></div>'
+    +'<div class="achv-line">'+summaryHtml+'</div>'
     +toggleHtml
     +'<div class="achv-rank-list" id="achv-rank-list" style="display:'+(achvFoldOpen?'block':'none')+';">'+rankHtml+pagerHtml+'</div>';
   el.style.display='block';
@@ -1098,10 +1100,11 @@ function renderScoreCheck(){
   }).join('');
   el.innerHTML='<div class="set-card-title"><span class="dh-i2"><svg class="dh-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"></path><path d="M7 14l4-4 3 3 5-6"></path></svg>期待値スコアの精度</span></div>'
     +'<button class="achv-toggle'+(scFoldOpen?' open':'')+'" onclick="toggleScFold()">'
-    +'<span class="dt-label">'+(scFoldOpen?'閉じる':'答え合わせを見る（'+items.length+'件）')+'</span>'
+    +'<span class="dt-label">'+(scFoldOpen?'閉じる':'期待値に対するエアドロ結果（'+items.length+'件）')+'</span>'
     +'<span class="dt-arrow">▼</span>'
     +'</button>'
     +'<div style="display:'+(scFoldOpen?'block':'none')+';margin-top:10px;">'
+    +(INFO.scorecheck?'<div class="sc-desc">'+esc(INFO.scorecheck).replace(/\n/g,'<br>')+'</div>':'')
     +bandHtml
     +'<div style="display:flex;flex-direction:column;gap:6px;margin-top:8px;">'+rowsHtml+'</div>'
     +'<div class="sc-note">※ スコアは現在の配点設定で算出</div>'
