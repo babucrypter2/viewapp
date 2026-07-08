@@ -902,6 +902,7 @@ function achvRankItems(){
     if(p.endDate&&Array.isArray(p.results)&&p.results.length){
       var su=0,sj=0;
       p.results.forEach(function(r){su+=num(r.usd);sj+=num(r.jpy);});
+      su-=burnAmt(p); // 受け取り額から削り額（$）を差し引いた純益
       if(su!==0||sj!==0)items.push({name:p.name||'（無題）',usd:su,jpy:sj,pid:p.id});
     }
   });
@@ -988,7 +989,10 @@ function renderAchv(){
       +'<span class="dt-arrow">▼</span>'
       +'</button>'
     :'';
-  el.innerHTML='<div class="set-card-title"><span class="dh-i2">🪂 エアドロ実績</span></div>'
+  var winCount=0;
+  rankItems.forEach(function(it){ if(it._eq>0)winCount++; });
+  var winRateHtml=rankItems.length?('<span class="fa-total-inline">勝率：'+Math.round(winCount/rankItems.length*100)+'%（'+winCount+'/'+rankItems.length+'）</span>'):'';
+  el.innerHTML='<div class="set-card-title fa-title-row"><span class="dh-i2">🪂 エアドロ実績</span>'+winRateHtml+'</div>'
     +'<div class="achv-line">'+summaryHtml+'</div>'
     +toggleHtml
     +'<div class="achv-rank-list" id="achv-rank-list" style="display:'+(achvFoldOpen?'block':'none')+';">'+rankHtml+pagerHtml+'</div>';
@@ -1384,10 +1388,10 @@ function sanResults(o){
     arr=o.results.slice(0,200).map(function(r){
       return {usd:num(r&&r.usd),jpy:num(r&&r.jpy),
         date:/^\d{4}-\d{2}-\d{2}$/.test(r&&r.date)?r.date:null};
-    }).filter(function(r){return r.usd>0||r.jpy>0;});
+    }).filter(function(r){return r.usd!==0||r.jpy!==0;});
   }
   // 旧形式（resultUsd/resultJpy/resultDate）を1件として取り込み
-  if(!arr.length&&(num(o.resultUsd)>0||num(o.resultJpy)>0)){
+  if(!arr.length&&(num(o.resultUsd)!==0||num(o.resultJpy)!==0)){
     arr.push({usd:num(o.resultUsd),jpy:num(o.resultJpy),
       date:/^\d{4}-\d{2}-\d{2}$/.test(o.resultDate)?o.resultDate:null});
   }
@@ -1544,8 +1548,8 @@ function fmtResultTotal(results){
   var su=0,sj=0;
   (results||[]).forEach(function(r){su+=num(r.usd);sj+=num(r.jpy);});
   var parts=[];
-  if(su>0)parts.push('$'+su.toLocaleString('en-US'));
-  if(sj>0)parts.push('¥'+sj.toLocaleString('ja-JP'));
+  if(su!==0)parts.push((su<0?'-$':'$')+Math.abs(su).toLocaleString('en-US'));
+  if(sj!==0)parts.push((sj<0?'-¥':'¥')+Math.abs(sj).toLocaleString('ja-JP'));
   return parts.join(' / ')||'—';
 }
 // カード用：合計表示（受取回数も）
