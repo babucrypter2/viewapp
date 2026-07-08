@@ -1361,6 +1361,8 @@ function sanProj(o,spLen){
     totalUsd:num(o.totalUsd),
     aType:(o.aType==='burn'?'burn':'stake'),
     burnUsd:Math.max(0,num(o.burnUsd)),
+    depOverrideUsd:Math.max(0,num(o.depOverrideUsd)),
+    periodOverrideMonths:Math.max(0,num(o.periodOverrideMonths)),
     quality:sanMark(o.quality),
     tge:(o.tge==='g'||o.tge==='m'||o.tge==='b')?o.tge:'',
     earlyStart:/^\d{4}-\d{2}-\d{2}$/.test(o.earlyStart)?o.earlyStart:null,
@@ -1591,6 +1593,7 @@ function avgBalanceUsd(p){
 // 表示用の預入額：引き出しがあれば平均残高、なければ現在残高（無ければ保存値totalUsd）
 function depShowUsd(p){
   if(!p)return 0;
+  if(num(p.depOverrideUsd)>0)return num(p.depOverrideUsd); // 手動上書き優先
   if(hasWithdrawal(p))return avgBalanceUsd(p);
   var b=balanceUsd(p);
   if(b>0)return b;
@@ -1598,7 +1601,13 @@ function depShowUsd(p){
 }
 // 最初の預入からの月数 / 期間テキスト（ヶ月→無ければ日）
 function depMonths(p){var s=firstDepDate(p);return s?mos(s,p.endDate||null):0;}
-function depPeriodTxt(p){var d=heldDays(p);if(d<=0)return '';var m=d/30.44;var r=Math.round(m*10)/10;if(r<0.1)r=0.1;return (r%1===0?String(Math.round(r)):r.toFixed(1))+'ヶ月';}
+function depPeriodTxt(p){
+  if(num(p.periodOverrideMonths)>0){ // 手動上書き優先
+    var rm=Math.round(num(p.periodOverrideMonths)*10)/10;
+    return (rm%1===0?String(Math.round(rm)):rm.toFixed(1))+'ヶ月';
+  }
+  var d=heldDays(p);if(d<=0)return '';var m=d/30.44;var r=Math.round(m*10)/10;if(r<0.1)r=0.1;return (r%1===0?String(Math.round(r)):r.toFixed(1))+'ヶ月';
+}
 // 削り額（消費したドル）
 function burnAmt(p){return p?Math.max(0,num(p.burnUsd)):0;}
 // 保有日数（開始〜終了 or 現在）。月数が0でも日割りで使えるように日数も返す
