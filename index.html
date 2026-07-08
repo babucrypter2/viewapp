@@ -1135,7 +1135,7 @@ function renderFundAlloc(){
   else if(topShare>=34)warn='<div class="fa-warn fa-warn-y">'+esc(items[0].name)+' の比率が'+Math.round(topShare)+'%とやや高めです</div>';
   var barsHtml=items.map(function(it,i){
     var pctv=total>0?(it.amt/total*100):0;
-    var colr=i===0?'var(--acc)':'var(--bb)';
+    var colr='var(--acc)';
     return '<div class="fa-row">'
       +'<div class="fa-row-top"><span class="fa-name">'+esc(it.name)+'</span><span class="fa-amt">'+fmtU(Math.round(it.amt))+'（'+Math.round(pctv)+'%）</span></div>'
       +'<div class="fa-track"><div class="fa-fill" style="width:'+pctv.toFixed(1)+'%;background:'+colr+';"></div></div>'
