@@ -593,6 +593,11 @@ body{background:var(--bg);color:var(--t1);}
 .strategy-bar{background:var(--card2);border:1px solid var(--bb);border-radius:13px;padding:8px 10px 9px;margin:0 0 8px;box-shadow:0 2px 6px rgba(0,0,0,.22);}
 .strategy-bar .detail-h{margin:-8px -10px 6px;padding:7px 10px 5px;font-size:13px;}
 .strategy-txt{font-size:12px;color:var(--t1);line-height:1.45;white-space:pre-wrap;word-break:break-word;}
+.tl-body{font-size:12px;color:var(--t1);line-height:1.8;white-space:pre-wrap;word-break:break-word;}
+.tl-chip{display:inline-flex;align-items:center;gap:6px;background:var(--card2);border:1px solid var(--bb);border-radius:8px;padding:4px 8px;margin:2px 2px;font-size:12px;font-weight:700;color:var(--t1);white-space:nowrap;}
+.tl-chip-gone{opacity:.5;font-style:italic;}
+.tl-go{background:var(--acc);color:#fff;border-radius:6px;padding:3px 8px;font-size:11px;font-weight:800;cursor:pointer;white-space:nowrap;}
+.tl-go:active{filter:brightness(.85);}
 .sec-proof{display:block;width:100%;border-radius:10px;border:1.5px solid rgba(255,255,255,.22);margin:10px 0 2px;}
 .task-img{display:block;width:100%;border-radius:10px;border:1.5px solid rgba(255,255,255,.22);margin:10px 0;}
 /* スコア設定: グループ＋○△✕配点 */
@@ -705,7 +710,7 @@ body{background:var(--bg);color:var(--t1);}
   <div class="updated-bar" id="updated-bar" style="display:none;"></div>
 
   <div class="view active" id="view-active">
-    <div class="scroll-area"><div class="content"><div class="strategy-bar" id="strategy-bar" style="display:none;"></div><div class="card-list" id="list-active"></div><div class="bnav-spacer" aria-hidden="true"></div></div></div>
+    <div class="scroll-area"><div class="content"><div class="strategy-bar" id="strategy-bar" style="display:none;"></div><div class="strategy-bar" id="tasklist-bar" style="display:none;"></div><div class="card-list" id="list-active"></div><div class="bnav-spacer" aria-hidden="true"></div></div></div>
   </div>
   <div class="view" id="view-all">
     <div class="scroll-area"><div class="content">
@@ -928,6 +933,64 @@ function renderStrategy(){
   if(!STRATEGY){el.style.display='none';return;}
   el.innerHTML='<div class="detail-h"><span class="dh-i">'+ICO.pin+'今のメイン戦略</span></div><div class="strategy-txt">'+esc(STRATEGY)+'</div>';
   el.style.display='block';
+}
+
+// ─────────── 今のエアドロタスク日課（戦略の下に固定表示、折りたたみ式）───────────
+var TASKLIST='';
+var taskListFoldOpen=false;
+function sanTaskList(v){ return typeof v==='string'?clampStr(v,3000):''; }
+// 本文中の [[PROJ:id:名前]] トークンを「案件名＋詳細カードへボタン」に、URLをリンク＋コピーボタンに変換
+function renderTaskListHtml(raw){
+  if(!raw)return '';
+  var re=/\[\[PROJ:(\d+):([^\]]*)\]\]/g;
+  var out='',last=0,m;
+  while((m=re.exec(raw))!==null){
+    out+=linkifyMemo(raw.slice(last,m.index));
+    var pid=m[1],fallback=m[2];
+    var proj=(Array.isArray(PROJ)?PROJ:[]).find(function(p){return String(p.id)===pid;});
+    if(proj){
+      out+='<span class="tl-chip">'+esc(proj.name||fallback||'（無題）')
+        +'<span class="tl-go" onclick="event.stopPropagation();jumpToProjectAny('+pid+')">詳細カードへ ›</span></span>';
+    }else{
+      out+='<span class="tl-chip tl-chip-gone">'+esc(fallback||'削除済み案件')+'</span>';
+    }
+    last=m.index+m[0].length;
+  }
+  out+=linkifyMemo(raw.slice(last));
+  return out;
+}
+function renderTaskList(){
+  var el=document.getElementById('tasklist-bar');
+  if(!el)return;
+  if(!TASKLIST){el.style.display='none';return;}
+  el.innerHTML='<div class="detail-h"><span class="dh-i">🪂今のエアドロタスク日課</span></div>'
+    +'<button class="achv-toggle'+(taskListFoldOpen?' open':'')+'" onclick="toggleTaskListFold()">'
+    +'<span class="dt-label">'+(taskListFoldOpen?'閉じる':'見る')+'</span>'
+    +'<span class="dt-arrow">▼</span>'
+    +'</button>'
+    +'<div class="tl-body" style="display:'+(taskListFoldOpen?'block':'none')+';margin-top:8px;">'+renderTaskListHtml(TASKLIST)+'</div>';
+  el.style.display='block';
+}
+function toggleTaskListFold(){
+  taskListFoldOpen=!taskListFoldOpen;
+  renderTaskList();
+}
+// ランキング/タスク日課共通：案件の現在の状態に応じたタブへ移動し、詳細を開いた状態にする
+function jumpToProjectAny(pid){
+  pid=Number(pid);
+  var idx=PROJ.findIndex(function(p){return p.id===pid;});
+  if(idx<0)return;
+  var p=PROJ[idx];
+  var mode=p.endDate?'ended':(isActiveProj(p)?'active':'all');
+  var navBtn=document.getElementById('bni-'+mode);
+  sv(mode,navBtn,'b');
+  setTimeout(function(){
+    var body=document.getElementById('dt-body-'+mode+'-'+idx);
+    var btn=document.getElementById('dt-btn-'+mode+'-'+idx);
+    if(body&&btn&&body.style.display==='none')toggleDetail(mode,idx);
+    var card=btn&&btn.closest('.proj-card');
+    if(card)card.scrollIntoView({behavior:'smooth',block:'start'});
+  },60);
 }
 
 function achvDurTxt(){
@@ -1285,6 +1348,7 @@ function applyLoadedData(d){
   SEC_PROOF=sanSecProof(d.secProof);
   ACHV=sanAchv(d.achv);
   STRATEGY=sanStrategy(d.strategy);
+  TASKLIST=sanTaskList(d.tasklist);
   computeUpdatedPids();
   // テーマはダークモード固定（保存値は反映しない）
 }
@@ -1301,6 +1365,7 @@ function initData(){
     renderScoreCheck();
     renderFundAlloc();
     renderStrategy();
+    renderTaskList();
     populateCatFilter();
     return ok;
   });
@@ -2291,7 +2356,7 @@ function refreshFromCloud(opts){
     // 変化あり（または初回未取得）→ 全データを取り直して反映
     setCloudStatus('loading');
     return cloudLoad().then(function(ok){
-      if(ok){ renderTabs(); renderAll(); renderUpdated(); renderInfoText(); renderSecProof(); renderAchv(); renderScoreCheck(); renderFundAlloc(); renderStrategy(); populateCatFilter(); setCloudStatus('ok'); showToast('🔄 最新データに更新しました'); }
+      if(ok){ renderTabs(); renderAll(); renderUpdated(); renderInfoText(); renderSecProof(); renderAchv(); renderScoreCheck(); renderFundAlloc(); renderStrategy(); renderTaskList(); populateCatFilter(); setCloudStatus('ok'); showToast('🔄 最新データに更新しました'); }
       else  { setCloudStatus('err'); }
       _refreshing=false;
     });
