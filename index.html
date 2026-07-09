@@ -1184,6 +1184,13 @@ function toggleScFold(){
 
 // ─────────── 資金配分（仕込み中の案件を対象に、投下額の集中度を可視化）───────────
 var faFoldOpen=false;
+// 資金配分用：現在の仕込み額そのまま（時間平均や削り額は含めない。ポートフォリオの内訳という考え方）
+function fundAllocAmt(p){
+  if(num(p.depOverrideUsd)>0)return num(p.depOverrideUsd); // 手動上書き優先
+  var b=balanceUsd(p);
+  if(b>0)return b;
+  return Math.max(0,num(p.totalUsd));
+}
 function renderFundAlloc(){
   var el=document.getElementById('fundalloc-card');
   if(!el)return;
@@ -1191,7 +1198,7 @@ function renderFundAlloc(){
   var items=[];
   (Array.isArray(PROJ)?PROJ:[]).forEach(function(p){
     if(p.endDate)return;
-    var amt=Math.max(0,num(p.totalUsd))+burnAmt(p); // 現在の預入＋これまでの削り
+    var amt=fundAllocAmt(p);
     if(amt>0)items.push({name:p.name||'（無題）',amt:amt,pid:p.id});
   });
   if(!items.length){el.style.display='none';return;}
