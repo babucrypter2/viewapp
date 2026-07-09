@@ -2058,14 +2058,15 @@ function linkifyMemo(raw,pid){
     if(!m[3]){ var tm=token.match(/[.,;:!?)\]）」』｝]+$/); if(tm){ trail=tm[0]; token=token.slice(0,token.length-trail.length); } }
     if(m[1])url=token; else if(m[2])url='https://'+token; else url='https://x.com/'+token.slice(1);
     var safe=safeUrl(url);
+    var isHandle=!!m[3];
     if(safe){
-      out+='<span class="memo-link" data-url="'+esc(safe)+'"'+pidAttr+' onclick="event.stopPropagation();askRef(this)">'+esc(token)+'</span>'+esc(trail)
-        +'<span class="memo-copy" data-url="'+esc(safe)+'" onclick="event.stopPropagation();copyRef(this)">🔗をコピー</span>';
+      out+='<span class="memo-link" data-url="'+esc(safe)+'"'+pidAttr+' onclick="event.stopPropagation();askRef(this)">'+esc(token)+'</span>'+esc(trail);
+      if(!isHandle)out+='<span class="memo-copy" data-url="'+esc(safe)+'" onclick="event.stopPropagation();copyRef(this)">🔗をコピー</span>';
     }
     else out+=esc(orig);
     last=m.index+orig.length;
-    // コピーボタン自体が改行相当（ブロック表示）なので、直後の改行1つは二重にしない
-    if(safe&&raw.charAt(last)==='\n')last++;
+    // コピーボタン自体が改行相当（ブロック表示）なので、直後の改行1つは二重にしない（@ハンドルはコピー無しなので対象外）
+    if(safe&&!isHandle&&raw.charAt(last)==='\n')last++;
   }
   out+=esc(raw.slice(last)).replace(/\n/g,'<br>');
   return out;
