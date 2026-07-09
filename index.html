@@ -203,6 +203,7 @@ body{background:var(--bg);color:var(--t1);}
 .sc-desc{font-size:11px;color:var(--t1);line-height:1.7;margin-bottom:10px;background:rgba(255,255,255,.05);border-radius:8px;padding:9px 10px;}
 .fa-total{font-size:12px;font-weight:800;color:var(--t1);margin-bottom:8px;}
 .fa-title-row{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.fa-title-right{display:flex;align-items:center;gap:8px;flex-shrink:0;}
 .fa-total-inline{font-size:11px;font-weight:700;color:var(--t1);text-transform:none;letter-spacing:normal;white-space:nowrap;flex-shrink:0;}
 .fa-warn{font-size:11px;font-weight:700;border-radius:8px;padding:7px 10px;margin-bottom:9px;line-height:1.5;}
 .fa-warn-r{background:rgba(232,80,80,.14);color:var(--red);border:1px solid rgba(232,80,80,.4);}
@@ -1052,19 +1053,15 @@ function renderAchv(){
     +'<button class="achv-pg-btn" '+(achvRankPage>=totalPages-1?'disabled':'')+' onclick="achvRankNext()">次へ ›</button>'
     +'</div>'
   ):'';
-  var toggleHtml=rankItems.length
-    ?'<button class="achv-toggle'+(achvFoldOpen?' open':'')+'" id="achv-fold-btn" onclick="toggleAchvFold()">'
-      +'<span class="dt-label">🏆 ランキングを'+(achvFoldOpen?'閉じる':'見る（'+rankItems.length+'件）')+'</span>'
-      +'<span class="dt-arrow">▼</span>'
-      +'</button>'
-    :'';
   var winCount=0;
   rankItems.forEach(function(it){ if(it._eq>0)winCount++; });
   var winRateHtml=rankItems.length?('<span class="fa-total-inline">勝率：'+Math.round(winCount/rankItems.length*100)+'%（'+winCount+'/'+rankItems.length+'）</span>'):'';
-  el.innerHTML='<div class="set-card-title fa-title-row"><span class="dh-i2">🪂 エアドロ実績</span>'+winRateHtml+'</div>'
+  var foldBtnHtml=rankItems.length
+    ?'<button class="tl-fold-btn'+(achvFoldOpen?' open':'')+'" onclick="toggleAchvFold()">'+(achvFoldOpen?'閉じる':'詳細')+'<span class="dt-arrow">▼</span></button>'
+    :'';
+  el.innerHTML='<div class="set-card-title fa-title-row"><span class="dh-i2">🪂 エアドロ実績</span><span class="fa-title-right">'+winRateHtml+foldBtnHtml+'</span></div>'
     +'<div class="achv-line">'+summaryHtml+'</div>'
-    +toggleHtml
-    +'<div class="achv-rank-list" id="achv-rank-list" style="display:'+(achvFoldOpen?'block':'none')+';">'+rankHtml+pagerHtml+'</div>';
+    +'<div class="achv-rank-list" id="achv-rank-list" style="display:'+(achvFoldOpen?'block':'none')+';margin-top:8px;">'+rankHtml+pagerHtml+'</div>';
   el.style.display='block';
 }
 function toggleAchvFold(){
@@ -1171,12 +1168,8 @@ function renderScoreCheck(){
       +'<span class="achv-rank-go">詳細カードへ ›</span>'
       +'</div>';
   }).join('');
-  el.innerHTML='<div class="set-card-title"><span class="dh-i2"><svg class="dh-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"></path><path d="M7 14l4-4 3 3 5-6"></path></svg>期待値スコアの精度</span></div>'
-    +'<button class="achv-toggle'+(scFoldOpen?' open':'')+'" onclick="toggleScFold()">'
-    +'<span class="dt-label">'+(scFoldOpen?'閉じる':'期待値に対するエアドロ結果（'+items.length+'件）')+'</span>'
-    +'<span class="dt-arrow">▼</span>'
-    +'</button>'
-    +'<div style="display:'+(scFoldOpen?'block':'none')+';margin-top:10px;">'
+  el.innerHTML='<div class="set-card-title fa-title-row"><span class="dh-i2"><svg class="dh-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"></path><path d="M7 14l4-4 3 3 5-6"></path></svg>期待値スコアの精度</span><button class="tl-fold-btn'+(scFoldOpen?' open':'')+'" onclick="toggleScFold()">'+(scFoldOpen?'閉じる':'詳細')+'<span class="dt-arrow">▼</span></button></div>'
+    +'<div style="display:'+(scFoldOpen?'block':'none')+';margin-top:8px;">'
     +(INFO.scorecheck?'<div class="sc-desc">'+esc(INFO.scorecheck).replace(/\n/g,'<br>')+'</div>':'')
     +bandHtml
     +'<div style="display:flex;flex-direction:column;gap:6px;margin-top:8px;">'+rowsHtml+'</div>'
@@ -1217,13 +1210,9 @@ function renderFundAlloc(){
       +'<div class="fa-track"><div class="fa-fill" style="width:'+pctv.toFixed(1)+'%;background:'+colr+';"></div></div>'
       +'</div>';
   }).join('');
-  el.innerHTML='<div class="set-card-title fa-title-row"><span class="dh-i2"><svg class="dh-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path><path d="M12 12l0-9"></path><path d="M12 12l7 4"></path></svg>資金配分（仕込み中）</span><span class="fa-total-inline">投下合計：'+fmtU(Math.round(total))+' ／ '+items.length+'案件</span></div>'
+  el.innerHTML='<div class="set-card-title fa-title-row"><span class="dh-i2"><svg class="dh-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path><path d="M12 12l0-9"></path><path d="M12 12l7 4"></path></svg>資金配分（仕込み中）</span><span class="fa-title-right"><span class="fa-total-inline">投下合計：'+fmtU(Math.round(total))+' ／ '+items.length+'案件</span><button class="tl-fold-btn'+(faFoldOpen?' open':'')+'" onclick="toggleFaFold()">'+(faFoldOpen?'閉じる':'詳細')+'<span class="dt-arrow">▼</span></button></span></div>'
     +warn
-    +'<button class="achv-toggle'+(faFoldOpen?' open':'')+'" onclick="toggleFaFold()">'
-    +'<span class="dt-label">'+(faFoldOpen?'閉じる':'内訳を見る（'+items.length+'件）')+'</span>'
-    +'<span class="dt-arrow">▼</span>'
-    +'</button>'
-    +'<div style="display:'+(faFoldOpen?'block':'none')+';margin-top:10px;">'
+    +'<div style="display:'+(faFoldOpen?'block':'none')+';margin-top:'+(warn?'10px':'0')+';">'
     +'<div class="fa-list">'+barsHtml+'</div>'
     +'</div>';
   el.style.display='block';
