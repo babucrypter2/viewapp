@@ -594,9 +594,14 @@ body{background:var(--bg);color:var(--t1);}
 .strategy-bar .detail-h{margin:-8px -10px 6px;padding:7px 10px 5px;font-size:13px;}
 .strategy-txt{font-size:12px;color:var(--t1);line-height:1.45;white-space:pre-wrap;word-break:break-word;}
 .tl-body{font-size:12px;color:var(--t1);line-height:1.8;white-space:pre-wrap;word-break:break-word;}
-.tl-chip{display:inline-flex;align-items:center;gap:6px;background:var(--card2);border:1px solid var(--bb);border-radius:8px;padding:4px 8px;margin:2px 2px;font-size:12px;font-weight:700;color:var(--t1);white-space:nowrap;}
-.tl-chip-gone{opacity:.5;font-style:italic;}
-.tl-go{background:var(--acc);color:#fff;border-radius:6px;padding:3px 8px;font-size:11px;font-weight:800;cursor:pointer;white-space:nowrap;}
+.tl-head-row{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.tl-fold-btn{flex-shrink:0;background:rgba(255,255,255,.09);border:1.5px solid rgba(255,255,255,.28);border-radius:8px;padding:5px 10px;font-size:12px;font-weight:800;color:#fff;cursor:pointer;display:flex;align-items:center;gap:4px;white-space:nowrap;}
+.tl-fold-btn .dt-arrow{font-size:8px;}
+.tl-fold-btn.open{background:var(--acc);border-color:var(--acc);}
+.tl-fold-btn:active{filter:brightness(.85);}
+.tl-chip{display:inline-flex;align-items:center;gap:4px;background:var(--card2);border:1px solid var(--bb);border-radius:7px;padding:2px 3px 2px 7px;margin:1px 2px 1px 0;font-size:12px;font-weight:700;color:var(--t1);white-space:nowrap;vertical-align:middle;}
+.tl-chip-gone{opacity:.5;font-style:italic;padding:3px 7px;}
+.tl-go{background:var(--acc);color:#fff;border-radius:5px;padding:2px 6px;font-size:10px;font-weight:800;cursor:pointer;white-space:nowrap;}
 .tl-go:active{filter:brightness(.85);}
 .sec-proof{display:block;width:100%;border-radius:10px;border:1.5px solid rgba(255,255,255,.22);margin:10px 0 2px;}
 .task-img{display:block;width:100%;border-radius:10px;border:1.5px solid rgba(255,255,255,.22);margin:10px 0;}
@@ -963,12 +968,13 @@ function renderTaskList(){
   var el=document.getElementById('tasklist-bar');
   if(!el)return;
   if(!TASKLIST){el.style.display='none';return;}
-  el.innerHTML='<div class="detail-h"><span class="dh-i">🪂今のエアドロタスク日課</span></div>'
-    +'<button class="achv-toggle'+(taskListFoldOpen?' open':'')+'" onclick="toggleTaskListFold()">'
-    +'<span class="dt-label">'+(taskListFoldOpen?'閉じる':'見る')+'</span>'
-    +'<span class="dt-arrow">▼</span>'
+  el.innerHTML='<div class="detail-h tl-head-row">'
+    +'<span class="dh-i">🪂今のエアドロタスク日課</span>'
+    +'<button class="tl-fold-btn'+(taskListFoldOpen?' open':'')+'" onclick="toggleTaskListFold()">'
+    +(taskListFoldOpen?'閉じる':'見る')+'<span class="dt-arrow">▼</span>'
     +'</button>'
-    +'<div class="tl-body" style="display:'+(taskListFoldOpen?'block':'none')+';margin-top:8px;">'+renderTaskListHtml(TASKLIST)+'</div>';
+    +'</div>'
+    +'<div class="tl-body" style="display:'+(taskListFoldOpen?'block':'none')+';">'+renderTaskListHtml(TASKLIST)+'</div>';
   el.style.display='block';
 }
 function toggleTaskListFold(){
