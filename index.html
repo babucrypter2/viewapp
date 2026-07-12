@@ -214,6 +214,15 @@ body{background:var(--bg);color:var(--t1);}
 .fa-amt{font-size:11px;font-weight:700;color:var(--t3);flex-shrink:0;white-space:nowrap;}
 .fa-track{height:6px;background:rgba(255,255,255,.1);border-radius:3px;overflow:hidden;}
 .fa-fill{height:100%;border-radius:3px;}
+.sl-list{display:flex;flex-direction:column;gap:6px;}
+.sl-row{display:flex;align-items:center;gap:10px;background:var(--card2);border:1px solid var(--b);border-radius:10px;padding:8px 10px;text-decoration:none;}
+.sl-row:active{background:var(--b);}
+.sl-av{width:32px;height:32px;border-radius:50%;object-fit:cover;flex-shrink:0;}
+.sl-av-ini{display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:13px;}
+.sl-txt{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px;}
+.sl-name{font-size:13px;font-weight:700;color:var(--t1);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.sl-hdl{font-size:11px;color:var(--t3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.sl-arrow{font-size:16px;color:var(--t3);flex-shrink:0;}
 .pj-ttl{flex:1;min-width:0;line-height:1.25;}
 .pj-ttl .tag{margin-left:6px;vertical-align:middle;}
 .x-wrap{position:relative;display:inline-flex;align-items:center;flex-shrink:0;cursor:pointer;}
@@ -772,10 +781,7 @@ body{background:var(--bg);color:var(--t1);}
         <div class="info-body" id="info-score"></div>
       </div>
 
-      <div class="set-card info-card">
-        <div class="set-card-title"><span class="dh-i2"><svg class="dh-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"></path><path d="M15 5l4 4"></path></svg>用語メモ</span></div>
-        <div class="info-body" id="info-glossary"></div>
-      </div>
+      <div class="set-card" id="stronglist-card" style="display:none;"></div>
 
       <div class="info-foot">データは作者本人のみが更新できます。<br>閲覧者による変更はできません。</div>
       <div class="bnav-spacer" aria-hidden="true"></div>
@@ -851,14 +857,10 @@ var INFO_DEFAULTS={
 **調達効率（35点）**：調達額÷参加者 と 調達額÷TVL。基準値に達すると満点。
 **評価3項目（30点）**：リファ無・低資金向き・運営の質。各10点満点で、△や✕は減点。
 カードに表示している内訳の数字を足すと、そのまま期待値になります。`,
-  glossary:`**TVL / Vol**：預けられた総額 or 取引高
-**FDV**：トークン全体の理論時価総額
-**削り**：手数料などで消費した額
-**年利 / 倍率**：投下額に対するエアドロの効率`,
   scorecheck:`期待値が高かったものが利益が出てるか？誰が言及してたか？等を見直してスコアの精度を向上させます。逆もしかり、儲からなかったものは期待値がどうだったか？誰が言及してたか？まで分析を行います。`
 };
 var INFO=Object.assign({},INFO_DEFAULTS);
-var INFO_KEYS=['about','safety','seccheck','score','glossary','scorecheck'];
+var INFO_KEYS=['about','safety','seccheck','score','scorecheck'];
 function sanInfo(o){
   var out=Object.assign({},INFO_DEFAULTS);
   if(o&&typeof o==='object'){
@@ -970,7 +972,7 @@ function renderTaskList(){
   if(!el)return;
   if(!TASKLIST){el.style.display='none';return;}
   el.innerHTML='<div class="detail-h tl-head-row" style="margin-bottom:'+(taskListFoldOpen?'6px':'0')+';cursor:pointer;" onclick="toggleTaskListFold()">'
-    +'<span class="dh-i">🪂今のエアドロタスク日課</span>'
+    +'<span class="dh-i"><svg class="dh-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a8 8 0 0 1 16 0"></path><path d="M4 11l4.5 7.5"></path><path d="M20 11l-4.5 7.5"></path><path d="M9.5 11l1 7.5"></path><path d="M14.5 11l-1 7.5"></path><rect x="9.5" y="17.5" width="5" height="3" rx="1"></rect></svg>今のエアドロタスク日課</span>'
     +'<button class="tl-fold-btn'+(taskListFoldOpen?' open':'')+'">'
     +(taskListFoldOpen?'閉じる':'詳細')+'<span class="dt-arrow">▼</span>'
     +'</button>'
@@ -1191,6 +1193,25 @@ function fundAllocAmt(p){
   if(b>0)return b;
   return Math.max(0,num(p.totalUsd));
 }
+// ─────────── 強者のX（言及者の一覧。タップでXプロフィールへ）───────────
+function renderStrongList(){
+  var el=document.getElementById('stronglist-card');
+  if(!el)return;
+  if(!Array.isArray(SP)||!SP.length){el.style.display='none';return;}
+  var itemsHtml=SP.map(function(per){
+    var img=safeImg(per.img),bg=safeColor(per.bg),hdl=safeHandle(per.handle);
+    if(!hdl)return '';
+    var av=img?'<img src="'+esc(img)+'" class="sl-av">':'<span class="sl-av sl-av-ini" style="background:'+bg+';">'+esc(ini(per.name||hdl))+'</span>';
+    return '<a class="sl-row" href="https://x.com/'+esc(hdl)+'" target="_blank" rel="noopener">'
+      +av+'<span class="sl-txt"><span class="sl-name">'+esc(per.name||hdl)+'</span><span class="sl-hdl">@'+esc(hdl)+'</span></span>'
+      +'<span class="sl-arrow">›</span></a>';
+  }).join('');
+  if(!itemsHtml){el.style.display='none';return;}
+  el.innerHTML='<div class="set-card-title"><span class="dh-i2"><svg class="dh-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3.5a2.5 2.5 0 0 1 3.5 3.5L8 19.5 3 21l1.5-5z"></path></svg>強者のX</span></div>'
+    +'<div class="sl-list">'+itemsHtml+'</div>';
+  el.style.display='block';
+}
+
 function renderFundAlloc(){
   var el=document.getElementById('fundalloc-card');
   if(!el)return;
@@ -1227,6 +1248,7 @@ function renderFundAlloc(){
 function toggleFaFold(){
   faFoldOpen=!faFoldOpen;
   renderFundAlloc();
+  renderStrongList();
 }
 var EMOJI_ICON_MAP={'\u2705':'<svg class="in-ico" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M8 12.5l2.5 2.5L16 9.5"></path></svg>','\uD83D\uDCF5':'<svg class="in-ico" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><line x1="5.5" y1="18.5" x2="18.5" y2="5.5"></line></svg>','\uD83D\uDD12':'<svg class="in-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="9" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg>','\uD83D\uDD11':'<svg class="in-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="4.5"></circle><path d="M10.9 12.1L20 3"></path><path d="M16 7l3 3"></path><path d="M13 4l3 3"></path></svg>','\uD83D\uDD17':'<svg class="in-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>','\u26A0\uFE0F':'<svg class="in-ico" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l10 18H2L12 3z"></path><line x1="12" y1="10" x2="12" y2="14.5"></line><circle cx="12" cy="17.2" r="0.9" fill="#f59e0b" stroke="none"></circle></svg>','\u26A0':'<svg class="in-ico" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l10 18H2L12 3z"></path><line x1="12" y1="10" x2="12" y2="14.5"></line><circle cx="12" cy="17.2" r="0.9" fill="#f59e0b" stroke="none"></circle></svg>'};
 function emojiToIcon(line){
@@ -1291,6 +1313,46 @@ function setCloudStatus(s){ // 'ok' | 'loading' | 'err'
   el.textContent=map[s]||'';
   el.className='cloud-status cs-'+s;
 }
+// ─────────── ローカルキャッシュ（起動を一瞬にするため）───────────
+// 前回表示したデータを端末内に保存しておき、次回起動時はまずそれを即描画する。
+// その裏でクラウドから最新を取得し、変化があった時だけ差し替える（読み込み待ちを見せない）。
+var CACHE_KEY='babu_viewer_cache_v1';
+var _cacheWasLite=false; // 画像を省いた軽量キャッシュから起動したか
+function saveCache(d,updatedAt){
+  try{
+    localStorage.setItem(CACHE_KEY,JSON.stringify({data:d,updated_at:updatedAt||null,at:Date.now()}));
+    return;
+  }catch(e){}
+  // 容量制限（約5MB）を超えた場合：重い画像を省いた軽量版で再挑戦。
+  // 文字・スコアは即表示でき、画像は直後のクラウド取得で埋まる。
+  try{
+    var lite=JSON.parse(JSON.stringify(d));
+    if(Array.isArray(lite.PROJ))lite.PROJ.forEach(function(p){ if(p&&p.taskImg)p.taskImg=[]; });
+    lite.secProof=[];
+    localStorage.setItem(CACHE_KEY,JSON.stringify({data:lite,updated_at:updatedAt||null,at:Date.now(),lite:true}));
+  }catch(e2){
+    try{ localStorage.removeItem(CACHE_KEY); }catch(_){}
+  }
+}
+function loadCache(){
+  try{
+    var raw=localStorage.getItem(CACHE_KEY);
+    if(!raw)return null;
+    var c=JSON.parse(raw);
+    if(!c||!c.data||(!c.data.PROJ&&!c.data.SP))return null;
+    return c;
+  }catch(e){ return null; }
+}
+// 起動時：キャッシュがあれば即座に画面を作る（ネットワークを待たない）
+function bootFromCache(){
+  var c=loadCache();
+  if(!c)return false;
+  _lastUpdated=c.updated_at||null;
+  _cacheWasLite=!!c.lite;
+  applyLoadedData(c.data);
+  return true;
+}
+
 // クラウドから読み込み（GETのみ。書き込みは一切行わない）
 var _lastUpdated=null; // クラウドデータの最終更新日時
 function cloudLoad(){
@@ -1301,9 +1363,15 @@ function cloudLoad(){
     if(!rows||!rows.length||!rows[0].data)return false;
     var d=rows[0].data;
     if(!d.PROJ&&!d.SP)return false;
-    _lastUpdated=rows[0].updated_at||null;
-    applyLoadedData(d);
+    var ts=rows[0].updated_at||null;
     _cloudOK=true;
+    // 表示中の内容と同じなら描画し直さない（ちらつき防止）
+    // ただし軽量キャッシュ起動時は画像が欠けているので必ず取り込む
+    if(!_cacheWasLite && _lastUpdated && ts && ts===_lastUpdated)return 'same';
+    _cacheWasLite=false;
+    _lastUpdated=ts;
+    applyLoadedData(d);
+    saveCache(d,ts);
     return true;
   }).catch(function(){return false;});
 }
@@ -1355,21 +1423,25 @@ function applyLoadedData(d){
   // テーマはダークモード固定（保存値は反映しない）
 }
 // 起動時：クラウドから読み込むだけ（書き込みなし）
-function initData(){
-  setCloudStatus('loading');
-  return cloudLoad().then(function(ok){
+// hadCache=true の場合、既に画面は出ているので「読込中」表示は出さず、静かに裏で更新する
+function initData(hadCache){
+  if(!hadCache)setCloudStatus('loading');
+  return cloudLoad().then(function(res){
     _loaded=true;
-    setCloudStatus(ok?'ok':'err');
+    if(res==='same'){ setCloudStatus('ok'); return 'same'; } // 変化なし：再描画不要
+    setCloudStatus(res?'ok':'err');
+    if(!res)return false; // 取得失敗（キャッシュがあればそのまま表示され続ける）
     renderUpdated();
     renderInfoText();
     renderSecProof();
     renderAchv();
     renderScoreCheck();
     renderFundAlloc();
+    renderStrongList();
     renderStrategy();
     renderTaskList();
     populateCatFilter();
-    return ok;
+    return true;
   });
 }
 
@@ -2359,7 +2431,7 @@ function refreshFromCloud(opts){
     // 変化あり（または初回未取得）→ 全データを取り直して反映
     setCloudStatus('loading');
     return cloudLoad().then(function(ok){
-      if(ok){ renderTabs(); renderAll(); renderUpdated(); renderInfoText(); renderSecProof(); renderAchv(); renderScoreCheck(); renderFundAlloc(); renderStrategy(); renderTaskList(); populateCatFilter(); setCloudStatus('ok'); showToast('🔄 最新データに更新しました'); }
+      if(ok){ renderTabs(); renderAll(); renderUpdated(); renderInfoText(); renderSecProof(); renderAchv(); renderScoreCheck(); renderFundAlloc(); renderStrongList(); renderStrategy(); renderTaskList(); populateCatFilter(); setCloudStatus('ok'); showToast('🔄 最新データに更新しました'); }
       else  { setCloudStatus('err'); }
       _refreshing=false;
     });
@@ -2490,14 +2562,28 @@ window.addEventListener('online',function(){ refreshFromCloud(); });
 // 開きっぱなしでも反映されるよう、表示中は一定間隔でチェック（非表示中は内部でスキップ）
 setInterval(function(){ refreshFromCloud(); },30000);
 
-// 起動：クラウド→ローカルの順でデータ取得してから描画
-updateThemeBtns();
+// 起動：まずキャッシュを即描画（待ち時間ゼロ）→ その裏でクラウドの最新を取りに行く
 renderTabs();
-renderListSkeleton();
-initData().then(function(){
-  updateThemeBtns();
-  renderTabs();
+var _hadCache=bootFromCache();
+if(_hadCache){
+  // 既に前回のデータがあるので、すぐに本物の画面を表示する
+  setCloudStatus('ok');
   renderAll();
+  renderUpdated();
+  renderInfoText();
+  renderSecProof();
+  renderAchv();
+  renderScoreCheck();
+  renderFundAlloc();
+  renderStrongList();
+  renderStrategy();
+  renderTaskList();
+  populateCatFilter();
+}else{
+  renderListSkeleton(); // 初回のみ：まだ何も持っていないので読み込み表示
+}
+initData(_hadCache).then(function(res){
+  if(res===true){ renderTabs(); renderAll(); } // 内容が変わっていた時だけ描き直す
   // 自動再起動から復帰した場合、開いていたタブへ戻す
   try{
     var rv=sessionStorage.getItem('extview');
