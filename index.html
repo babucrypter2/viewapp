@@ -615,8 +615,9 @@ body{background:var(--bg);color:var(--t1);}
 .tl-fold-btn.open{background:var(--acc);border-color:var(--acc);}
 .tl-fold-btn:active{filter:brightness(.85);}
 .tl-chip{display:inline-flex;align-items:center;gap:4px;background:var(--card2);border:1px solid var(--bb);border-radius:7px;padding:3px 8px;margin:1px 2px 1px 0;font-size:12px;font-weight:700;color:var(--t1);white-space:nowrap;vertical-align:middle;}
-.tl-chip-btn{background:var(--acc);border-color:var(--acc);color:#fff;cursor:pointer;}
-.tl-chip-btn:active{filter:brightness(.85);}
+.tl-chip-btn{background:var(--card2);border:1px solid var(--bb);color:var(--t1);cursor:pointer;}
+.tl-chip-btn:active{background:var(--b);border-color:var(--acc);}
+.tl-chip-btn .tl-chip-go{color:var(--acc);font-weight:800;margin-left:1px;}
 .tl-chip-gone{opacity:.5;font-style:italic;padding:3px 7px;}
 
 .sec-proof{display:block;width:100%;border-radius:10px;border:1.5px solid rgba(255,255,255,.22);margin:10px 0 2px;}
@@ -963,7 +964,7 @@ function renderTaskListHtml(raw){
     var pid=m[1],fallback=m[2];
     var proj=(Array.isArray(PROJ)?PROJ:[]).find(function(p){return String(p.id)===pid;});
     if(proj){
-      out+='<span class="tl-chip tl-chip-btn" onclick="event.stopPropagation();jumpToProjectAny('+pid+')">'+esc(proj.name||fallback||'（無題）')+' ›</span>';
+      out+='<span class="tl-chip tl-chip-btn" onclick="event.stopPropagation();jumpToProjectAny('+pid+')">'+esc(proj.name||fallback||'（無題）')+'<span class="tl-chip-go">›</span></span>';
     }else{
       out+='<span class="tl-chip tl-chip-gone">'+esc(fallback||'削除済み案件')+'</span>';
     }
