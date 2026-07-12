@@ -1081,7 +1081,7 @@ function achvRankNext(){ achvRankPage++;renderAchv(); }
 // ─────────── NEW/更新バッジ（各ユーザーのローカル基準）───────────
 // NEW: 案件idが作成時タイムスタンプなので、登録から14日以内をNEW表示
 // 更新: 前回訪問時に保存した各案件のハッシュと比較し、変化があれば「更新」表示（localStorageに保存＝人によって違う）
-var SEEN_KEY='babu_viewer_seen_v2';
+var SEEN_KEY='babu_viewer_seen_v3'; // v3: 軽量キャッシュのハッシュで汚染された旧基準(v2)を破棄
 var NEW_DAYS=14;
 var updatedPids={};
 var updateDiffReasons={}; // {pid: ['deps','totalUsd', ...]} 何が変わって「更新」になったかの内訳（診断用）
@@ -1392,7 +1392,8 @@ function bootFromCache(){
   if(!c)return false;
   _lastUpdated=c.updated_at||null;
   _cacheWasLite=!!c.lite;
-  applyLoadedData(c.data);
+  // 軽量キャッシュ（画像なし）の場合は更新判定をスキップ。判定は直後のクラウド完全データで行う
+  applyLoadedData(c.data,{skipDiff:_cacheWasLite});
   return true;
 }
 
@@ -1451,7 +1452,8 @@ function renderUpdated(){
   }
 }
 // 読み込んだデータを各stateへ反映（全データをサニタイズして取り込む）
-function applyLoadedData(d){
+function applyLoadedData(d,opts){
+  opts=opts||{};
   if(Array.isArray(d.SP)&&d.SP.length)SP=d.SP.slice(0,100).map(sanPerson);
   if(d.W&&typeof d.W==='object')mergeW(d.W);
   if(Array.isArray(d.CATS))CATS=d.CATS.slice(0,60).map(function(c){return clampStr(c,30);}).filter(Boolean);
@@ -1462,7 +1464,10 @@ function applyLoadedData(d){
   ACHV=sanAchv(d.achv);
   STRATEGY=sanStrategy(d.strategy);
   TASKLIST=sanTaskList(d.tasklist);
-  computeUpdatedPids();
+  // 更新バッジの判定は「完全なデータ」の時だけ行う。
+  // 画像を省いた軽量キャッシュで判定すると、画像の有無の差で毎回「更新」扱いになってしまう
+  // （＝画像付き案件だけ永遠に更新バッジが付くバグの原因だった）
+  if(!opts.skipDiff)computeUpdatedPids();
   // テーマはダークモード固定（保存値は反映しない）
 }
 // 起動時：クラウドから読み込むだけ（書き込みなし）
