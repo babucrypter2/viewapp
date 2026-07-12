@@ -2440,7 +2440,14 @@ function refreshFromCloud(opts){
       if(manual)showToast('⚠️ 接続を確認できませんでした');
       _refreshing=false; return;
     }
-    if(_lastUpdated && ts===_lastUpdated){                    // 変化なし → 何もしない
+    if(_lastUpdated && ts===_lastUpdated){                    // 変化なし
+      // 「更新」バッジは一度見せたら役目を終えているので、次にアプリへ戻ってきたタイミングで消す。
+      // （iOSはアプリの切替・再表示だけではページを再読込しないため、ここで明示的に消さないと
+      //   ずっとバッジが残ったままになってしまう＝今回のバグの原因）
+      if(!manual && Object.keys(updatedPids).length){
+        updatedPids={};
+        renderAll();
+      }
       if(manual)showToast('✅ すでに最新です');
       setCloudStatus('ok'); _refreshing=false; return;
     }
