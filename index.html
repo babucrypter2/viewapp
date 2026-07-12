@@ -765,15 +765,15 @@ body{background:var(--bg);color:var(--t1);}
       </div>
 
       <div class="set-card info-card info-safe">
-        <div class="set-card-title"><span class="dh-i2"><svg class="dh-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3.5v5.2C20 17 16.5 20.4 12 21.7 7.5 20.4 4 17 4 11.7V6.5L12 3z"></path></svg>安全性について</span></div>
-        <div class="info-body" id="info-safety"></div>
-      </div>
-
-      <div class="set-card info-card info-safe">
-        <div class="set-card-title"><span class="dh-i2"><svg class="dh-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3.5v5.2C20 17 16.5 20.4 12 21.7 7.5 20.4 4 17 4 11.7V6.5L12 3z"></path></svg>セキュリティチェック</span></div>
-        <div class="info-body" id="info-seccheck"></div>
-        <div id="sec-proof-imgs"></div>
-
+        <div class="set-card-title fa-title-row" style="cursor:pointer;" onclick="toggleSafeFold()">
+          <span class="dh-i2"><svg class="dh-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3.5v5.2C20 17 16.5 20.4 12 21.7 7.5 20.4 4 17 4 11.7V6.5L12 3z"></path></svg>安全性・セキュリティチェック</span>
+          <button class="tl-fold-btn" id="safe-fold-btn">詳細<span class="dt-arrow">▼</span></button>
+        </div>
+        <div id="safe-fold-body" style="display:none;">
+          <div class="info-body" id="info-safety"></div>
+          <div class="info-body" id="info-seccheck" style="margin-top:10px;"></div>
+          <div id="sec-proof-imgs"></div>
+        </div>
       </div>
 
       <div class="set-card info-card">
@@ -1263,6 +1263,17 @@ function infoLineHtml(line){
   return emojiToIcon(linkifyMemo(line).replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>'));
 }
 // 情報パネル各カードへINFOを反映（1行=1段落／空行は無視／※始まりは注釈）
+var safeFoldOpen=false;
+function toggleSafeFold(){
+  safeFoldOpen=!safeFoldOpen;
+  var body=document.getElementById('safe-fold-body');
+  var btn=document.getElementById('safe-fold-btn');
+  if(body)body.style.display=safeFoldOpen?'block':'none';
+  if(btn){
+    btn.classList.toggle('open',safeFoldOpen);
+    btn.innerHTML=(safeFoldOpen?'閉じる':'詳細')+'<span class="dt-arrow">▼</span>';
+  }
+}
 function renderInfoText(){
   INFO_KEYS.forEach(function(k){
     var el=document.getElementById('info-'+k);
