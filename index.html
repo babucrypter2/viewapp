@@ -1084,9 +1084,10 @@ function achvRankNext(){ achvRankPage++;renderAchv(); }
 var SEEN_KEY='babu_viewer_seen_v2';
 var NEW_DAYS=14;
 var updatedPids={};
-function projHash(p){
-  // 「読者から見える内容」だけを対象にする（内部用フィールドの追加等で誤って全件"更新"扱いにならないように）
-  var sig={
+var updateDiffReasons={}; // {pid: ['deps','totalUsd', ...]} 何が変わって「更新」になったかの内訳（診断用）
+// 「読者から見える内容」を項目ごとに分けてハッシュ化する（内部用フィールドの追加等で誤って全件"更新"扱いにならないように）
+function projFieldSig(p){
+  return {
     name:p.name,cat:p.cat,lv:p.lv,tge:p.tge,
     earlyStart:p.earlyStart,earlyEnd:p.earlyEnd,
     fund:p.fund,tvl:p.tvl,usr:p.usr,
@@ -1098,30 +1099,56 @@ function projHash(p){
     taskImgLen:(p.taskImg||[]).map(function(s){return (s||'').length;}),
     secProofLen:(p.img||'').length
   };
-  var s=JSON.stringify(sig);
+}
+function strHash(s){
   var h=5381;
   for(var i=0;i<s.length;i++){h=((h<<5)+h+s.charCodeAt(i))|0;}
   return h;
+}
+// 各項目ごとのハッシュ値を返す（{name:12345, cat:678, ...}）。項目単位で前回と比較できるようにする
+function projFieldHashes(p){
+  var sig=projFieldSig(p);
+  var out={};
+  for(var k in sig){ out[k]=strHash(JSON.stringify(sig[k])+''); }
+  return out;
 }
 function computeUpdatedPids(){
   var prev=null;
   try{ prev=JSON.parse(localStorage.getItem(SEEN_KEY)||'null'); }catch(e){ prev=null; }
   var cur={};
-  (Array.isArray(PROJ)?PROJ:[]).forEach(function(p){ if(p&&p.id!=null)cur[p.id]=projHash(p); });
+  (Array.isArray(PROJ)?PROJ:[]).forEach(function(p){ if(p&&p.id!=null)cur[p.id]=projFieldHashes(p); });
   if(prev&&typeof prev==='object'){
     for(var pid in cur){
-      if(prev[pid]!==undefined && prev[pid]!==cur[pid])updatedPids[pid]=true;
+      var pv=prev[pid];
+      if(pv===undefined)continue;
+      var changed=[];
+      // 旧バージョン（項目分けする前）は文字列や数値1個だけが入っている可能性があるため型チェック
+      if(pv&&typeof pv==='object'){
+        for(var k in cur[pid]){ if(pv[k]!==undefined && pv[k]!==cur[pid][k])changed.push(k); }
+      }
+      if(changed.length){ updatedPids[pid]=true; updateDiffReasons[pid]=changed; }
     }
   }
   // 初回訪問（prevなし）は更新バッジなし。現状を記録して次回以降の比較基準にする
   try{ localStorage.setItem(SEEN_KEY,JSON.stringify(cur)); }catch(e){}
+}
+// 「更新」バッジをタップした時に、具体的に何の項目が変わったのかを表示する（診断・確認用）
+var FIELD_LABELS={name:'案件名',cat:'カテゴリ',lv:'仕込みLv',tge:'TGE予定',earlyStart:'開始日',earlyEnd:'終了予定日',
+  fund:'調達額',tvl:'TVL',usr:'参加者',deps:'デポジット履歴',totalUsd:'仕込み額(残高)',burnUsd:'削り額',
+  endDate:'終了日',active:'仕込み中フラグ',sm:'強者の言及',refa:'リファ無',low:'低資金',quality:'運営の質',
+  memo:'詳細メモ',task:'やってること',postUrl:'投稿URL',results:'エアドロ受取履歴',taskImgLen:'やってこと内の画像',secProofLen:'案件アイコン画像'};
+function showUpdateDiff(pid){
+  var reasons=updateDiffReasons[pid];
+  if(!reasons||!reasons.length){showToast('変更点の記録がありません');return;}
+  var labels=reasons.map(function(k){return FIELD_LABELS[k]||k;});
+  showToast('変更点：'+labels.join('・'));
 }
 function isRecentProj(p){
   return typeof p.createdAt==='number' && p.createdAt>0 && (Date.now()-p.createdAt)<NEW_DAYS*86400000;
 }
 function projBadge(p){
   if(isRecentProj(p))return '<span class="pj-badge pj-badge-new">NEW</span>';
-  if(updatedPids[p.id])return '<span class="pj-badge pj-badge-upd">更新</span>';
+  if(updatedPids[p.id])return '<span class="pj-badge pj-badge-upd" onclick="event.stopPropagation();showUpdateDiff('+p.id+')">更新</span>';
   return '';
 }
 
