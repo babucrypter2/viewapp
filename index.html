@@ -7,14 +7,20 @@
 <title>ばぶのエアドロ分析🪂｜閲覧版</title>
 <!-- ▼▼▼ OGP設定：Xやラインでこのアプリのリンクを貼った時に、画像付きカードとして表示されるようにする設定です。
      "REPLACE_WITH_YOUR_DOMAIN" の部分を、実際に公開しているURL（例: https://babu-airdrop.vercel.app）に置き換えてください。
-     og:image が指す og-image.png は、index.html と同じ場所（同じフォルダ）にアップロードしてください。 -->
+     og:image が指す og-image.png は、index.html と同じ場所（同じフォルダ）にアップロードしてください。
+     ※この画像は「その時々のリンクを開いた瞬間」ではなく「Xやラインが最初にこのURLを読みに来た時」に一度取得され、
+       その後はある程度の期間キャッシュされて使い回されます（プラットフォーム側の仕様）。
+       案件のスコアなど日々変わる内容をここに入れると、その部分が古いまま固定されてしまうため、
+       あえて「アプリ名・タグライン・アイコン」だけの、内容が古くならない構成にしています。 -->
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="ばぶのエアドロ分析">
 <meta property="og:title" content="ばぶのエアドロ分析">
 <meta property="og:description" content="エアドロップ期待値の個人記録・閲覧版">
 <meta property="og:url" content="https://REPLACE_WITH_YOUR_DOMAIN/">
 <meta property="og:image" content="https://REPLACE_WITH_YOUR_DOMAIN/og-image.png">
-<meta name="twitter:card" content="summary">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="ばぶのエアドロ分析">
 <meta name="twitter:description" content="エアドロップ期待値の個人記録・閲覧版">
 <meta name="twitter:image" content="https://REPLACE_WITH_YOUR_DOMAIN/og-image.png">
