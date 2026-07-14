@@ -610,7 +610,7 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .achv-toggle .dt-arrow{font-size:9px;transition:transform .2s;}
 .achv-toggle.open{background:var(--acc);border-color:var(--acc);}
 .achv-toggle.open .dt-arrow{transform:rotate(180deg);}
-.achv-rank-list{margin-top:10px;display:flex;flex-direction:column;gap:6px;animation:detailIn .2s ease;}
+.achv-rank-list{margin-top:10px;display:flex;flex-direction:column;gap:6px;}
 .achv-rank-row{display:flex;align-items:center;gap:9px;background:var(--card2);border:1px solid var(--b);border-radius:9px;padding:7px 10px;}
 .achv-rank-badge{width:22px;height:22px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:#fff;flex-shrink:0;}
 .achv-rank-name{flex:1;min-width:0;font-size:13px;font-weight:700;color:var(--t1);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
@@ -1002,12 +1002,51 @@ function renderTaskList(){
     +(taskListFoldOpen?'閉じる':'詳細')+'<span class="dt-arrow">▼</span>'
     +'</button>'
     +'</div>'
-    +'<div class="tl-body" style="display:'+(taskListFoldOpen?'block':'none')+';">'+renderTaskListHtml(TASKLIST)+'</div>';
+    +'<div class="tl-body" id="tl-fold-body" style="display:'+(taskListFoldOpen?'block':'none')+';">'+renderTaskListHtml(TASKLIST)+'</div>';
   el.style.display='block';
 }
+// 汎用：折りたたみの開閉をアニメーションさせる（詳細トグルと同じ動き）。
+// これらのカードは開閉のたびに見出し込みで再描画する作りのため、
+// 閉じる時は「今見えている中身」を先にアニメーションさせてから再描画し、
+// 開く時は再描画した直後の中身に対してアニメーションをかける。
+function animatedFoldToggle(cfg){
+  var wasOpen=cfg.isOpen();
+  var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(wasOpen){
+    var body=cfg.getBody();
+    cfg.setState(false);
+    if(!body||reduce){cfg.rerender();return;}
+    clearTimeout(body._foldTimer);
+    body.style.overflow='hidden';
+    body.style.maxHeight=body.scrollHeight+'px';
+    body.style.opacity='1';
+    requestAnimationFrame(function(){requestAnimationFrame(function(){
+      body.style.maxHeight='0px';body.style.opacity='0';
+    });});
+    body._foldTimer=setTimeout(function(){cfg.rerender();},260);
+  }else{
+    cfg.setState(true);
+    cfg.rerender();
+    var body2=cfg.getBody();
+    if(!body2||reduce)return;
+    clearTimeout(body2._foldTimer);
+    body2.style.overflow='hidden';
+    body2.style.maxHeight='0px';body2.style.opacity='0';
+    requestAnimationFrame(function(){requestAnimationFrame(function(){
+      body2.style.maxHeight=body2.scrollHeight+'px';body2.style.opacity='1';
+    });});
+    body2._foldTimer=setTimeout(function(){
+      body2.style.maxHeight='';body2.style.opacity='';body2.style.overflow='';
+    },260);
+  }
+}
 function toggleTaskListFold(){
-  taskListFoldOpen=!taskListFoldOpen;
-  renderTaskList();
+  animatedFoldToggle({
+    getBody:function(){return document.getElementById('tl-fold-body');},
+    isOpen:function(){return taskListFoldOpen;},
+    setState:function(v){taskListFoldOpen=v;},
+    rerender:renderTaskList
+  });
 }
 // ランキング/タスク日課共通：案件の現在の状態に応じたタブへ移動し、詳細を開いた状態にする
 function jumpToProjectAny(pid){
@@ -1092,8 +1131,12 @@ function renderAchv(){
   el.style.display='block';
 }
 function toggleAchvFold(){
-  achvFoldOpen=!achvFoldOpen;
-  renderAchv();
+  animatedFoldToggle({
+    getBody:function(){return document.getElementById('achv-rank-list');},
+    isOpen:function(){return achvFoldOpen;},
+    setState:function(v){achvFoldOpen=v;},
+    rerender:renderAchv
+  });
 }
 function achvRankPrev(){ if(achvRankPage>0){achvRankPage--;renderAchv();} }
 function achvRankNext(){ achvRankPage++;renderAchv(); }
@@ -1223,7 +1266,7 @@ function renderScoreCheck(){
       +'</div>';
   }).join('');
   el.innerHTML='<div class="set-card-title fa-title-row" style="margin-bottom:'+(scFoldOpen?'10px':'0')+';cursor:pointer;" onclick="toggleScFold()"><span class="dh-i2"><svg class="dh-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"></path><path d="M7 14l4-4 3 3 5-6"></path></svg>期待値スコアの精度</span><button class="tl-fold-btn'+(scFoldOpen?' open':'')+'">'+(scFoldOpen?'閉じる':'詳細')+'<span class="dt-arrow">▼</span></button></div>'
-    +'<div style="display:'+(scFoldOpen?'block':'none')+';margin-top:8px;">'
+    +'<div id="sc-fold-body" style="display:'+(scFoldOpen?'block':'none')+';margin-top:8px;">'
     +(INFO.scorecheck?'<div class="sc-desc">'+esc(INFO.scorecheck).replace(/\n/g,'<br>')+'</div>':'')
     +bandHtml
     +'<div style="display:flex;flex-direction:column;gap:6px;margin-top:8px;">'+rowsHtml+'</div>'
@@ -1232,8 +1275,12 @@ function renderScoreCheck(){
   el.style.display='block';
 }
 function toggleScFold(){
-  scFoldOpen=!scFoldOpen;
-  renderScoreCheck();
+  animatedFoldToggle({
+    getBody:function(){return document.getElementById('sc-fold-body');},
+    isOpen:function(){return scFoldOpen;},
+    setState:function(v){scFoldOpen=v;},
+    rerender:renderScoreCheck
+  });
 }
 
 // ─────────── 資金配分（仕込み中の案件を対象に、投下額の集中度を可視化）───────────
@@ -1292,15 +1339,18 @@ function renderFundAlloc(){
   }).join('');
   el.innerHTML='<div class="set-card-title fa-title-row" style="margin-bottom:'+((warn||faFoldOpen)?'10px':'0')+';cursor:pointer;" onclick="toggleFaFold()"><span class="dh-i2"><svg class="dh-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path><path d="M12 12l0-9"></path><path d="M12 12l7 4"></path></svg>資金配分</span><span class="fa-title-right"><span class="fa-total-inline">投下合計：'+fmtU(Math.round(total))+' ／ '+items.length+'案件</span><button class="tl-fold-btn'+(faFoldOpen?' open':'')+'">'+(faFoldOpen?'閉じる':'詳細')+'<span class="dt-arrow">▼</span></button></span></div>'
     +warn
-    +'<div style="display:'+(faFoldOpen?'block':'none')+';margin-top:'+(warn?'10px':'0')+';">'
+    +'<div id="fa-fold-body" style="display:'+(faFoldOpen?'block':'none')+';margin-top:'+(warn?'10px':'0')+';">'
     +'<div class="fa-list">'+barsHtml+'</div>'
     +'</div>';
   el.style.display='block';
 }
 function toggleFaFold(){
-  faFoldOpen=!faFoldOpen;
-  renderFundAlloc();
-  renderStrongList();
+  animatedFoldToggle({
+    getBody:function(){return document.getElementById('fa-fold-body');},
+    isOpen:function(){return faFoldOpen;},
+    setState:function(v){faFoldOpen=v;},
+    rerender:function(){renderFundAlloc();renderStrongList();}
+  });
 }
 var EMOJI_ICON_MAP={'\u2705':'<svg class="in-ico" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M8 12.5l2.5 2.5L16 9.5"></path></svg>','\uD83D\uDCF5':'<svg class="in-ico" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><line x1="5.5" y1="18.5" x2="18.5" y2="5.5"></line></svg>','\uD83D\uDD12':'<svg class="in-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="9" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg>','\uD83D\uDD11':'<svg class="in-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="4.5"></circle><path d="M10.9 12.1L20 3"></path><path d="M16 7l3 3"></path><path d="M13 4l3 3"></path></svg>','\uD83D\uDD17':'<svg class="in-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>','\u26A0\uFE0F':'<svg class="in-ico" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l10 18H2L12 3z"></path><line x1="12" y1="10" x2="12" y2="14.5"></line><circle cx="12" cy="17.2" r="0.9" fill="#f59e0b" stroke="none"></circle></svg>','\u26A0':'<svg class="in-ico" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l10 18H2L12 3z"></path><line x1="12" y1="10" x2="12" y2="14.5"></line><circle cx="12" cy="17.2" r="0.9" fill="#f59e0b" stroke="none"></circle></svg>'};
 function emojiToIcon(line){
@@ -1320,10 +1370,36 @@ function toggleSafeFold(){
   safeFoldOpen=!safeFoldOpen;
   var body=document.getElementById('safe-fold-body');
   var btn=document.getElementById('safe-fold-btn');
-  if(body)body.style.display=safeFoldOpen?'block':'none';
+  var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   if(btn){
     btn.classList.toggle('open',safeFoldOpen);
     btn.innerHTML=(safeFoldOpen?'閉じる':'詳細')+'<span class="dt-arrow">▼</span>';
+  }
+  if(!body)return;
+  clearTimeout(body._foldTimer);
+  if(safeFoldOpen){
+    body.style.display='block';
+    if(reduce)return;
+    body.style.overflow='hidden';
+    body.style.maxHeight='0px';body.style.opacity='0';
+    requestAnimationFrame(function(){requestAnimationFrame(function(){
+      body.style.maxHeight=body.scrollHeight+'px';body.style.opacity='1';
+    });});
+    body._foldTimer=setTimeout(function(){
+      body.style.maxHeight='';body.style.opacity='';body.style.overflow='';
+    },260);
+  }else{
+    if(reduce){body.style.display='none';return;}
+    body.style.overflow='hidden';
+    body.style.maxHeight=body.scrollHeight+'px';
+    body.style.opacity='1';
+    requestAnimationFrame(function(){requestAnimationFrame(function(){
+      body.style.maxHeight='0px';body.style.opacity='0';
+    });});
+    body._foldTimer=setTimeout(function(){
+      body.style.display='none';
+      body.style.maxHeight='';body.style.opacity='';body.style.overflow='';
+    },260);
   }
 }
 function renderInfoText(){
