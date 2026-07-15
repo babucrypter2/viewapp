@@ -386,7 +386,7 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 }
 .detail-close:active{background:var(--b);}
 /* 折りたたみ詳細 */
-.detail-body{margin-top:14px;display:flex;flex-direction:column;transition:max-height .25s ease,opacity .2s ease;}
+.detail-body{margin-top:14px;display:flex;flex-direction:column;}
 .detail-sec{background:var(--card2);border:1px solid var(--bb);border-radius:13px;padding:15px 16px 16px;margin-bottom:16px;box-shadow:0 2px 6px rgba(0,0,0,.22);}
 .detail-h{font-size:15px;font-weight:800;color:var(--t1);letter-spacing:.01em;margin:-15px -16px 12px;padding:12px 16px 10px;border-bottom:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.085);border-radius:13px 13px 0 0;}
 .detail-txt{font-size:13.5px;line-height:1.8;color:var(--t1);white-space:normal;word-break:break-word;}
@@ -1005,39 +1005,55 @@ function renderTaskList(){
     +'<div class="tl-body" id="tl-fold-body" style="display:'+(taskListFoldOpen?'block':'none')+';">'+renderTaskListHtml(TASKLIST)+'</div>';
   el.style.display='block';
 }
-// 汎用：折りたたみの開閉をアニメーションさせる（詳細トグルと同じ動き）。
-// これらのカードは開閉のたびに見出し込みで再描画する作りのため、
-// 閉じる時は「今見えている中身」を先にアニメーションさせてから再描画し、
-// 開く時は再描画した直後の中身に対してアニメーションをかける。
-function animatedFoldToggle(cfg){
-  var wasOpen=cfg.isOpen();
+// なめらかな開閉アニメーションの共通処理（Web Animations API）。
+// ・ブラウザにフレーム進行を任せるため、旧方式（CSSトランジション＋タイマー）のような
+//   開始時のコマ落ち・終了時のカクつきが起きない
+// ・アニメーション中に逆方向へタップされても、「今の高さ」から途切れず滑らかに反転する
+function animateFold(el,show,after){
+  if(!el){if(after)after();return;}
   var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if(wasOpen){
+  var startH=null;
+  if(el._foldAnim){
+    startH=el.getBoundingClientRect().height; // 反転時：現在の見た目の高さを引き継ぐ
+    el._foldAnim.cancel();el._foldAnim=null;
+  }
+  if(reduce||!el.animate){
+    el.style.display=show?'block':'none';
+    if(after)after();
+    return;
+  }
+  if(show){
+    el.style.display='block';
+    var target=el.scrollHeight;
+    el.style.overflow='hidden';
+    var anim=el.animate(
+      [{height:(startH!=null?startH:0)+'px',opacity:(startH!=null?1:0)},
+       {height:target+'px',opacity:1}],
+      {duration:340,easing:'cubic-bezier(0.22,1,0.36,1)'} // easeOutQuint：勢いよく出て、ふわっと止まる
+    );
+    el._foldAnim=anim;
+    anim.onfinish=function(){el.style.overflow='';el._foldAnim=null;if(after)after();};
+  }else{
+    var from=(startH!=null)?startH:el.getBoundingClientRect().height;
+    el.style.overflow='hidden';
+    var anim2=el.animate(
+      [{height:from+'px',opacity:1},{height:'0px',opacity:0}],
+      {duration:240,easing:'cubic-bezier(0.4,0,0.6,1)'}
+    );
+    el._foldAnim=anim2;
+    anim2.onfinish=function(){el.style.display='none';el.style.overflow='';el._foldAnim=null;if(after)after();};
+  }
+}
+// 汎用：折りたたみの開閉（見出し込みで再描画するタイプのカード用）
+function animatedFoldToggle(cfg){
+  if(cfg.isOpen()){
     var body=cfg.getBody();
     cfg.setState(false);
-    if(!body||reduce){cfg.rerender();return;}
-    clearTimeout(body._foldTimer);
-    body.style.overflow='hidden';
-    body.style.maxHeight=body.scrollHeight+'px';
-    body.style.opacity='1';
-    requestAnimationFrame(function(){requestAnimationFrame(function(){
-      body.style.maxHeight='0px';body.style.opacity='0';
-    });});
-    body._foldTimer=setTimeout(function(){cfg.rerender();},260);
+    animateFold(body,false,function(){cfg.rerender();});
   }else{
     cfg.setState(true);
     cfg.rerender();
-    var body2=cfg.getBody();
-    if(!body2||reduce)return;
-    clearTimeout(body2._foldTimer);
-    body2.style.overflow='hidden';
-    body2.style.maxHeight='0px';body2.style.opacity='0';
-    requestAnimationFrame(function(){requestAnimationFrame(function(){
-      body2.style.maxHeight=body2.scrollHeight+'px';body2.style.opacity='1';
-    });});
-    body2._foldTimer=setTimeout(function(){
-      body2.style.maxHeight='';body2.style.opacity='';body2.style.overflow='';
-    },260);
+    animateFold(cfg.getBody(),true);
   }
 }
 function toggleTaskListFold(){
@@ -1370,37 +1386,11 @@ function toggleSafeFold(){
   safeFoldOpen=!safeFoldOpen;
   var body=document.getElementById('safe-fold-body');
   var btn=document.getElementById('safe-fold-btn');
-  var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   if(btn){
     btn.classList.toggle('open',safeFoldOpen);
     btn.innerHTML=(safeFoldOpen?'閉じる':'詳細')+'<span class="dt-arrow">▼</span>';
   }
-  if(!body)return;
-  clearTimeout(body._foldTimer);
-  if(safeFoldOpen){
-    body.style.display='block';
-    if(reduce)return;
-    body.style.overflow='hidden';
-    body.style.maxHeight='0px';body.style.opacity='0';
-    requestAnimationFrame(function(){requestAnimationFrame(function(){
-      body.style.maxHeight=body.scrollHeight+'px';body.style.opacity='1';
-    });});
-    body._foldTimer=setTimeout(function(){
-      body.style.maxHeight='';body.style.opacity='';body.style.overflow='';
-    },260);
-  }else{
-    if(reduce){body.style.display='none';return;}
-    body.style.overflow='hidden';
-    body.style.maxHeight=body.scrollHeight+'px';
-    body.style.opacity='1';
-    requestAnimationFrame(function(){requestAnimationFrame(function(){
-      body.style.maxHeight='0px';body.style.opacity='0';
-    });});
-    body._foldTimer=setTimeout(function(){
-      body.style.display='none';
-      body.style.maxHeight='';body.style.opacity='';body.style.overflow='';
-    },260);
-  }
+  animateFold(body,safeFoldOpen);
 }
 function renderInfoText(){
   INFO_KEYS.forEach(function(k){
@@ -2450,42 +2440,15 @@ function toggleDetail(mode,idx){
   var btn=document.getElementById('dt-btn-'+key);
   if(!body||!btn)return;
   var open=btn.classList.contains('open'); // 表示状態はアニメーション中も即座に切り替わるボタン側で判定
-  var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  clearTimeout(body._dtTimer); // 連打時に前回のタイマーが誤発火しないように
   if(open){
     btn.classList.remove('open');
     btn.querySelector('.dt-label').textContent='タップで詳細';
-    if(reduce){
-      body.style.display='none';
-    }else{
-      // 現在の高さ→0 へ滑らかに畳む
-      body.style.overflow='hidden';
-      body.style.maxHeight=body.scrollHeight+'px';
-      body.style.opacity='1';
-      requestAnimationFrame(function(){requestAnimationFrame(function(){
-        body.style.maxHeight='0px';body.style.opacity='0';
-      });});
-      body._dtTimer=setTimeout(function(){
-        body.style.display='none';
-        body.style.maxHeight='';body.style.opacity='';body.style.overflow='';
-      },260);
-    }
+    animateFold(body,false);
     try{ btn.scrollIntoView({block:'nearest'}); }catch(e){}
   }else{
     btn.classList.add('open');
     btn.querySelector('.dt-label').textContent='✕ 閉じる';
-    body.style.display='block';
-    if(!reduce){
-      // 0→内容の高さ へ滑らかに開く
-      body.style.overflow='hidden';
-      body.style.maxHeight='0px';body.style.opacity='0';
-      requestAnimationFrame(function(){requestAnimationFrame(function(){
-        body.style.maxHeight=body.scrollHeight+'px';body.style.opacity='1';
-      });});
-      body._dtTimer=setTimeout(function(){
-        body.style.maxHeight='';body.style.opacity='';body.style.overflow='';
-      },260);
-    }
+    animateFold(body,true);
   }
 }
 // ランキングの案件行タップ→「仕込み終了」タブの該当カードへ移動し、詳細を開いた状態にする
