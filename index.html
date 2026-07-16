@@ -586,6 +586,7 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .x-link-handle{font-size:14px;font-weight:700;color:#4aa3ff;text-decoration:underline;text-underline-offset:2px;}
 .x-link:active .x-link-handle{opacity:.6;}
 .info-card{line-height:1.7;}
+.info-section-lbl{font-size:11px;font-weight:800;color:var(--t3);letter-spacing:.04em;margin:14px 4px 6px;text-transform:uppercase;}
 .info-p{font-size:13px;color:var(--t1);margin:0 0 9px;line-height:1.8;}
 .info-p:last-child{margin-bottom:0;}
 .info-p b{color:var(--acc);font-weight:700;}
@@ -593,7 +594,7 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .info-ul li{font-size:12px;color:var(--t1);line-height:1.7;margin-bottom:7px;}
 .info-ul li:last-child{margin-bottom:0;}
 .info-ul li b{color:var(--acc);font-weight:700;}
-.info-safe{border:1px solid var(--grn);padding:16px 15px;}
+
 .safe-item{display:flex;gap:8px;align-items:center;margin-top:11px;font-size:12px;color:var(--t1);line-height:1.5;}
 .safe-item b{color:var(--t1);font-weight:700;}
 .safe-ico{flex-shrink:0;font-size:14px;}
@@ -778,18 +779,40 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
         </div>
       </div>
 
-      <div class="set-card" id="fundalloc-card" style="display:none;"></div>
-
       <div class="set-card" id="achv-card" style="display:none;"></div>
 
+      <div class="set-card" id="fundalloc-card" style="display:none;"></div>
+
       <div class="set-card" id="scorecheck-card" style="display:none;"></div>
+
+      <div class="info-section-lbl">ガイド・注意事項</div>
 
       <div class="set-card info-card">
         <div class="set-card-title"><span class="dh-i2"><svg class="dh-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><line x1="12" y1="11" x2="12" y2="16.5"></line><circle cx="12" cy="7.7" r="1" fill="currentColor" stroke="none"></circle></svg>このアプリについて</span></div>
         <div class="info-body" id="info-about"></div>
       </div>
 
-      <div class="set-card info-card info-safe">
+      <div class="set-card info-card" id="caution-card" style="display:none;">
+        <div class="set-card-title fa-title-row" style="cursor:pointer;" onclick="toggleCautionFold()">
+          <span class="dh-i2"><svg class="dh-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"></path><path d="M12 17h.01"></path><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path></svg>注意事項</span>
+          <button class="tl-fold-btn" id="caution-fold-btn">詳細<span class="dt-arrow">▼</span></button>
+        </div>
+        <div id="caution-fold-body" style="display:none;">
+          <div class="info-body" id="info-caution"></div>
+        </div>
+      </div>
+
+      <div class="set-card info-card">
+        <div class="set-card-title fa-title-row" style="cursor:pointer;" onclick="toggleScoreGuideFold()">
+          <span class="dh-i2"><svg class="dh-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"></rect><line x1="7" y1="15" x2="7" y2="17"></line><line x1="12" y1="11" x2="12" y2="17"></line><line x1="17" y1="8" x2="17" y2="17"></line></svg>スコアの見方</span>
+          <button class="tl-fold-btn" id="scoreguide-fold-btn">詳細<span class="dt-arrow">▼</span></button>
+        </div>
+        <div id="scoreguide-fold-body" style="display:none;">
+          <div class="info-body" id="info-score"></div>
+        </div>
+      </div>
+
+      <div class="set-card info-card">
         <div class="set-card-title fa-title-row" style="cursor:pointer;" onclick="toggleSafeFold()">
           <span class="dh-i2"><svg class="dh-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3.5v5.2C20 17 16.5 20.4 12 21.7 7.5 20.4 4 17 4 11.7V6.5L12 3z"></path></svg>安全性・セキュリティチェック</span>
           <button class="tl-fold-btn" id="safe-fold-btn">詳細<span class="dt-arrow">▼</span></button>
@@ -799,11 +822,6 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
           <div class="info-body" id="info-seccheck" style="margin-top:10px;"></div>
           <div id="sec-proof-imgs"></div>
         </div>
-      </div>
-
-      <div class="set-card info-card">
-        <div class="set-card-title"><span class="dh-i2"><svg class="dh-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"></rect><line x1="7" y1="15" x2="7" y2="17"></line><line x1="12" y1="11" x2="12" y2="17"></line><line x1="17" y1="8" x2="17" y2="17"></line></svg>スコアの見方</span></div>
-        <div class="info-body" id="info-score"></div>
       </div>
 
       <div class="set-card" id="stronglist-card" style="display:none;"></div>
@@ -885,7 +903,7 @@ var INFO_DEFAULTS={
   scorecheck:`期待値が高かったものが利益が出てるか？誰が言及してたか？等を見直してスコアの精度を向上させます。逆もしかり、儲からなかったものは期待値がどうだったか？誰が言及してたか？まで分析を行います。`
 };
 var INFO=Object.assign({},INFO_DEFAULTS);
-var INFO_KEYS=['about','safety','seccheck','score','scorecheck'];
+var INFO_KEYS=['about','caution','safety','seccheck','score','scorecheck'];
 function sanInfo(o){
   var out=Object.assign({},INFO_DEFAULTS);
   if(o&&typeof o==='object'){
@@ -1392,17 +1410,57 @@ function toggleSafeFold(){
   }
   animateFold(body,safeFoldOpen);
 }
+var cautionFoldOpen=false;
+function toggleCautionFold(){
+  cautionFoldOpen=!cautionFoldOpen;
+  var body=document.getElementById('caution-fold-body');
+  var btn=document.getElementById('caution-fold-btn');
+  if(btn){
+    btn.classList.toggle('open',cautionFoldOpen);
+    btn.innerHTML=(cautionFoldOpen?'閉じる':'詳細')+'<span class="dt-arrow">▼</span>';
+  }
+  animateFold(body,cautionFoldOpen);
+}
+var scoreGuideFoldOpen=false;
+function toggleScoreGuideFold(){
+  scoreGuideFoldOpen=!scoreGuideFoldOpen;
+  var body=document.getElementById('scoreguide-fold-body');
+  var btn=document.getElementById('scoreguide-fold-btn');
+  if(btn){
+    btn.classList.toggle('open',scoreGuideFoldOpen);
+    btn.innerHTML=(scoreGuideFoldOpen?'閉じる':'詳細')+'<span class="dt-arrow">▼</span>';
+  }
+  animateFold(body,scoreGuideFoldOpen);
+}
 function renderInfoText(){
+  // 「注意事項」欄がまだ空の場合、旧「このアプリについて」本文の中の「――――」区切り線より下を
+  // 表示上だけ注意事項側に振り分ける（書込アプリで新欄に移すまでの一時的な後方互換措置）
+  var aboutRaw=String(INFO.about||'');
+  var cautionRaw=String(INFO.caution||'');
+  var splitAbout=aboutRaw, splitCaution=cautionRaw;
+  if(!cautionRaw.trim()){
+    var m=aboutRaw.match(/^[ \t]*[―\-─—]{3,}[ \t]*$/m);
+    if(m){
+      splitAbout=aboutRaw.slice(0,m.index).replace(/\s+$/,'');
+      splitCaution=aboutRaw.slice(m.index+m[0].length).replace(/^\s+/,'');
+    }
+  }
+  var effective={};
+  INFO_KEYS.forEach(function(k){ effective[k]=INFO[k]; });
+  effective.about=splitAbout;
+  effective.caution=splitCaution;
   INFO_KEYS.forEach(function(k){
     var el=document.getElementById('info-'+k);
     if(!el)return;
-    el.innerHTML=String(INFO[k]||'').split(/\r?\n/).map(function(line){
+    el.innerHTML=String(effective[k]||'').split(/\r?\n/).map(function(line){
       var t=line.trim();
       if(!t)return '';
       var cls=(t.charAt(0)==='※')?'info-p info-note':'info-p';
       return '<p class="'+cls+'">'+infoLineHtml(t)+'</p>';
     }).filter(Boolean).join('');
   });
+  var cautionCard=document.getElementById('caution-card');
+  if(cautionCard)cautionCard.style.display=splitCaution.trim()?'':'none';
 }
 var PROJ=[
   {id:1,name:'Fogo Chain',url:'fogochain',cat:'ETH',bg:'#1976d2',img:null,
@@ -2440,13 +2498,16 @@ function toggleDetail(mode,idx){
   var btn=document.getElementById('dt-btn-'+key);
   if(!body||!btn)return;
   var open=btn.classList.contains('open'); // 表示状態はアニメーション中も即座に切り替わるボタン側で判定
+  var card=btn.closest('.proj-card');
   if(open){
     btn.classList.remove('open');
+    if(card)card.classList.remove('dt-open');
     btn.querySelector('.dt-label').textContent='タップで詳細';
     animateFold(body,false);
     try{ btn.scrollIntoView({block:'nearest'}); }catch(e){}
   }else{
     btn.classList.add('open');
+    if(card)card.classList.add('dt-open');
     btn.querySelector('.dt-label').textContent='✕ 閉じる';
     animateFold(body,true);
   }
