@@ -2262,7 +2262,8 @@ function renderList(id,mode){
     }).sort(function(a,b){return smRank[a.v]-smRank[b.v];})
       .map(function(o){return smAvHtml(o.per,o.v,26);}).join('');
 
-    return '<div class="proj-card'+(p.endDate?' ended-card':'')+(isRecentProj(p)?' proj-card-new':updatedPids[p.id]?' proj-card-upd':'')+'" onclick="cardTapOpen(\''+mode+'\','+idx+')">'
+    var isOpen=!!openDetailKeys[mode+':'+p.id]; // 再描画（クラウド更新・並び替え等）の後も開いた状態を維持する
+    return '<div class="proj-card'+(p.endDate?' ended-card':'')+(isRecentProj(p)?' proj-card-new':updatedPids[p.id]?' proj-card-upd':'')+(isOpen?' dt-open':'')+'" data-pid="'+p.id+'" onclick="cardTapOpen(\''+mode+'\','+idx+')">'
 
       // ── Row 1: medal | icon | name+meta(2 lines) | X | score ──
       +'<div class="card-r1">'
@@ -2302,10 +2303,10 @@ function renderList(id,mode){
       +'</div>'
 
       // ── 詳細トグルボタン ──
-      +'<button class="detail-toggle" id="dt-btn-'+mode+'-'+idx+'" onclick="event.stopPropagation();toggleDetail(\''+mode+'\','+idx+')"><span class="dt-label">タップで詳細</span><span class="dt-arrow">▼</span></button>'
+      +'<button class="detail-toggle'+(isOpen?' open':'')+'" id="dt-btn-'+mode+'-'+idx+'" onclick="event.stopPropagation();toggleDetail(\''+mode+'\','+idx+')"><span class="dt-label">'+(isOpen?'✕ 閉じる':'タップで詳細')+'</span><span class="dt-arrow">▼</span></button>'
 
       // ── 折りたたみ詳細 ──
-      +'<div class="detail-body" id="dt-body-'+mode+'-'+idx+'" style="display:none;">'
+      +'<div class="detail-body" id="dt-body-'+mode+'-'+idx+'" style="display:'+(isOpen?'block':'none')+';">'
       +'<div class="detail-sec">'
       +'<div class="detail-h dh-row"><span class="dh-i">'+ICO.doc+'プロジェクト詳細</span>'+(p.url?'<span class="x-wrap" onclick="event.stopPropagation();openX(\''+esc(safeHandle(p.url))+'\')" title="Xで開く"><span class="x-lbl">公式 X</span><button class="x-btn"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></button></span>':'')+'</div>'
       +'<div class="detail-txt">'+(p.memo?linkifyMemo(p.memo):'<span style="color:var(--t3);">詳細は未入力です</span>')+'</div>'
@@ -2540,6 +2541,7 @@ function cardTapOpen(mode,idx){
   var btn=document.getElementById('dt-btn-'+mode+'-'+idx);
   if(btn&&!btn.classList.contains('open'))toggleDetail(mode,idx);
 }
+var openDetailKeys={}; // {'active:12':true} 開いている詳細を案件ID単位で記憶（再描画で勝手に閉じるのを防ぐ）
 function toggleDetail(mode,idx){
   var key=mode+'-'+idx;
   var body=document.getElementById('dt-body-'+key);
@@ -2547,13 +2549,16 @@ function toggleDetail(mode,idx){
   if(!body||!btn)return;
   var open=btn.classList.contains('open'); // 表示状態はアニメーション中も即座に切り替わるボタン側で判定
   var card=btn.closest('.proj-card');
+  var okey=(card&&card.dataset&&card.dataset.pid!=null)?(mode+':'+card.dataset.pid):null;
   if(open){
+    if(okey)delete openDetailKeys[okey];
     btn.classList.remove('open');
     if(card)card.classList.remove('dt-open');
     btn.querySelector('.dt-label').textContent='タップで詳細';
     animateFold(body,false);
     try{ btn.scrollIntoView({block:'nearest'}); }catch(e){}
   }else{
+    if(okey)openDetailKeys[okey]=true;
     btn.classList.add('open');
     if(card)card.classList.add('dt-open');
     btn.querySelector('.dt-label').textContent='✕ 閉じる';
