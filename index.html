@@ -573,6 +573,8 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .set-scroll{flex:1;overflow-y:auto;padding:10px 12px 16px;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;}
 .bnav-spacer{height:8px;}
 .set-card{background:var(--card);border-radius:12px;padding:13px;margin-bottom:9px;box-shadow:var(--shadow);}
+.set-card.fold-closed{padding-bottom:0;}
+.set-card.fold-closed>.set-card-title{margin-bottom:0;border-bottom:none;border-radius:12px;}
 .set-card-title{background:rgba(255,255,255,.085);margin:-13px -13px 10px;padding:11px 13px 9px;border-radius:12px 12px 0 0;border-bottom:1px solid rgba(255,255,255,.14);}
 .set-card-title{font-size:12px;font-weight:700;color:var(--t1);text-transform:uppercase;letter-spacing:.07em;}
 /* このアプリについて（情報パネル）*/
@@ -586,7 +588,6 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .x-link-handle{font-size:14px;font-weight:700;color:#4aa3ff;text-decoration:underline;text-underline-offset:2px;}
 .x-link:active .x-link-handle{opacity:.6;}
 .info-card{line-height:1.7;}
-.info-section-lbl{font-size:11px;font-weight:800;color:var(--t3);letter-spacing:.04em;margin:14px 4px 6px;text-transform:uppercase;}
 .info-p{font-size:13px;color:var(--t1);margin:0 0 9px;line-height:1.8;}
 .info-p:last-child{margin-bottom:0;}
 .info-p b{color:var(--acc);font-weight:700;}
@@ -783,11 +784,16 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 
       <div class="set-card" id="fundalloc-card" style="display:none;"></div>
 
+      <div class="set-card info-card">
+        <div class="set-card-title"><span class="dh-i2"><svg class="dh-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><line x1="12" y1="11" x2="12" y2="16.5"></line><circle cx="12" cy="7.7" r="1" fill="currentColor" stroke="none"></circle></svg>このアプリについて</span></div>
+        <div class="info-body" id="info-about"></div>
+      </div>
+
+      <div class="set-card" id="stronglist-card" style="display:none;"></div>
+
       <div class="set-card" id="scorecheck-card" style="display:none;"></div>
 
-      <div class="info-section-lbl">ガイド・注意事項</div>
-
-      <div class="set-card info-card">
+      <div class="set-card info-card fold-closed">
         <div class="set-card-title fa-title-row" style="cursor:pointer;" onclick="toggleScoreGuideFold()">
           <span class="dh-i2"><svg class="dh-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"></rect><line x1="7" y1="15" x2="7" y2="17"></line><line x1="12" y1="11" x2="12" y2="17"></line><line x1="17" y1="8" x2="17" y2="17"></line></svg>スコアの見方</span>
           <button class="tl-fold-btn" id="scoreguide-fold-btn">詳細<span class="dt-arrow">▼</span></button>
@@ -797,7 +803,7 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
         </div>
       </div>
 
-      <div class="set-card info-card">
+      <div class="set-card info-card fold-closed">
         <div class="set-card-title fa-title-row" style="cursor:pointer;" onclick="toggleSafeFold()">
           <span class="dh-i2"><svg class="dh-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3.5v5.2C20 17 16.5 20.4 12 21.7 7.5 20.4 4 17 4 11.7V6.5L12 3z"></path></svg>安全性・セキュリティチェック</span>
           <button class="tl-fold-btn" id="safe-fold-btn">詳細<span class="dt-arrow">▼</span></button>
@@ -809,12 +815,7 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
         </div>
       </div>
 
-      <div class="set-card info-card">
-        <div class="set-card-title"><span class="dh-i2"><svg class="dh-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><line x1="12" y1="11" x2="12" y2="16.5"></line><circle cx="12" cy="7.7" r="1" fill="currentColor" stroke="none"></circle></svg>このアプリについて</span></div>
-        <div class="info-body" id="info-about"></div>
-      </div>
-
-      <div class="set-card info-card" id="caution-card" style="display:none;">
+      <div class="set-card info-card fold-closed" id="caution-card" style="display:none;">
         <div class="set-card-title fa-title-row" style="cursor:pointer;" onclick="toggleCautionFold()">
           <span class="dh-i2"><svg class="dh-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"></path><path d="M12 17h.01"></path><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path></svg>注意事項</span>
           <button class="tl-fold-btn" id="caution-fold-btn">詳細<span class="dt-arrow">▼</span></button>
@@ -823,8 +824,6 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
           <div class="info-body" id="info-caution"></div>
         </div>
       </div>
-
-      <div class="set-card" id="stronglist-card" style="display:none;"></div>
 
       <div class="info-foot">データは作者本人のみが更新できます。<br>閲覧者による変更はできません。</div>
       <div class="bnav-spacer" aria-hidden="true"></div>
@@ -1306,6 +1305,7 @@ function renderScoreCheck(){
     +'<div style="display:flex;flex-direction:column;gap:6px;margin-top:8px;">'+rowsHtml+'</div>'
     +'<div class="sc-note">※ スコアは現在の配点設定で算出</div>'
     +'</div>';
+  el.classList.toggle('fold-closed',!scFoldOpen); // 閉時はヘッダー帯だけの見た目に
   el.style.display='block';
 }
 function toggleScFold(){
@@ -1376,6 +1376,7 @@ function renderFundAlloc(){
     +'<div id="fa-fold-body" style="display:'+(faFoldOpen?'block':'none')+';margin-top:'+(warn?'10px':'0')+';">'
     +'<div class="fa-list">'+barsHtml+'</div>'
     +'</div>';
+  el.classList.toggle('fold-closed',!faFoldOpen&&!warn); // 閉時はヘッダー帯だけに（警告表示がある時は通常余白を維持）
   el.style.display='block';
 }
 function toggleFaFold(){
@@ -1404,33 +1405,51 @@ function toggleSafeFold(){
   safeFoldOpen=!safeFoldOpen;
   var body=document.getElementById('safe-fold-body');
   var btn=document.getElementById('safe-fold-btn');
+  var card=btn?btn.closest('.set-card'):null;
   if(btn){
     btn.classList.toggle('open',safeFoldOpen);
     btn.innerHTML=(safeFoldOpen?'閉じる':'詳細')+'<span class="dt-arrow">▼</span>';
   }
-  animateFold(body,safeFoldOpen);
+  if(safeFoldOpen){
+    if(card)card.classList.remove('fold-closed'); // 開く時は先にヘッダー帯を通常形状へ
+    animateFold(body,true);
+  }else{
+    animateFold(body,false,function(){ if(card)card.classList.add('fold-closed'); }); // 閉じ終わったら帯だけの見た目に
+  }
 }
 var cautionFoldOpen=false;
 function toggleCautionFold(){
   cautionFoldOpen=!cautionFoldOpen;
   var body=document.getElementById('caution-fold-body');
   var btn=document.getElementById('caution-fold-btn');
+  var card=btn?btn.closest('.set-card'):null;
   if(btn){
     btn.classList.toggle('open',cautionFoldOpen);
     btn.innerHTML=(cautionFoldOpen?'閉じる':'詳細')+'<span class="dt-arrow">▼</span>';
   }
-  animateFold(body,cautionFoldOpen);
+  if(cautionFoldOpen){
+    if(card)card.classList.remove('fold-closed'); // 開く時は先にヘッダー帯を通常形状へ
+    animateFold(body,true);
+  }else{
+    animateFold(body,false,function(){ if(card)card.classList.add('fold-closed'); }); // 閉じ終わったら帯だけの見た目に
+  }
 }
 var scoreGuideFoldOpen=false;
 function toggleScoreGuideFold(){
   scoreGuideFoldOpen=!scoreGuideFoldOpen;
   var body=document.getElementById('scoreguide-fold-body');
   var btn=document.getElementById('scoreguide-fold-btn');
+  var card=btn?btn.closest('.set-card'):null;
   if(btn){
     btn.classList.toggle('open',scoreGuideFoldOpen);
     btn.innerHTML=(scoreGuideFoldOpen?'閉じる':'詳細')+'<span class="dt-arrow">▼</span>';
   }
-  animateFold(body,scoreGuideFoldOpen);
+  if(scoreGuideFoldOpen){
+    if(card)card.classList.remove('fold-closed'); // 開く時は先にヘッダー帯を通常形状へ
+    animateFold(body,true);
+  }else{
+    animateFold(body,false,function(){ if(card)card.classList.add('fold-closed'); }); // 閉じ終わったら帯だけの見た目に
+  }
 }
 function renderInfoText(){
   // 「注意事項」欄がまだ空の場合、旧「このアプリについて」本文の中の「――――」区切り線より下を
