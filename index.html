@@ -2557,7 +2557,8 @@ function toggleDetail(mode,idx){
     if(card)card.classList.add('dt-open');
     btn.querySelector('.dt-label').textContent='✕ 閉じる';
     animateFold(body,true);
-    scrollFoldTop(card);
+    var scrollTarget=(body.querySelector('.dh-row'))||card; // 「プロジェクト詳細」見出しへ。無ければカード先頭にフォールバック
+    scrollFoldTop(scrollTarget);
   }
 }
 // ランキングの案件行タップ→「仕込み終了」タブの該当カードへ移動し、詳細を開いた状態にする
