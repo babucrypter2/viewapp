@@ -375,7 +375,7 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .detail-toggle:active{color:var(--t1);}
 .detail-toggle .dt-arrow{font-size:9px;color:var(--acc);transition:transform .2s;}
 .detail-toggle.open .dt-arrow{transform:rotate(180deg);}
-.detail-toggle.open{position:sticky;top:0;z-index:20;margin-top:8px;padding:10px;border-top:1.5px solid rgba(255,255,255,.22);border-radius:9px;background:rgba(29,33,45,.9);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);color:var(--t1);font-size:14px;box-shadow:0 4px 14px rgba(0,0,0,.35);}
+.detail-toggle.open{position:sticky;top:0;z-index:20;margin-top:8px;padding:10px;border:1.5px solid rgba(255,255,255,.32);border-radius:9px;background:rgba(42,48,66,.94);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);color:var(--t1);font-size:14px;font-weight:800;box-shadow:0 4px 14px rgba(0,0,0,.4);}
 .detail-toggle.open:active{filter:brightness(.85);}
 .detail-close{
   width:100%;margin-top:14px;padding:11px;border:none;cursor:pointer;
@@ -628,6 +628,8 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .achv-pg-txt{font-size:12px;color:var(--t3);font-weight:700;}
 .strategy-bar{background:var(--card2);border:1px solid var(--bb);border-radius:13px;padding:8px 10px 9px;margin:0 0 8px;box-shadow:0 2px 6px rgba(0,0,0,.22);}
 .strategy-bar .detail-h{margin:-8px -10px 6px;padding:7px 10px 5px;font-size:13px;}
+.strategy-bar.fold-closed{padding-bottom:0;}
+.strategy-bar.fold-closed>.detail-h{margin-bottom:0;border-bottom:none;border-radius:13px;}
 .strategy-txt{font-size:12px;color:var(--t1);line-height:1.45;white-space:pre-wrap;word-break:break-word;}
 .tl-body{font-size:12px;color:var(--t1);line-height:1.8;white-space:pre-wrap;word-break:break-word;}
 .tl-head-row{display:flex;align-items:center;justify-content:space-between;gap:8px;}
@@ -1021,6 +1023,7 @@ function renderTaskList(){
     +'</button>'
     +'</div>'
     +'<div class="tl-body" id="tl-fold-body" style="display:'+(taskListFoldOpen?'block':'none')+';">'+renderTaskListHtml(TASKLIST)+'</div>';
+  el.classList.toggle('fold-closed',!taskListFoldOpen); // 閉時はヘッダー帯だけの見た目に
   el.style.display='block';
 }
 // 折りたたみを開いた時、そのカードの見出しが画面上部（少し余白を残した位置）に来るよう自動スクロール。
