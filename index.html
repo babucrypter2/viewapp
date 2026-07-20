@@ -1363,26 +1363,11 @@ function renderStrongList(){
   var el=document.getElementById('stronglist-card');
   if(!el)return;
   if(!Array.isArray(SP)||!SP.length){el.style.display='none';return;}
-  var anonN=0; // 名前もハンドルも未設定の「完全匿名」だけを連番で区別する（複数いても混同しないように）
   var itemsHtml=SP.map(function(per){
     var img=safeImg(per.img),bg=safeColor(per.bg),hdl=safeHandle(per.handle);
-    var hasName=!!(per.name&&String(per.name).trim());
-    if(!hdl&&!hasName){
-      // 完全匿名：名前もハンドルも未設定 → 「?」アイコン＋「匿名N」。タップ先が無いのでリンクにしない
-      anonN++;
-      var avAnon='<span class="sl-av sl-av-ini sl-av-anon">?</span>';
-      return '<div class="sl-row sl-row-anon">'+avAnon
-        +'<span class="sl-txt"><span class="sl-name">匿名'+anonN+'</span><span class="sl-hdl">非公開</span></span>'
-        +'</div>';
-    }
-    var dispName=hasName?per.name:hdl;
+    if(!hdl)return ''; // ハンドル未設定＝匿名扱いなので、このリストには出さない（紐づく案件のカードには引き続き表示される）
+    var dispName=(per.name&&String(per.name).trim())?per.name:hdl;
     var av=img?'<img src="'+esc(img)+'" class="sl-av">':'<span class="sl-av sl-av-ini" style="background:'+bg+';">'+esc(ini(dispName))+'</span>';
-    if(!hdl){
-      // ハンドル未設定だが表示名はある：本人ページが無いのでリンクにしない
-      return '<div class="sl-row sl-row-anon">'+av
-        +'<span class="sl-txt"><span class="sl-name">'+esc(dispName)+'</span><span class="sl-hdl">非公開</span></span>'
-        +'</div>';
-    }
     return '<a class="sl-row" href="https://x.com/'+esc(hdl)+'" target="_blank" rel="noopener">'
       +av+'<span class="sl-txt"><span class="sl-name">'+esc(dispName)+'</span><span class="sl-hdl">@'+esc(hdl)+'</span></span>'
       +'<span class="sl-arrow">›</span></a>';
