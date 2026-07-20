@@ -248,6 +248,8 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .sl-name{font-size:13px;font-weight:700;color:var(--t1);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .sl-hdl{font-size:11px;color:var(--t3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .sl-arrow{font-size:16px;color:var(--t3);flex-shrink:0;}
+.sl-row-anon{cursor:default;}
+.sl-av-anon{background:var(--card2)!important;border:1.5px dashed var(--bb);color:var(--t3)!important;font-weight:700;}
 .pj-ttl{flex:1;min-width:0;line-height:1.25;}
 .pj-ttl .tag{margin-left:6px;vertical-align:middle;}
 .x-wrap{position:relative;display:inline-flex;align-items:center;flex-shrink:0;cursor:pointer;}
@@ -1361,12 +1363,28 @@ function renderStrongList(){
   var el=document.getElementById('stronglist-card');
   if(!el)return;
   if(!Array.isArray(SP)||!SP.length){el.style.display='none';return;}
+  var anonN=0; // 名前もハンドルも未設定の「完全匿名」だけを連番で区別する（複数いても混同しないように）
   var itemsHtml=SP.map(function(per){
     var img=safeImg(per.img),bg=safeColor(per.bg),hdl=safeHandle(per.handle);
-    if(!hdl)return '';
-    var av=img?'<img src="'+esc(img)+'" class="sl-av">':'<span class="sl-av sl-av-ini" style="background:'+bg+';">'+esc(ini(per.name||hdl))+'</span>';
+    var hasName=!!(per.name&&String(per.name).trim());
+    if(!hdl&&!hasName){
+      // 完全匿名：名前もハンドルも未設定 → 「?」アイコン＋「匿名N」。タップ先が無いのでリンクにしない
+      anonN++;
+      var avAnon='<span class="sl-av sl-av-ini sl-av-anon">?</span>';
+      return '<div class="sl-row sl-row-anon">'+avAnon
+        +'<span class="sl-txt"><span class="sl-name">匿名'+anonN+'</span><span class="sl-hdl">非公開</span></span>'
+        +'</div>';
+    }
+    var dispName=hasName?per.name:hdl;
+    var av=img?'<img src="'+esc(img)+'" class="sl-av">':'<span class="sl-av sl-av-ini" style="background:'+bg+';">'+esc(ini(dispName))+'</span>';
+    if(!hdl){
+      // ハンドル未設定だが表示名はある：本人ページが無いのでリンクにしない
+      return '<div class="sl-row sl-row-anon">'+av
+        +'<span class="sl-txt"><span class="sl-name">'+esc(dispName)+'</span><span class="sl-hdl">非公開</span></span>'
+        +'</div>';
+    }
     return '<a class="sl-row" href="https://x.com/'+esc(hdl)+'" target="_blank" rel="noopener">'
-      +av+'<span class="sl-txt"><span class="sl-name">'+esc(per.name||hdl)+'</span><span class="sl-hdl">@'+esc(hdl)+'</span></span>'
+      +av+'<span class="sl-txt"><span class="sl-name">'+esc(dispName)+'</span><span class="sl-hdl">@'+esc(hdl)+'</span></span>'
       +'<span class="sl-arrow">›</span></a>';
   }).join('');
   if(!itemsHtml){el.style.display='none';return;}
@@ -2190,12 +2208,19 @@ function smAvHtml(per,v,sz){
   var cls=v==='g'?'av-g':v==='m'?'av-m':'av-b';
   var badge=v==='g'?'○':v==='m'?'△':'✕';
   var badgeCls=(v==='g'||v==='m')?' sm-badge-o':'';
+  var hasName=!!(per&&per.name&&String(per.name).trim());
+  var hdl=safeHandle(per&&per.handle);
+  var isAnon=!hasName&&!hdl;
   var bg=safeColor(per&&per.bg);
   var img=safeImg(per&&per.img);
-  var inner=img?'<img src="'+esc(img)+'" style="width:100%;height:100%;object-fit:cover;">':
-    '<span style="font-size:'+(sz*.38)+'px;font-weight:700;color:#fff;">'+esc(ini(per.name||per.handle))+'</span>';
-  return '<div class="sm-item '+cls+'" title="@'+esc(safeHandle(per.handle))+'">'
-    +'<div class="sm-av '+cls+'" style="background:'+bg+';width:'+sz+'px;height:'+sz+'px;">'+inner+'</div>'
+  var inner=isAnon
+    ?'<span style="font-size:'+(sz*.44)+'px;font-weight:700;color:var(--t3);">?</span>'
+    :(img?'<img src="'+esc(img)+'" style="width:100%;height:100%;object-fit:cover;">':
+      '<span style="font-size:'+(sz*.38)+'px;font-weight:700;color:#fff;">'+esc(ini(per.name||per.handle))+'</span>');
+  var avStyle='background:'+(isAnon?'var(--card2)':bg)+';width:'+sz+'px;height:'+sz+'px;'+(isAnon?'border:1.5px dashed var(--bb);':'');
+  var tip=isAnon?'匿名':(hdl?('@'+esc(hdl)):esc(per.name));
+  return '<div class="sm-item '+cls+'" title="'+tip+'">'
+    +'<div class="sm-av '+cls+'" style="'+avStyle+'">'+inner+'</div>'
     +'<span class="sm-badge'+badgeCls+'">'+badge+'</span>'
     +'</div>';
 }
