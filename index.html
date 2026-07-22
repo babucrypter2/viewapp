@@ -123,7 +123,7 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .card-list{display:flex;flex-direction:column;gap:8px;}
 @media(min-width:1100px){
   .content{max-width:1060px;}
-  .card-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;align-items:start;}
+  .card-list{display:flex;flex-direction:column;gap:14px;}
 }
 
 .proj-card{
@@ -585,8 +585,8 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .cal-dow-cell{text-align:center;font-size:10px;font-weight:800;color:var(--t3);padding:4px 0;}
 .cal-dow-cell.sun{color:var(--red);}
 .cal-dow-cell.sat{color:var(--acc);}
-.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1.5px;}
-.cal-cell{min-height:60px;border-radius:6px;background:var(--card2);border:1px solid var(--b);display:flex;flex-direction:column;align-items:stretch;gap:1px;padding:2px 0.5px;cursor:pointer;position:relative;overflow:hidden;transition:background .12s,border-color .12s;}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;}
+.cal-cell{min-height:60px;border-radius:6px;background:var(--card2);border:1px solid var(--b);display:flex;flex-direction:column;align-items:stretch;gap:1px;padding:2px 0px;cursor:pointer;position:relative;overflow:hidden;transition:background .12s,border-color .12s;}
 .cal-cell.empty{background:transparent;border:none;cursor:default;}
 .cal-cell:not(.empty):active{background:var(--acc-d);}
 .cal-cell-num{font-size:11px;font-weight:700;color:var(--t1);text-align:center;flex-shrink:0;}
@@ -595,7 +595,7 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .cal-cell.has-event{background:linear-gradient(165deg,rgba(52,209,123,.16),var(--card2) 55%);border-color:rgba(52,209,123,.4);}
 .cal-cell.has-event.today{background:linear-gradient(165deg,rgba(52,209,123,.14),var(--acc-d) 55%);border-color:var(--acc);}
 .cal-cell.selected{outline:1.5px solid var(--acc);outline-offset:-1.5px;}
-.cal-cell-line{font-size:8.5px;line-height:1.25;color:var(--t2);background:var(--card);border-radius:3px;padding:1.5px 2px;white-space:normal;word-break:break-word;overflow-wrap:anywhere;text-align:left;letter-spacing:-.1px;}
+.cal-cell-line{font-size:8.5px;line-height:1.25;color:var(--t2);background:var(--card);border-radius:3px;padding:1.5px 0.5px;white-space:normal;word-break:break-word;overflow-wrap:anywhere;text-align:left;letter-spacing:-.3px;}
 .cal-cell-more{font-size:8px;color:var(--t3);text-align:center;}
 .cal-detail{margin-top:16px;background:var(--card2);border:1px solid var(--bb);border-radius:13px;padding:14px 15px;}
 .cal-detail-date{font-size:13px;font-weight:800;color:var(--t1);margin-bottom:10px;}
@@ -760,20 +760,29 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 
 /* ═══ PC表示の追加調整（後勝ちさせるため末尾に配置） ═══ */
 @media(min-width:1100px){
-  /* カード内の要素も一回り大きく、余った横幅を活かす */
-  .proj-card{padding:16px 18px;}
-  .pj-av{width:70px!important;height:70px!important;border-radius:16px!important;font-size:32px;}
-  .pj-name{font-size:23px;}
-  .sc-wrap{min-width:78px;}
-  .sc-lbl{font-size:17px;}
-  .sc-val{font-size:48px;}
-  .rank-md{width:44px;height:44px;font-size:19px;}
-  .pj-meta1,.pj-meta2,.pj-meta3{font-size:12.5px;}
+  /* このアプリについて／設定タブは、横幅いっぱいに伸びると読みづらいので程よい幅に制限して中央寄せ */
+  .set-scroll{max-width:700px;margin:0 auto;width:100%;}
+
+  /* 案件カードはPCでは1列・横幅いっぱいに使い、要素も大きく見やすく */
+  .proj-card{padding:22px 26px;}
+  .pj-av{width:92px!important;height:92px!important;border-radius:20px!important;font-size:42px;}
+  .pj-name{font-size:30px;}
+  .sc-wrap{min-width:96px;}
+  .sc-lbl{font-size:19px;}
+  .sc-val{font-size:60px;}
+  .rank-md{width:52px;height:52px;font-size:22px;}
+  .pj-meta1,.pj-meta2,.pj-meta3{font-size:14px;}
+  .detail-toggle{font-size:14px;padding:12px 0;}
 
   /* 案件詳細（プロジェクト詳細／やってること／FDV換算）を3列で並べる
      ※ .detail-body自体は開閉のためJSがinline style="display:block/none"を直接操作するので、
         そこと競合しないよう内側の .detail-grid だけをgrid化する */
-  .detail-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;align-items:start;}
+  .detail-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;align-items:start;}
+
+  /* 詳細を開いたカードだけを画面いっぱいに、他のカードは隠して一目で見えるように
+     （:has()で.dt-openの有無を見るだけなので、既存の開閉JSに一切手を加えず実現できる） */
+  .card-list:has(.proj-card.dt-open) .proj-card:not(.dt-open){display:none;}
+  .card-list:has(.proj-card.dt-open){display:block;}
 
   /* カレンダーも横幅いっぱいに広げて文字を大きく */
   .cal-head-title{font-size:24px;}
