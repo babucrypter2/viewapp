@@ -605,6 +605,9 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .cal-entry .cal-detail-body{font-size:13px;padding-left:2px;}
 .cal-entry-time{display:inline-block;min-width:60px;text-align:center;background:var(--acc-d);color:var(--acc);font-size:11px;font-weight:800;border-radius:5px;padding:2px 6px;margin-right:7px;vertical-align:middle;}
 .cal-entry-time-tbd{background:var(--card2);color:var(--t3);}
+.cal-agenda-day{display:inline-block;min-width:40px;text-align:center;background:var(--card2);color:var(--t2);font-size:11px;font-weight:800;border-radius:5px;padding:2px 6px;margin-right:6px;vertical-align:middle;}
+.cal-agenda-entry{cursor:pointer;border-radius:8px;margin-left:-4px;margin-right:-4px;padding-left:4px;padding-right:4px;}
+.cal-agenda-entry:active{background:var(--acc-d);}
 .cal-detail-empty{font-size:13px;color:var(--t3);}
 
 .set-card.fold-closed{padding-bottom:0;}
@@ -1110,6 +1113,7 @@ function calShiftMonth(delta){
   calMonth+=delta;
   if(calMonth<0){calMonth=11;calYear--;}
   if(calMonth>11){calMonth=0;calYear++;}
+  calSelectedDate=null; // 月を変えたら選択解除（新しい月では自動で「今日 or その月の一覧」に戻す）
   renderCalendar();
 }
 function renderCalendar(){
@@ -1138,10 +1142,42 @@ function renderCalendar(){
     html+='<div class="'+cls+'" onclick="selectCalDate(\''+ds+'\')"><span class="cal-cell-num">'+d+'</span>'+linesHtml+'</div>';
   }
   gridEl.innerHTML=html;
-  // 表示中の月に「今日」が含まれる場合、まだ何も選択してなければ今日を自動で開いておく
-  if(calSelectedDate===null&&calYear===today.getFullYear()&&calMonth===today.getMonth()){
-    selectCalDate(todayStr);
+  // 何も選択してない時：表示中が今日を含む月なら今日を（予定があれば）自動で開き、
+  // 今日に予定が無い月・他の月を見てる時はその月の予定を若い順の一覧で見せる
+  if(calSelectedDate===null){
+    var isCurMonth=(calYear===today.getFullYear()&&calMonth===today.getMonth());
+    var todayHasEntries=isCurMonth&&CALENDAR&&CALENDAR[todayStr]&&CALENDAR[todayStr].length;
+    if(todayHasEntries){
+      selectCalDate(todayStr);
+    }else{
+      renderCalMonthAgenda();
+    }
   }
+}
+// 選択日が無い時：表示中の月に入っている予定を日付の若い順（＝時系列順）に一覧表示する
+function renderCalMonthAgenda(){
+  var detail=document.getElementById('cal-detail');
+  var dateEl=document.getElementById('cal-detail-date');
+  var bodyEl=document.getElementById('cal-detail-body');
+  if(!detail||!dateEl||!bodyEl)return;
+  dateEl.textContent=calYear+'年'+(calMonth+1)+'月の予定';
+  var prefix=calYear+'-'+String(calMonth+1).padStart(2,'0')+'-';
+  var dates=Object.keys(CALENDAR||{}).filter(function(k){return k.indexOf(prefix)===0;}).sort();
+  var rows=[];
+  dates.forEach(function(ds){
+    sortCalEntries(CALENDAR[ds]).forEach(function(it){ rows.push({ds:ds,day:parseInt(ds.split('-')[2],10),it:it}); });
+  });
+  if(!rows.length){
+    bodyEl.innerHTML='<div class="cal-detail-empty">この月の予定はありません</div>';
+  }else{
+    bodyEl.innerHTML=rows.map(function(r){
+      var timeHtml='<span class="cal-entry-time'+(r.it.time?'':' cal-entry-time-tbd')+'">'+(r.it.time?esc(r.it.time):'時間未定')+'</span>';
+      return '<div class="cal-entry cal-agenda-entry" onclick="selectCalDate(\''+r.ds+'\')">'
+        +'<div class="cal-entry-title"><span class="cal-agenda-day">'+r.day+'日</span>'+timeHtml+esc(r.it.t||'(無題)')+'</div>'
+        +'</div>';
+    }).join('');
+  }
+  detail.style.display='block';
 }
 function selectCalDate(ds){
   calSelectedDate=ds;
