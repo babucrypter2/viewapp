@@ -763,36 +763,34 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
   /* このアプリについて／設定タブは、横幅いっぱいに伸びると読みづらいので程よい幅に制限して中央寄せ */
   .set-scroll{max-width:700px;margin:0 auto;width:100%;}
 
-  /* 案件カードはPCでは1列・横幅いっぱいに使い、要素も大きく見やすく */
-  .proj-card{padding:22px 26px;}
-  .pj-av{width:92px!important;height:92px!important;border-radius:20px!important;font-size:42px;}
-  .pj-name{font-size:30px;}
-  .sc-wrap{min-width:96px;}
-  .sc-lbl{font-size:19px;}
-  .sc-val{font-size:60px;}
-  .rank-md{width:52px;height:52px;font-size:22px;}
-  .pj-meta1,.pj-meta2,.pj-meta3{font-size:14px;}
+  /* 案件カードは基本2列。詳細を開いた時だけ1列にして開いたカードに横幅を回す
+     （:has()で.dt-openの有無を見るだけなので、既存の開閉JSに一切手を加えず実現できる） */
+  .card-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;align-items:start;}
+  .card-list:has(.proj-card.dt-open){grid-template-columns:1fr;}
+
+  /* カード内の要素も一回り大きく見やすく（2列に収まる範囲で） */
+  .proj-card{padding:18px 20px;}
+  .pj-av{width:76px!important;height:76px!important;border-radius:17px!important;font-size:34px;}
+  .pj-name{font-size:24px;}
+  .sc-wrap{min-width:82px;}
+  .sc-lbl{font-size:17px;}
+  .sc-val{font-size:50px;}
+  .rank-md{width:46px;height:46px;font-size:20px;}
+  .pj-meta1,.pj-meta2,.pj-meta3{font-size:13px;}
   .detail-toggle{font-size:14px;padding:12px 0;}
 
-  /* 案件詳細（プロジェクト詳細／やってること／FDV換算）を3列で並べる
-     ※ .detail-body自体は開閉のためJSがinline style="display:block/none"を直接操作するので、
-        そこと競合しないよう内側の .detail-grid だけをgrid化する */
-  .detail-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;align-items:start;}
+  /* 案件詳細（プロジェクト詳細／やってること／FDV換算）は3列にせず、以前と同じ縦積みのまま
+     （.detail-gridは特にPC用の上書きをせず、base CSSのdisplay:flex;flex-direction:columnを使う） */
 
-  /* 詳細を開いたカードだけを画面いっぱいに、他のカードは隠して一目で見えるように
-     （:has()で.dt-openの有無を見るだけなので、既存の開閉JSに一切手を加えず実現できる） */
-  .card-list:has(.proj-card.dt-open) .proj-card:not(.dt-open){display:none;}
-  .card-list:has(.proj-card.dt-open){display:block;}
-
-  /* カレンダーも横幅いっぱいに広げて文字を大きく */
-  .cal-head-title{font-size:24px;}
-  .cal-nav-btn{width:44px;height:44px;font-size:20px;}
-  .cal-dow-cell{font-size:14px;padding:8px 0;}
-  .cal-grid{gap:6px;}
-  .cal-cell{min-height:110px;border-radius:10px;padding:8px 7px;}
-  .cal-cell-num{font-size:16px;}
-  .cal-cell-line{font-size:12.5px;padding:3px 7px;border-radius:6px;letter-spacing:0;}
-  .cal-cell-more{font-size:11.5px;}
+  /* カレンダーはPCでも高さを抑えめにして、予定欄までスクロールなしで見えるように */
+  .cal-head-title{font-size:22px;}
+  .cal-nav-btn{width:40px;height:40px;font-size:18px;}
+  .cal-dow-cell{font-size:13px;padding:5px 0;}
+  .cal-grid{gap:4px;}
+  .cal-cell{min-height:56px;border-radius:8px;padding:5px 6px;}
+  .cal-cell-num{font-size:13px;}
+  .cal-cell-line{font-size:10.5px;padding:2px 5px;border-radius:5px;letter-spacing:0;}
+  .cal-cell-more{font-size:10px;}
   .cal-detail{padding:20px 22px;}
   .cal-detail-date{font-size:17px;}
   .cal-entry-title{font-size:17px;}
