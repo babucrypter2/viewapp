@@ -586,7 +586,7 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .cal-dow-cell.sun{color:var(--red);}
 .cal-dow-cell.sat{color:var(--acc);}
 .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;}
-.cal-cell{min-height:60px;border-radius:6px;background:var(--card2);border:1px solid var(--b);display:flex;flex-direction:column;align-items:stretch;gap:1px;padding:2px 0px;cursor:pointer;position:relative;overflow:hidden;transition:background .12s,border-color .12s;}
+.cal-cell{min-height:76px;border-radius:6px;background:var(--card2);border:1px solid var(--b);display:flex;flex-direction:column;align-items:stretch;gap:1.5px;padding:2px 0px;cursor:pointer;position:relative;overflow:hidden;transition:background .12s,border-color .12s;}
 .cal-cell.empty{background:transparent;border:none;cursor:default;}
 .cal-cell:not(.empty):active{background:var(--acc-d);}
 .cal-cell-num{font-size:11px;font-weight:700;color:var(--t1);text-align:center;flex-shrink:0;}
@@ -595,7 +595,7 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .cal-cell.has-event{background:linear-gradient(165deg,rgba(52,209,123,.16),var(--card2) 55%);border-color:rgba(52,209,123,.4);}
 .cal-cell.has-event.today{background:linear-gradient(165deg,rgba(52,209,123,.14),var(--acc-d) 55%);border-color:var(--acc);}
 .cal-cell.selected{outline:1.5px solid var(--acc);outline-offset:-1.5px;}
-.cal-cell-line{font-size:8.5px;line-height:1.25;color:var(--t2);background:var(--card);border-radius:3px;padding:1.5px 0.5px;white-space:normal;word-break:break-word;overflow-wrap:anywhere;text-align:left;letter-spacing:-.3px;}
+.cal-cell-line{font-size:8.5px;line-height:1.25;color:var(--t2);background:var(--card);border-radius:3px;padding:2px 1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:left;letter-spacing:-.3px;}
 .cal-cell-more{font-size:8px;color:var(--t3);text-align:center;}
 .cal-detail{margin-top:16px;background:var(--card2);border:1px solid var(--bb);border-radius:13px;padding:14px 15px;}
 .cal-detail-date{font-size:13px;font-weight:800;color:var(--t1);margin-bottom:10px;}
@@ -789,8 +789,14 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
   .cal-grid{gap:4px;}
   .cal-cell{min-height:56px;border-radius:8px;padding:5px 6px;}
   .cal-cell-num{font-size:13px;}
-  .cal-cell-line{font-size:10.5px;padding:2px 5px;border-radius:5px;letter-spacing:0;}
+  .cal-cell-line{font-size:10.5px;padding:2px 5px;border-radius:5px;letter-spacing:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .cal-cell-more{font-size:10px;}
+
+  /* 本文中に貼った画像（[写真N]）は、横幅いっぱいに広がるとPCでは巨大になりすぎるので上限を設ける */
+  .task-img{max-width:480px;width:100%;}
+
+  /* 「🔗コピー」ボタンはPCでは不要（右クリック等でコピーできるため） */
+  .memo-copy{display:none;}
   .cal-detail{padding:20px 22px;}
   .cal-detail-date{font-size:17px;}
   .cal-entry-title{font-size:17px;}
@@ -2634,7 +2640,7 @@ function linkifyMemo(raw,pid){
     var isHandle=!!m[3];
     if(safe){
       out+='<span class="memo-link" data-url="'+esc(safe)+'"'+pidAttr+' onclick="event.stopPropagation();askRef(this)">'+esc(token)+'</span>'+esc(trail);
-      if(!isHandle)out+='<span class="memo-copy" data-url="'+esc(safe)+'" onclick="event.stopPropagation();copyRef(this)">🔗をコピー</span>';
+      if(!isHandle)out+='<span class="memo-copy" data-url="'+esc(safe)+'" onclick="event.stopPropagation();copyRef(this)">🔗コピー</span>';
     }
     else out+=esc(orig);
     last=m.index+orig.length;
