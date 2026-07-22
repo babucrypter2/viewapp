@@ -597,6 +597,10 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .cal-detail{margin-top:16px;background:var(--card2);border:1px solid var(--bb);border-radius:13px;padding:14px 15px;}
 .cal-detail-date{font-size:13px;font-weight:800;color:var(--t1);margin-bottom:10px;}
 .cal-detail-body{font-size:13.5px;color:var(--t1);line-height:1.8;white-space:pre-wrap;word-break:break-word;}
+.cal-entry{margin-bottom:14px;}
+.cal-entry:last-child{margin-bottom:0;}
+.cal-entry-title{font-size:14.5px;font-weight:800;color:var(--t1);margin-bottom:4px;}
+.cal-entry .cal-detail-body{font-size:13px;padding-left:2px;}
 .cal-detail-empty{font-size:13px;color:var(--t3);}
 
 .set-card.fold-closed{padding-bottom:0;}
@@ -1046,8 +1050,16 @@ function sanCalendar(o){
   if(o&&typeof o==='object'){
     Object.keys(o).slice(0,3660).forEach(function(k){ // 約10年分あれば十分
       if(/^\d{4}-\d{2}-\d{2}$/.test(k)){
-        var v=clampStr(o[k],1500);
-        if(v)out[k]=v;
+        var v=o[k],arr=[];
+        if(Array.isArray(v)){
+          arr=v.slice(0,20).map(function(it){
+            return {t:clampStr(it&&it.t,120),d:clampStr(it&&it.d,1500)};
+          }).filter(function(it){return it.t||it.d;});
+        }else if(typeof v==='string'&&v.trim()){
+          // 旧形式（1本の文字列）からの移行：改行ごとに「お題のみ」の予定として扱う
+          arr=v.split(/\r?\n/).filter(Boolean).slice(0,20).map(function(l){return {t:clampStr(l,120),d:''};});
+        }
+        if(arr.length)out[k]=arr;
       }
     });
   }
@@ -1102,11 +1114,10 @@ function renderCalendar(){
     if(ds===todayStr)cls+=' today';
     if(ds===calSelectedDate)cls+=' selected';
     var linesHtml='';
-    var txt=CALENDAR&&CALENDAR[ds];
-    if(txt){
-      var lines=txt.split(/\r?\n/).filter(Boolean);
-      lines.slice(0,3).forEach(function(l){ linesHtml+='<div class="cal-cell-line">'+esc(l)+'</div>'; });
-      if(lines.length>3)linesHtml+='<div class="cal-cell-more">+'+(lines.length-3)+'</div>';
+    var entries=CALENDAR&&CALENDAR[ds];
+    if(entries&&entries.length){
+      entries.slice(0,3).forEach(function(it){ linesHtml+='<div class="cal-cell-line">'+esc(it.t||'(無題)')+'</div>'; });
+      if(entries.length>3)linesHtml+='<div class="cal-cell-more">+'+(entries.length-3)+'</div>';
     }
     html+='<div class="'+cls+'" onclick="selectCalDate(\''+ds+'\')"><span class="cal-cell-num">'+d+'</span>'+linesHtml+'</div>';
   }
@@ -1125,8 +1136,15 @@ function selectCalDate(ds){
   if(!detail||!dateEl||!bodyEl)return;
   var parts=ds.split('-');
   dateEl.textContent=parts[0]+'年'+parseInt(parts[1],10)+'月'+parseInt(parts[2],10)+'日';
-  var txt=CALENDAR&&CALENDAR[ds];
-  bodyEl.innerHTML=txt?('<div class="cal-detail-body">'+linkifyMemo(txt)+'</div>'):'<div class="cal-detail-empty">予定はありません</div>';
+  var entries=CALENDAR&&CALENDAR[ds];
+  if(entries&&entries.length){
+    bodyEl.innerHTML=entries.map(function(it){
+      var body=it.d?('<div class="cal-detail-body">'+linkifyMemo(it.d)+'</div>'):'';
+      return '<div class="cal-entry"><div class="cal-entry-title">'+esc(it.t||'(無題)')+'</div>'+body+'</div>';
+    }).join('');
+  }else{
+    bodyEl.innerHTML='<div class="cal-detail-empty">予定はありません</div>';
+  }
   detail.style.display='block';
   scrollFoldTop(detail);
 }
