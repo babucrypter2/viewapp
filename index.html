@@ -761,7 +761,12 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 /* ═══ PC表示の追加調整（後勝ちさせるため末尾に配置） ═══ */
 @media(min-width:1100px){
   /* このアプリについて／設定タブは、横幅いっぱいに伸びると読みづらいので程よい幅に制限して中央寄せ */
-  .set-scroll{max-width:700px;margin:0 auto;width:100%;}
+  .set-scroll{max-width:700px;margin:0 auto;width:100%;scrollbar-width:none;}
+  .set-scroll::-webkit-scrollbar{display:none;}
+
+  /* 左上のランク番号・カテゴリタグも、余白に対して小さすぎたので一回り大きく */
+  .rank-badge{min-width:26px;height:26px;border-radius:13px;font-size:14px;top:-10px;left:-10px;border-width:2.5px;}
+  .tag{padding:2px 6px;border-radius:5px;font-size:11px;}
 
   /* 案件カードは基本2列。詳細を開いた時だけ1列にして開いたカードに横幅を回す
      （:has()で.dt-openの有無を見るだけなので、既存の開閉JSに一切手を加えず実現できる） */
