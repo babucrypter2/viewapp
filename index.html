@@ -575,6 +575,30 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .set-scroll{flex:1;overflow-y:auto;padding:10px 12px 16px;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;}
 .bnav-spacer{height:8px;}
 .set-card{background:var(--card);border-radius:12px;padding:13px;margin-bottom:9px;box-shadow:var(--shadow);}
+/* ── カレンダー ── */
+.cal-head{display:flex;align-items:center;justify-content:space-between;padding:4px 2px 14px;}
+.cal-head-title{font-size:16px;font-weight:800;color:var(--t1);}
+.cal-nav-btn{width:34px;height:34px;border-radius:9px;background:var(--card2);border:1px solid var(--bb);color:var(--t1);font-size:16px;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+.cal-nav-btn:active{background:var(--acc-d);}
+.cal-dow{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:4px;}
+.cal-dow-cell{text-align:center;font-size:10px;font-weight:800;color:var(--t3);padding:4px 0;}
+.cal-dow-cell.sun{color:var(--red);}
+.cal-dow-cell.sat{color:var(--acc);}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;}
+.cal-cell{min-height:64px;border-radius:8px;background:var(--card2);border:1px solid var(--b);display:flex;flex-direction:column;align-items:stretch;gap:1px;padding:3px 2px;cursor:pointer;position:relative;overflow:hidden;transition:background .12s,border-color .12s;}
+.cal-cell.empty{background:transparent;border:none;cursor:default;}
+.cal-cell:not(.empty):active{background:var(--acc-d);}
+.cal-cell-num{font-size:11px;font-weight:700;color:var(--t1);text-align:center;flex-shrink:0;}
+.cal-cell.today{border-color:var(--acc);border-width:1.5px;background:var(--acc-d);}
+.cal-cell.today .cal-cell-num{color:var(--acc);font-weight:900;}
+.cal-cell.selected{border-color:var(--acc);border-width:1.5px;}
+.cal-cell-line{font-size:8.5px;line-height:1.35;color:var(--t2);background:var(--card);border-radius:3px;padding:1px 3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:left;}
+.cal-cell-more{font-size:8px;color:var(--t3);text-align:center;}
+.cal-detail{margin-top:16px;background:var(--card2);border:1px solid var(--bb);border-radius:13px;padding:14px 15px;}
+.cal-detail-date{font-size:13px;font-weight:800;color:var(--t1);margin-bottom:10px;}
+.cal-detail-body{font-size:13.5px;color:var(--t1);line-height:1.8;white-space:pre-wrap;word-break:break-word;}
+.cal-detail-empty{font-size:13px;color:var(--t3);}
+
 .set-card.fold-closed{padding-bottom:0;}
 .set-card.fold-closed>.set-card-title{margin-bottom:0;border-bottom:none;border-radius:12px;}
 .set-card-title{background:rgba(255,255,255,.085);margin:-13px -13px 10px;padding:11px 13px 9px;border-radius:12px 12px 0 0;border-bottom:1px solid rgba(255,255,255,.14);}
@@ -731,6 +755,7 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
   </div>
   <div class="nav-sec">メイン</div>
   <div class="nav-item active" onclick="sv('active',this)"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#ff7a1a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 17a2.5 2.5 0 0 0 2.5-2.5c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7.5 7.5 0 1 1-15 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg></span>仕込み中</div>
+  <div class="nav-item" onclick="sv('calendar',this)"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16" rx="2"></rect><line x1="3" y1="9.5" x2="21" y2="9.5"></line><line x1="8" y1="2.5" x2="8" y2="6.5"></line><line x1="16" y1="2.5" x2="16" y2="6.5"></line></svg></span>イベント</div>
   <div class="nav-item" onclick="sv('all',this)"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="13" width="4" height="8" rx="1" fill="#22c55e" stroke="#22c55e"></rect><rect x="10" y="9" width="4" height="12" rx="1" fill="#3b82f6" stroke="#3b82f6"></rect><rect x="17" y="4" width="4" height="17" rx="1" fill="#60a5fa" stroke="#60a5fa"></rect></svg></span>全案件</div>
   <div class="nav-item" onclick="sv('ended',this)"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="5"></rect><path d="M8 12.5l2.5 2.5L16 9.5"></path></svg></span>仕込み終了</div>
   <div class="nav-sec">情報</div>
@@ -772,6 +797,24 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
   </div>
   <div class="view" id="view-ended">
     <div class="scroll-area"><div class="content"><div class="card-list" id="list-ended"></div><div class="bnav-spacer" aria-hidden="true"></div></div></div>
+  </div>
+  <div class="view" id="view-calendar">
+    <div class="scroll-area"><div class="content">
+      <div class="cal-head">
+        <button class="cal-nav-btn" onclick="calShiftMonth(-1)">‹</button>
+        <div class="cal-head-title" id="cal-head-title"></div>
+        <button class="cal-nav-btn" onclick="calShiftMonth(1)">›</button>
+      </div>
+      <div class="cal-dow">
+        <div class="cal-dow-cell">月</div><div class="cal-dow-cell">火</div><div class="cal-dow-cell">水</div><div class="cal-dow-cell">木</div><div class="cal-dow-cell">金</div><div class="cal-dow-cell sat">土</div><div class="cal-dow-cell sun">日</div>
+      </div>
+      <div class="cal-grid" id="cal-grid"></div>
+      <div class="cal-detail" id="cal-detail" style="display:none;">
+        <div class="cal-detail-date" id="cal-detail-date"></div>
+        <div id="cal-detail-body"></div>
+      </div>
+      <div class="bnav-spacer" aria-hidden="true"></div>
+    </div></div>
   </div>
   <div class="view" id="view-info">
     <div class="set-scroll">
@@ -838,6 +881,7 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 <!-- BOTTOM NAV -->
 <div class="bnav">
   <div class="bni active" id="bni-active" onclick="sv('active',this,'b')"><div class="bni-icon"><svg class="bni-svg" viewBox="0 0 24 24" fill="none" stroke="#ff7a1a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 17a2.5 2.5 0 0 0 2.5-2.5c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7.5 7.5 0 1 1-15 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg></div>仕込み中</div>
+  <div class="bni" id="bni-calendar" onclick="sv('calendar',this,'b')"><div class="bni-icon"><svg class="bni-svg" viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16" rx="2"></rect><line x1="3" y1="9.5" x2="21" y2="9.5"></line><line x1="8" y1="2.5" x2="8" y2="6.5"></line><line x1="16" y1="2.5" x2="16" y2="6.5"></line></svg></div>イベント</div>
   <div class="bni" id="bni-all" onclick="sv('all',this,'b')"><div class="bni-icon"><svg class="bni-svg" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="13" width="4" height="8" rx="1" fill="#22c55e" stroke="#22c55e"></rect><rect x="10" y="9" width="4" height="12" rx="1" fill="#3b82f6" stroke="#3b82f6"></rect><rect x="17" y="4" width="4" height="17" rx="1" fill="#60a5fa" stroke="#60a5fa"></rect></svg></div>全案件</div>
   <div class="bni" id="bni-ended" onclick="sv('ended',this,'b')"><div class="bni-icon"><svg class="bni-svg" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="5"></rect><path d="M8 12.5l2.5 2.5L16 9.5"></path></svg></div>終了</div>
   <div class="bni" id="bni-info" onclick="sv('info',this,'b')"><div class="bni-icon"><svg class="bni-svg" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><line x1="12" y1="11" x2="12" y2="16.5"></line><circle cx="12" cy="7.7" r="0.9" fill="#3b82f6" stroke="none"></circle></svg></div>情報</div>
@@ -993,8 +1037,22 @@ function renderStrategy(){
 
 // ─────────── 今のエアドロタスク日課（戦略の下に固定表示、折りたたみ式）───────────
 var TASKLIST='';
+var CALENDAR={}; // {'2026-07-21':'その日のイベント本文（複数行・URL可）'}
 var taskListFoldOpen=false;
 function sanTaskList(v){ return typeof v==='string'?clampStr(v,3000):''; }
+// カレンダー：{'YYYY-MM-DD':'本文'} 形式のみ許可。日付キーの形式チェックと件数・文字数の上限で防御
+function sanCalendar(o){
+  var out={};
+  if(o&&typeof o==='object'){
+    Object.keys(o).slice(0,3660).forEach(function(k){ // 約10年分あれば十分
+      if(/^\d{4}-\d{2}-\d{2}$/.test(k)){
+        var v=clampStr(o[k],1500);
+        if(v)out[k]=v;
+      }
+    });
+  }
+  return out;
+}
 // 本文中の [[PROJ:id:名前]] トークンを「案件名＋詳細カードへボタン」に、URLをリンク＋コピーボタンに変換
 function renderTaskListHtml(raw){
   if(!raw)return '';
@@ -1013,6 +1071,64 @@ function renderTaskListHtml(raw){
   }
   out+=linkifyMemo(raw.slice(last));
   return out;
+}
+// ─────────── カレンダー（閲覧版：読み取り専用） ───────────
+var calYear, calMonth; // 表示中の年月（初期値は起動時の実際の年月。ハードコードではなく毎回 new Date() から算出）
+(function(){ var t=new Date(); calYear=t.getFullYear(); calMonth=t.getMonth(); })();
+var calSelectedDate=null; // 'YYYY-MM-DD'
+function calDateStr(y,m,d){
+  return y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+}
+function calShiftMonth(delta){
+  calMonth+=delta;
+  if(calMonth<0){calMonth=11;calYear--;}
+  if(calMonth>11){calMonth=0;calYear++;}
+  renderCalendar();
+}
+function renderCalendar(){
+  var titleEl=document.getElementById('cal-head-title');
+  var gridEl=document.getElementById('cal-grid');
+  if(!titleEl||!gridEl)return;
+  titleEl.textContent=calYear+'年'+(calMonth+1)+'月';
+  var today=new Date(); // 「今日」は常にその時点の実際の日付から判定（自動追従）
+  var todayStr=calDateStr(today.getFullYear(),today.getMonth(),today.getDate());
+  var firstDow=(new Date(calYear,calMonth,1).getDay()+6)%7; // 月曜=0始まりに変換（getDay()は日曜=0のため）
+  var daysInMonth=new Date(calYear,calMonth+1,0).getDate();
+  var html='';
+  for(var i=0;i<firstDow;i++)html+='<div class="cal-cell empty"></div>';
+  for(var d=1;d<=daysInMonth;d++){
+    var ds=calDateStr(calYear,calMonth,d);
+    var cls='cal-cell';
+    if(ds===todayStr)cls+=' today';
+    if(ds===calSelectedDate)cls+=' selected';
+    var linesHtml='';
+    var txt=CALENDAR&&CALENDAR[ds];
+    if(txt){
+      var lines=txt.split(/\r?\n/).filter(Boolean);
+      lines.slice(0,3).forEach(function(l){ linesHtml+='<div class="cal-cell-line">'+esc(l)+'</div>'; });
+      if(lines.length>3)linesHtml+='<div class="cal-cell-more">+'+(lines.length-3)+'</div>';
+    }
+    html+='<div class="'+cls+'" onclick="selectCalDate(\''+ds+'\')"><span class="cal-cell-num">'+d+'</span>'+linesHtml+'</div>';
+  }
+  gridEl.innerHTML=html;
+  // 表示中の月に「今日」が含まれる場合、まだ何も選択してなければ今日を自動で開いておく
+  if(calSelectedDate===null&&calYear===today.getFullYear()&&calMonth===today.getMonth()){
+    selectCalDate(todayStr);
+  }
+}
+function selectCalDate(ds){
+  calSelectedDate=ds;
+  renderCalendar();
+  var detail=document.getElementById('cal-detail');
+  var dateEl=document.getElementById('cal-detail-date');
+  var bodyEl=document.getElementById('cal-detail-body');
+  if(!detail||!dateEl||!bodyEl)return;
+  var parts=ds.split('-');
+  dateEl.textContent=parts[0]+'年'+parseInt(parts[1],10)+'月'+parseInt(parts[2],10)+'日';
+  var txt=CALENDAR&&CALENDAR[ds];
+  bodyEl.innerHTML=txt?('<div class="cal-detail-body">'+linkifyMemo(txt)+'</div>'):'<div class="cal-detail-empty">予定はありません</div>';
+  detail.style.display='block';
+  scrollFoldTop(detail);
 }
 function renderTaskList(){
   var el=document.getElementById('tasklist-bar');
@@ -1663,6 +1779,7 @@ function applyLoadedData(d,opts){
   ACHV=sanAchv(d.achv);
   STRATEGY=sanStrategy(d.strategy);
   TASKLIST=sanTaskList(d.tasklist);
+  CALENDAR=sanCalendar(d.calendar);
   // 更新バッジの判定は「完全なデータ」の時だけ行う。
   // 画像を省いた軽量キャッシュで判定すると、画像の有無の差で毎回「更新」扱いになってしまう
   // （＝画像付き案件だけ永遠に更新バッジが付くバグの原因だった）
@@ -1687,6 +1804,7 @@ function initData(hadCache){
     renderStrongList();
     renderStrategy();
     renderTaskList();
+    renderCalendar();
     populateCatFilter();
     return true;
   });
@@ -2645,7 +2763,8 @@ function setF(cat){
 function sv(name,el,type){
   document.querySelectorAll('.view').forEach(function(v){v.classList.remove('active');});
   var ve=document.getElementById('view-'+name);if(ve)ve.classList.add('active');
-  var ts={active:'<svg class="bni-svg" viewBox="0 0 24 24" fill="none" stroke="#ff7a1a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 17a2.5 2.5 0 0 0 2.5-2.5c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7.5 7.5 0 1 1-15 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg>仕込み中',all:'<svg class="bni-svg" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="13" width="4" height="8" rx="1" fill="#22c55e" stroke="#22c55e"></rect><rect x="10" y="9" width="4" height="12" rx="1" fill="#3b82f6" stroke="#3b82f6"></rect><rect x="17" y="4" width="4" height="17" rx="1" fill="#60a5fa" stroke="#60a5fa"></rect></svg>全案件',ended:'<svg class="bni-svg" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="5"></rect><path d="M8 12.5l2.5 2.5L16 9.5"></path></svg>仕込み終了',info:'<svg class="bni-svg" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><line x1="12" y1="11" x2="12" y2="16.5"></line><circle cx="12" cy="7.7" r="0.9" fill="#3b82f6" stroke="none"></circle></svg>このアプリについて'};
+  if(name==='calendar')renderCalendar(); // 開くたびに「今日」を再計算して自動追従させる
+  var ts={active:'<svg class="bni-svg" viewBox="0 0 24 24" fill="none" stroke="#ff7a1a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 17a2.5 2.5 0 0 0 2.5-2.5c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7.5 7.5 0 1 1-15 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg>仕込み中',calendar:'<svg class="bni-svg" viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16" rx="2"></rect><line x1="3" y1="9.5" x2="21" y2="9.5"></line><line x1="8" y1="2.5" x2="8" y2="6.5"></line><line x1="16" y1="2.5" x2="16" y2="6.5"></line></svg>イベントカレンダー',all:'<svg class="bni-svg" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="13" width="4" height="8" rx="1" fill="#22c55e" stroke="#22c55e"></rect><rect x="10" y="9" width="4" height="12" rx="1" fill="#3b82f6" stroke="#3b82f6"></rect><rect x="17" y="4" width="4" height="17" rx="1" fill="#60a5fa" stroke="#60a5fa"></rect></svg>全案件',ended:'<svg class="bni-svg" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="5"></rect><path d="M8 12.5l2.5 2.5L16 9.5"></path></svg>仕込み終了',info:'<svg class="bni-svg" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><line x1="12" y1="11" x2="12" y2="16.5"></line><circle cx="12" cy="7.7" r="0.9" fill="#3b82f6" stroke="none"></circle></svg>このアプリについて'};
   document.getElementById('ttl').innerHTML=ts[name]||name;
   // ソート・絞り込み系のコントロールは案件一覧タブでのみ表示（情報タブでは不要）
   var showListCtrl=(name==='active'||name==='all'||name==='ended');
