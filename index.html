@@ -601,6 +601,7 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .cal-entry:last-child{margin-bottom:0;}
 .cal-entry-title{font-size:14.5px;font-weight:800;color:var(--t1);margin-bottom:4px;}
 .cal-entry .cal-detail-body{font-size:13px;padding-left:2px;}
+.cal-entry-time{display:inline-block;background:var(--acc-d);color:var(--acc);font-size:11px;font-weight:800;border-radius:5px;padding:2px 6px;margin-right:7px;vertical-align:middle;}
 .cal-detail-empty{font-size:13px;color:var(--t3);}
 
 .set-card.fold-closed{padding-bottom:0;}
@@ -1053,17 +1054,28 @@ function sanCalendar(o){
         var v=o[k],arr=[];
         if(Array.isArray(v)){
           arr=v.slice(0,20).map(function(it){
-            return {t:clampStr(it&&it.t,120),d:clampStr(it&&it.d,1500)};
+            var tm=(it&&typeof it.time==='string'&&/^\d{2}:\d{2}$/.test(it.time))?it.time:'';
+            return {t:clampStr(it&&it.t,120),d:clampStr(it&&it.d,1500),time:tm};
           }).filter(function(it){return it.t||it.d;});
         }else if(typeof v==='string'&&v.trim()){
-          // 旧形式（1本の文字列）からの移行：改行ごとに「お題のみ」の予定として扱う
-          arr=v.split(/\r?\n/).filter(Boolean).slice(0,20).map(function(l){return {t:clampStr(l,120),d:''};});
+          // 旧形式（1本の文字列）からの移行：改行ごとに「お題のみ」の予定として扱う（開始時間は未設定）
+          arr=v.split(/\r?\n/).filter(Boolean).slice(0,20).map(function(l){return {t:clampStr(l,120),d:'',time:''};});
         }
-        if(arr.length)out[k]=arr;
+        if(arr.length)out[k]=sortCalEntries(arr);
       }
     });
   }
   return out;
+}
+// 開始時間の早い順に並べ替え（時間未設定は末尾へ、両方未設定なら現在の並びを維持）
+function sortCalEntries(arr){
+  return arr.slice().sort(function(a,b){
+    var ta=a.time||'', tb=b.time||'';
+    if(ta&&tb)return ta<tb?-1:(ta>tb?1:0);
+    if(ta&&!tb)return -1;
+    if(!ta&&tb)return 1;
+    return 0;
+  });
 }
 // 本文中の [[PROJ:id:名前]] トークンを「案件名＋詳細カードへボタン」に、URLをリンク＋コピーボタンに変換
 function renderTaskListHtml(raw){
@@ -1116,8 +1128,9 @@ function renderCalendar(){
     var linesHtml='';
     var entries=CALENDAR&&CALENDAR[ds];
     if(entries&&entries.length){
-      entries.slice(0,3).forEach(function(it){ linesHtml+='<div class="cal-cell-line">'+esc(it.t||'(無題)')+'</div>'; });
-      if(entries.length>3)linesHtml+='<div class="cal-cell-more">+'+(entries.length-3)+'</div>';
+      var sorted=sortCalEntries(entries);
+      sorted.slice(0,3).forEach(function(it){ linesHtml+='<div class="cal-cell-line">'+esc(it.t||'(無題)')+'</div>'; });
+      if(sorted.length>3)linesHtml+='<div class="cal-cell-more">+'+(sorted.length-3)+'</div>';
     }
     html+='<div class="'+cls+'" onclick="selectCalDate(\''+ds+'\')"><span class="cal-cell-num">'+d+'</span>'+linesHtml+'</div>';
   }
@@ -1138,9 +1151,10 @@ function selectCalDate(ds){
   dateEl.textContent=parts[0]+'年'+parseInt(parts[1],10)+'月'+parseInt(parts[2],10)+'日';
   var entries=CALENDAR&&CALENDAR[ds];
   if(entries&&entries.length){
-    bodyEl.innerHTML=entries.map(function(it){
+    bodyEl.innerHTML=sortCalEntries(entries).map(function(it){
       var body=it.d?('<div class="cal-detail-body">'+linkifyMemo(it.d)+'</div>'):'';
-      return '<div class="cal-entry"><div class="cal-entry-title">'+esc(it.t||'(無題)')+'</div>'+body+'</div>';
+      var timeHtml=it.time?'<span class="cal-entry-time">'+esc(it.time)+'</span>':'';
+      return '<div class="cal-entry"><div class="cal-entry-title">'+timeHtml+esc(it.t||'(無題)')+'</div>'+body+'</div>';
     }).join('');
   }else{
     bodyEl.innerHTML='<div class="cal-detail-empty">予定はありません</div>';
