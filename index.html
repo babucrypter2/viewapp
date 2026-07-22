@@ -597,7 +597,9 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .cal-detail{margin-top:16px;background:var(--card2);border:1px solid var(--bb);border-radius:13px;padding:14px 15px;}
 .cal-detail-date{font-size:13px;font-weight:800;color:var(--t1);margin-bottom:10px;}
 .cal-detail-body{font-size:13.5px;color:var(--t1);line-height:1.8;white-space:pre-wrap;word-break:break-word;}
-.cal-entry{margin-bottom:14px;}
+.cal-entry{margin-bottom:14px;padding-top:14px;}
+.cal-entry:first-child{padding-top:0;}
+.cal-entry+.cal-entry{border-top:1px solid var(--bb);}
 .cal-entry:last-child{margin-bottom:0;}
 .cal-entry-title{font-size:14.5px;font-weight:800;color:var(--t1);margin-bottom:4px;}
 .cal-entry .cal-detail-body{font-size:13px;padding-left:2px;}
