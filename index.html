@@ -603,7 +603,8 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .cal-entry:last-child{margin-bottom:0;}
 .cal-entry-title{font-size:14.5px;font-weight:800;color:var(--t1);margin-bottom:4px;}
 .cal-entry .cal-detail-body{font-size:13px;padding-left:2px;}
-.cal-entry-time{display:inline-block;background:var(--acc-d);color:var(--acc);font-size:11px;font-weight:800;border-radius:5px;padding:2px 6px;margin-right:7px;vertical-align:middle;}
+.cal-entry-time{display:inline-block;min-width:60px;text-align:center;background:var(--acc-d);color:var(--acc);font-size:11px;font-weight:800;border-radius:5px;padding:2px 6px;margin-right:7px;vertical-align:middle;}
+.cal-entry-time-tbd{background:var(--card2);color:var(--t3);}
 .cal-detail-empty{font-size:13px;color:var(--t3);}
 
 .set-card.fold-closed{padding-bottom:0;}
@@ -1155,7 +1156,7 @@ function selectCalDate(ds){
   if(entries&&entries.length){
     bodyEl.innerHTML=sortCalEntries(entries).map(function(it){
       var body=it.d?('<div class="cal-detail-body">'+linkifyMemo(it.d)+'</div>'):'';
-      var timeHtml=it.time?'<span class="cal-entry-time">'+esc(it.time)+'</span>':'';
+      var timeHtml='<span class="cal-entry-time'+(it.time?'':' cal-entry-time-tbd')+'">'+(it.time?esc(it.time):'時間未定')+'</span>';
       return '<div class="cal-entry"><div class="cal-entry-title">'+timeHtml+esc(it.t||'(無題)')+'</div>'+body+'</div>';
     }).join('');
   }else{
