@@ -745,6 +745,14 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 ::-webkit-scrollbar-track{background:transparent;}
 ::-webkit-scrollbar-thumb{background:var(--bb);border-radius:2px;}
 
+
+.sb-today{margin-top:auto;padding:12px 13px 14px;border-top:1px solid var(--b);}
+.sb-today-title{font-size:10px;font-weight:800;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;}
+.sb-today-row{display:flex;align-items:center;gap:5px;margin-bottom:6px;overflow:hidden;}
+.sb-today-time{flex-shrink:0;font-size:9.5px;font-weight:800;color:var(--acc);background:var(--acc-d);border-radius:4px;padding:1.5px 4px;white-space:nowrap;}
+.sb-today-time.tbd{color:var(--t3);background:var(--card2);}
+.sb-today-title-txt{flex:1;font-size:11.5px;font-weight:700;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;}
+.sb-today-empty{font-size:11px;color:var(--t3);}
 @media(max-width:680px){
   .sidebar{display:none;}
   .main{width:100%;}
@@ -823,6 +831,10 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
   <div class="nav-item" onclick="sv('ended',this)"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="5"></rect><path d="M8 12.5l2.5 2.5L16 9.5"></path></svg></span>仕込み終了</div>
   <div class="nav-sec">情報</div>
   <div class="nav-item" onclick="sv('info',this)"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><line x1="12" y1="11" x2="12" y2="16.5"></line><circle cx="12" cy="7.7" r="0.9" fill="#3b82f6" stroke="none"></circle></svg></span>このアプリについて</div>
+  <div class="sb-today" id="sb-today" style="display:none;">
+    <div class="sb-today-title">📅 本日の予定</div>
+    <div id="sb-today-list"></div>
+  </div>
 </aside>
 
 <div class="main">
@@ -1195,6 +1207,7 @@ function renderCalendar(){
     html+='<div class="'+cls+'" onclick="selectCalDate(\''+ds+'\')"><span class="cal-cell-num">'+d+'</span>'+linesHtml+'</div>';
   }
   gridEl.innerHTML=html;
+  renderSidebarToday(todayStr);
   // 何も選択してない時：表示中が今日を含む月なら今日を（予定があれば）自動で開き、
   // 今日に予定が無い月・他の月を見てる時はその月の予定を若い順の一覧で見せる
   if(calSelectedDate===null){
@@ -1231,6 +1244,22 @@ function renderCalMonthAgenda(){
     }).join('');
   }
   detail.style.display='block';
+}
+// サイドバー下部：本日の予定をカレンダーから引っ張って表示（PCのみ表示される領域だが、常に呼んでおいて問題ない）
+function renderSidebarToday(todayStr){
+  var wrap=document.getElementById('sb-today');
+  var list=document.getElementById('sb-today-list');
+  if(!wrap||!list)return;
+  var entries=CALENDAR&&CALENDAR[todayStr];
+  if(entries&&entries.length){
+    list.innerHTML=sortCalEntries(entries).map(function(it){
+      var timeHtml=it.time?('<span class="sb-today-time">'+esc(it.time)+'</span>'):'<span class="sb-today-time tbd">--:--</span>';
+      return '<div class="sb-today-row">'+timeHtml+'<span class="sb-today-title-txt">'+emojiToIcon(esc(it.t||'(無題)'))+'</span></div>';
+    }).join('');
+  }else{
+    list.innerHTML='<div class="sb-today-empty">予定はありません</div>';
+  }
+  wrap.style.display='block';
 }
 function selectCalDate(ds){
   calSelectedDate=ds;
