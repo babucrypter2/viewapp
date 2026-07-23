@@ -3146,12 +3146,13 @@ if(_hadCache){
   renderStrongList();
   renderStrategy();
   renderTaskList();
+  renderCalendar();
   populateCatFilter();
 }else{
   renderListSkeleton(); // 初回のみ：まだ何も持っていないので読み込み表示
 }
 initData(_hadCache).then(function(res){
-  if(res===true){ renderTabs(); renderAll(); } // 内容が変わっていた時だけ描き直す
+  if(res===true){ renderTabs(); renderAll(); renderCalendar(); } // 内容が変わっていた時だけ描き直す
   // 自動再起動から復帰した場合、開いていたタブへ戻す
   try{
     var rv=sessionStorage.getItem('extview');
