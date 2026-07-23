@@ -748,7 +748,8 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 
 .sb-today{margin-top:auto;padding:12px 13px 14px;border-top:1px solid var(--b);}
 .sb-today-title{font-size:10px;font-weight:800;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;}
-.sb-today-row{display:flex;align-items:center;gap:5px;margin-bottom:6px;overflow:hidden;}
+.sb-today-row{display:flex;align-items:center;gap:5px;margin-bottom:6px;overflow:hidden;cursor:pointer;border-radius:6px;margin-left:-4px;margin-right:-4px;padding-left:4px;padding-right:4px;}
+.sb-today-row:hover{background:var(--card2);}
 .sb-today-time{flex-shrink:0;font-size:9.5px;font-weight:800;color:var(--acc);background:var(--acc-d);border-radius:4px;padding:1.5px 4px;white-space:nowrap;}
 .sb-today-time.tbd{color:var(--t3);background:var(--card2);}
 .sb-today-title-txt{flex:1;font-size:11.5px;font-weight:700;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;}
@@ -1254,12 +1255,19 @@ function renderSidebarToday(todayStr){
   if(entries&&entries.length){
     list.innerHTML=sortCalEntries(entries).map(function(it){
       var timeHtml=it.time?('<span class="sb-today-time">'+esc(it.time)+'</span>'):'<span class="sb-today-time tbd">--:--</span>';
-      return '<div class="sb-today-row">'+timeHtml+'<span class="sb-today-title-txt">'+emojiToIcon(esc(it.t||'(無題)'))+'</span></div>';
+      return '<div class="sb-today-row" onclick="jumpToTodayDetail()">'+timeHtml+'<span class="sb-today-title-txt">'+emojiToIcon(esc(it.t||'(無題)'))+'</span></div>';
     }).join('');
   }else{
     list.innerHTML='<div class="sb-today-empty">予定はありません</div>';
   }
   wrap.style.display='block';
+}
+// サイドバーの「本日の予定」をタップした時：イベントカレンダーに切り替えて、今日の詳細をそのまま開く
+function jumpToTodayDetail(){
+  var t=new Date();
+  calYear=t.getFullYear();calMonth=t.getMonth();
+  sv('calendar',null,'b');
+  selectCalDate(calDateStr(t.getFullYear(),t.getMonth(),t.getDate()));
 }
 function selectCalDate(ds){
   calSelectedDate=ds;
