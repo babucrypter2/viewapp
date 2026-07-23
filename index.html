@@ -257,7 +257,7 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .dh-i{display:inline-flex;align-items:center;gap:7px;}
 .dh-ico{width:16px;height:16px;flex-shrink:0;color:var(--t2);}
 .dh-i2{display:inline-flex;align-items:center;gap:7px;}
-.in-ico{width:15px;height:15px;flex-shrink:0;vertical-align:-3px;margin-right:3px;color:var(--t2);}
+.in-ico{width:1.05em;height:1.05em;flex-shrink:0;vertical-align:-0.15em;margin-right:0.22em;color:var(--t2);}
 .dh-row .x-lbl{color:#ffffff!important;}
 .x-lbl{position:absolute;bottom:100%;left:50%;transform:translateX(-50%);margin-bottom:1px;font-size:7px;font-weight:700;color:#ffffff !important;opacity:1;line-height:1;white-space:nowrap;letter-spacing:.02em;}
 .x-btn{
@@ -1189,7 +1189,7 @@ function renderCalendar(){
     if(entries&&entries.length)cls+=' has-event'; // 予定がある日は緑みのハイライトでパッと分かるように
     if(entries&&entries.length){
       var sorted=sortCalEntries(entries);
-      sorted.slice(0,3).forEach(function(it){ linesHtml+='<div class="cal-cell-line">'+esc(it.t||'(無題)')+'</div>'; });
+      sorted.slice(0,3).forEach(function(it){ linesHtml+='<div class="cal-cell-line">'+emojiToIcon(esc(it.t||'(無題)'))+'</div>'; });
       if(sorted.length>3)linesHtml+='<div class="cal-cell-more">+'+(sorted.length-3)+'</div>';
     }
     html+='<div class="'+cls+'" onclick="selectCalDate(\''+ds+'\')"><span class="cal-cell-num">'+d+'</span>'+linesHtml+'</div>';
@@ -1226,7 +1226,7 @@ function renderCalMonthAgenda(){
     bodyEl.innerHTML=rows.map(function(r){
       var timeHtml='<span class="cal-entry-time'+(r.it.time?'':' cal-entry-time-tbd')+'">'+(r.it.time?esc(r.it.time):'時間未定')+'</span>';
       return '<div class="cal-entry cal-agenda-entry" onclick="selectCalDate(\''+r.ds+'\')">'
-        +'<div class="cal-entry-title"><span class="cal-agenda-day">'+r.day+'日</span>'+timeHtml+esc(r.it.t||'(無題)')+'</div>'
+        +'<div class="cal-entry-title"><span class="cal-agenda-day">'+r.day+'日</span>'+timeHtml+emojiToIcon(esc(r.it.t||'(無題)'))+'</div>'
         +'</div>';
     }).join('');
   }
@@ -1246,7 +1246,7 @@ function selectCalDate(ds){
     bodyEl.innerHTML=sortCalEntries(entries).map(function(it){
       var body=it.d?('<div class="cal-detail-body">'+linkifyMemo(it.d)+'</div>'):'';
       var timeHtml='<span class="cal-entry-time'+(it.time?'':' cal-entry-time-tbd')+'">'+(it.time?esc(it.time):'時間未定')+'</span>';
-      return '<div class="cal-entry"><div class="cal-entry-title">'+timeHtml+esc(it.t||'(無題)')+'</div>'+body+'</div>';
+      return '<div class="cal-entry"><div class="cal-entry-title">'+timeHtml+emojiToIcon(esc(it.t||'(無題)'))+'</div>'+body+'</div>';
     }).join('');
   }else{
     bodyEl.innerHTML='<div class="cal-detail-empty">予定はありません</div>';
@@ -1660,7 +1660,7 @@ function toggleFaFold(){
     rerender:function(){renderFundAlloc();renderStrongList();}
   });
 }
-var EMOJI_ICON_MAP={'\u2705':'<svg class="in-ico" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M8 12.5l2.5 2.5L16 9.5"></path></svg>','\uD83D\uDCF5':'<svg class="in-ico" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><line x1="5.5" y1="18.5" x2="18.5" y2="5.5"></line></svg>','\uD83D\uDD12':'<svg class="in-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="9" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg>','\uD83D\uDD11':'<svg class="in-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="4.5"></circle><path d="M10.9 12.1L20 3"></path><path d="M16 7l3 3"></path><path d="M13 4l3 3"></path></svg>','\uD83D\uDD17':'<svg class="in-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>','\u26A0\uFE0F':'<svg class="in-ico" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l10 18H2L12 3z"></path><line x1="12" y1="10" x2="12" y2="14.5"></line><circle cx="12" cy="17.2" r="0.9" fill="#f59e0b" stroke="none"></circle></svg>','\u26A0':'<svg class="in-ico" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l10 18H2L12 3z"></path><line x1="12" y1="10" x2="12" y2="14.5"></line><circle cx="12" cy="17.2" r="0.9" fill="#f59e0b" stroke="none"></circle></svg>'};
+var EMOJI_ICON_MAP={'\uD83E\uDE82':'<svg class="in-ico" viewBox="0 0 24 24" fill="none" stroke="#f2994a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10a8 8 0 0 1 16 0"></path><path d="M4 10l4 1.5M20 10l-4 1.5M9 11.2l3-1 3 1M12 9.5V19"></path></svg>','\uD83D\uDCC8':'<svg class="in-ico" viewBox="0 0 24 24" fill="none" stroke="#34d17b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 17 9 11 13 15 21 6"></polyline><polyline points="15 6 21 6 21 12"></polyline></svg>','\uD83D\uDCDD':'<svg class="in-ico" viewBox="0 0 24 24" fill="none" stroke="#4a90e8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5V17l10-10 2.5 2.5-10 10H4z"></path><path d="M13.5 5.5L16 3l2.5 2.5L16 8"></path></svg>','\u2705':'<svg class="in-ico" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M8 12.5l2.5 2.5L16 9.5"></path></svg>','\uD83D\uDCF5':'<svg class="in-ico" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><line x1="5.5" y1="18.5" x2="18.5" y2="5.5"></line></svg>','\uD83D\uDD12':'<svg class="in-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="9" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg>','\uD83D\uDD11':'<svg class="in-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="4.5"></circle><path d="M10.9 12.1L20 3"></path><path d="M16 7l3 3"></path><path d="M13 4l3 3"></path></svg>','\uD83D\uDD17':'<svg class="in-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>','\u26A0\uFE0F':'<svg class="in-ico" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l10 18H2L12 3z"></path><line x1="12" y1="10" x2="12" y2="14.5"></line><circle cx="12" cy="17.2" r="0.9" fill="#f59e0b" stroke="none"></circle></svg>','\u26A0':'<svg class="in-ico" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l10 18H2L12 3z"></path><line x1="12" y1="10" x2="12" y2="14.5"></line><circle cx="12" cy="17.2" r="0.9" fill="#f59e0b" stroke="none"></circle></svg>'};
 function emojiToIcon(line){
   var m=line.match(/^([\u2600-\u27BF\uD83C-\uDBFF][\uDC00-\uDFFF]?\uFE0F?)\s*/);
   if(!m)return line;
