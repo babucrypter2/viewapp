@@ -226,6 +226,10 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .sc-score-pill.mid{background:#8a6a14;}
 .sc-note{font-size:10px;color:var(--t3);margin-top:8px;line-height:1.6;}
 .sc-desc{font-size:11px;color:var(--t1);line-height:1.7;margin-bottom:10px;background:rgba(255,255,255,.05);border-radius:8px;padding:9px 10px;}
+.sc-scatter-wrap{background:var(--card2);border:1px solid var(--bb);border-radius:10px;padding:10px 8px 6px;margin-bottom:12px;}
+.sc-scatter-title{font-size:11.5px;font-weight:800;color:var(--t1);margin-bottom:4px;padding-left:2px;}
+.sc-scatter-svg{width:100%;height:auto;display:block;}
+.sc-scatter-axis{font-size:9.5px;color:var(--t3);text-align:right;margin-top:-2px;padding-right:4px;}
 .fa-total{font-size:12px;font-weight:800;color:var(--t1);margin-bottom:8px;}
 .fa-title-row{display:flex;align-items:center;justify-content:space-between;gap:8px;}
 .fa-title-right{display:flex;align-items:center;gap:8px;flex-shrink:0;}
@@ -1573,6 +1577,40 @@ function scoreCheckItems(){
   items.sort(function(a,b){return b.sc-a.sc;});
   return items;
 }
+// スコア（横軸）× 実際の獲得額（縦軸）の散布図。「高スコアの案件は本当に稼げてるか」を一目で検証できるようにする
+function buildScoreScatterSvg(items,jumpFn){
+  if(!items.length)return '';
+  var W=300,H=190,padL=40,padR=10,padT=12,padB=26;
+  var plotW=W-padL-padR, plotH=H-padT-padB;
+  var maxScore=scoreMax()||100;
+  var vals=items.map(function(it){return it._eq;});
+  var minV=Math.min.apply(null,vals), maxV=Math.max.apply(null,vals);
+  if(minV===maxV){ minV-=1; maxV+=1; } // 全件同額など、幅が0になるケースの防御
+  var padV=(maxV-minV)*0.08; minV-=padV; maxV+=padV;
+  function px(sc){ return padL+(sc/maxScore)*plotW; }
+  function py(v){ return padT+(1-(v-minV)/(maxV-minV))*plotH; }
+  var zeroY=(minV<0&&maxV>0)?py(0):null;
+  var gridX=[0,50,100].map(function(s){
+    return '<line x1="'+px(s)+'" y1="'+padT+'" x2="'+px(s)+'" y2="'+(padT+plotH)+'" stroke="var(--b)" stroke-width="1"></line>'
+      +'<text x="'+px(s)+'" y="'+(H-8)+'" font-size="9" fill="var(--t3)" text-anchor="middle">'+s+'</text>';
+  }).join('');
+  var zeroLine=zeroY!==null?('<line x1="'+padL+'" y1="'+zeroY+'" x2="'+(padL+plotW)+'" y2="'+zeroY+'" stroke="var(--t3)" stroke-width="1" stroke-dasharray="2,2"></line>'):'';
+  var yLabels=[maxV,minV].map(function(v,i){
+    var y=i===0?padT+3:padT+plotH;
+    return '<text x="2" y="'+y+'" font-size="9" fill="var(--t3)">'+(fmtManyen(Math.round(v))||'0円')+'</text>';
+  }).join('');
+  var pts=items.map(function(it){
+    var cx=px(it.sc), cy=py(it._eq);
+    var col=it._eq>=0?'#34d17b':'#ff5c5c';
+    var label=esc(it.name)+'：'+it.sc+'点／'+(fmtManyen(Math.round(it._eq))||'0円');
+    return '<circle cx="'+cx+'" cy="'+cy+'" r="4.5" fill="'+col+'" fill-opacity=".85" stroke="var(--card)" stroke-width="1.5" style="cursor:pointer;" onclick="'+jumpFn+'('+it.pid+')"><title>'+label+'</title></circle>';
+  }).join('');
+  return '<div class="sc-scatter-wrap">'
+    +'<div class="sc-scatter-title">スコア × 実際の獲得額</div>'
+    +'<svg viewBox="0 0 '+W+' '+H+'" class="sc-scatter-svg">'+gridX+zeroLine+yLabels+pts+'</svg>'
+    +'<div class="sc-scatter-axis">→ 期待値スコア（横軸）</div>'
+    +'</div>';
+}
 function renderScoreCheck(){
   var el=document.getElementById('scorecheck-card');
   if(!el)return;
@@ -1609,6 +1647,7 @@ function renderScoreCheck(){
   el.innerHTML='<div class="set-card-title fa-title-row" style="margin-bottom:'+(scFoldOpen?'10px':'0')+';cursor:pointer;" onclick="toggleScFold()"><span class="dh-i2"><svg class="dh-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"></path><path d="M7 14l4-4 3 3 5-6"></path></svg>期待値スコアの精度</span><button class="tl-fold-btn'+(scFoldOpen?' open':'')+'">'+(scFoldOpen?'閉じる':'詳細')+'<span class="dt-arrow">▼</span></button></div>'
     +'<div id="sc-fold-body" style="display:'+(scFoldOpen?'block':'none')+';margin-top:8px;">'
     +(INFO.scorecheck?'<div class="sc-desc">'+esc(INFO.scorecheck).replace(/\n/g,'<br>')+'</div>':'')
+    +buildScoreScatterSvg(items,'jumpToProject')
     +bandHtml
     +'<div style="display:flex;flex-direction:column;gap:6px;margin-top:8px;">'+rowsHtml+'</div>'
     +'<div class="sc-note">※ スコアは現在の配点設定で算出</div>'
