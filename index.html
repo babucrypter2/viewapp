@@ -2105,6 +2105,8 @@ function sanProj(o,spLen){
     depOverrideUsd:Math.max(0,num(o.depOverrideUsd)),
     periodOverrideMonths:Math.max(0,num(o.periodOverrideMonths)),
     quality:sanMark(o.quality),
+    pie:sanMark(o.pie),      // 報酬パイ（○△✕・手動判断）
+    share:sanMark(o.share),  // シェア率（○△✕・手動判断）
     tge:(o.tge==='g'||o.tge==='m'||o.tge==='b')?o.tge:'',
     earlyStart:/^\d{4}-\d{2}-\d{2}$/.test(o.earlyStart)?o.earlyStart:null,
     earlyEnd:/^\d{4}-\d{2}-\d{2}$/.test(o.earlyEnd)?o.earlyEnd:null,
@@ -2157,6 +2159,13 @@ function _effMedianCache(){
   var m=Math.floor(vals.length/2);
   return vals.length%2?vals[m]:(vals[m-1]+vals[m])/2;
 }
+// 「全員が○だった場合の合計pt」＝強者の言及の満点ライン。配点を変えても自動で追従する
+function smFullAuto(){
+  var t=(Array.isArray(SP)?SP:[]).reduce(function(a,q){return a+(q&&q.ptG?q.ptG:0);},0);
+  return t>0?t:12; // 誰も登録されていない時の保険
+}
+// ○△✕を点数に変換（○=満点／△=半分／✕=0）
+function markScore(v,full){ return v==='g'?full:(v==='m'?full/2:0); }
 function scoreBreakdown(p){
   // 終了時に凍結したスコアがあれば、それをそのまま使う（配点を後から変えても答え合わせが壊れないように）
   if(p&&p.frozen&&typeof p.frozen.total==='number'){
@@ -2165,26 +2174,37 @@ function scoreBreakdown(p){
   }
   // ① 強い人の言及（生pt合計を上限で正規化 → w_sm点。マイナスにはしない）
   var smPts=(p.sm||[]).reduce(function(a,v,j){var q=SP[j];if(!q)return a;return a+(v==='g'?q.ptG:v==='m'?q.ptM:(q.ptB||0));},0);
-  var smFull=W.sm_full>0?W.sm_full:12;
+  // 満点ラインは「登録者全員が○だった場合の合計pt」から毎回自動算出する。
+  // 以前は手入力の固定値だったため、誰かの配点を変えると満点ラインとズレて上位が潰れていた。
+  var smFull=smFullAuto();
   var smScore=Math.max(0,Math.min(smPts/smFull,1))*(W.w_sm||0);
   // ② 調達効率（調達÷参加者、調達÷TVL を各0〜1に正規化し、利用可能な指標の平均 → w_ef点）
   //    調達額が未記入で計算不可能な場合は、記入済み案件の中央値を暫定値に（母数5件未満は満点の半分）
+  //    さらに、報酬パイ・シェア率（○△✕の手動判断）が入っていればそれも同じ枠で評価し、
+  //    「分かっている指標だけ」で平均する。分からない指標に暫定値を入れて薄めないのが方針。
+  var wEf=W.w_ef||0;
   var effScore, effImputed=false;
-  if(!p.fund){
-    var med=_effMedianCache();
-    if(med===null){ effScore=(W.w_ef||0)/2; } else { effScore=med; }
-    effImputed=true;
-  }else{
+  // 調達効率（数値から算出）
+  var calcEff=null;
+  if(p.fund){
     var parts=[];
     if(p.usr)parts.push(Math.min((p.fund/p.usr)/(W.ef_full||25),1));
     if(p.tvl)parts.push(Math.min((p.fund/p.tvl)/(W.et_full||3),1));
-    var effNorm=parts.length?parts.reduce(function(a,b){return a+b;},0)/parts.length:0;
-    if(parts.length){ effScore=effNorm*(W.w_ef||0); }
-    else { // 調達額はあるが参加者もTVLも無い→効率計算不能。これも暫定扱い（中央値→無ければ半分）
-      var med2=_effMedianCache();
-      effScore=(med2===null)?(W.w_ef||0)/2:med2;
-      effImputed=true;
-    }
+    if(parts.length)calcEff=(parts.reduce(function(a,b){return a+b;},0)/parts.length)*wEf;
+  }
+  // 報酬パイ・シェア率（○△✕）。両方入っていれば平均、片方だけならその値
+  var rwParts=[];
+  if(p.pie)rwParts.push(markScore(p.pie,wEf));
+  if(p.share)rwParts.push(markScore(p.share,wEf));
+  var rewardEff=rwParts.length?(rwParts.reduce(function(a,b){return a+b;},0)/rwParts.length):null;
+  // 使える指標だけで最終決定
+  if(rewardEff!==null&&calcEff!==null){ effScore=(rewardEff+calcEff)/2; }      // 両方あり→平均
+  else if(rewardEff!==null){ effScore=rewardEff; }                              // 報酬パイのみ→それを優先
+  else if(calcEff!==null){ effScore=calcEff; }                                  // 調達額のみ→従来通り
+  else {                                                                        // 両方なし→暫定値
+    var med=_effMedianCache();
+    effScore=(med===null)?wEf/2:med;
+    effImputed=true;
   }
   // ③ 減点方式（満点 w_deduct から、△✕で3項目それぞれ減点）
   function ded(v){return v==='g'?0:(v==='m'?(W.d_m||0):(W.d_b||0));}
@@ -2632,9 +2652,9 @@ function renderList(id,mode){
 
       // ── Row 1: medal | icon | name+meta(2 lines) | X | score ──
       +'<div class="card-r1">'
-      +'<div class="pj-av-wrap">'+projAvHtml(p,60)+'<span class="rank-badge '+rankCls+'">'+rankNum+'</span>'+(p.endDate?'<span class="ended-badge">🏁終了</span>':'')+'</div>'
+      +'<div class="pj-av-wrap">'+projAvHtml(p,60)+'<span class="rank-badge '+rankCls+'">'+rankNum+'</span></div>'
       +'<div class="pj-inf">'
-      +'<div class="pj-nmr"><span class="pj-name">'+esc(p.name)+'</span>'+catTag(p.cat)+projBadge(p)+'</div>'
+      +'<div class="pj-nmr"><span class="pj-name">'+esc(p.name)+'</span>'+catTag(p.cat)+(p.endDate?'<span class="ended-badge">🏁終了</span>':'')+projBadge(p)+'</div>'
       +'<div class="pj-meta1"><span class="pj-lbl-row">仕込みLv：</span><span class="pj-stars">'+starsHtml(p.lv||0)+'</span></div>'
       +'<div class="pj-meta2"><span class="pj-lbl-row">仕込み額：</span> '+stakeHtml+'</div>'
       +(burn_>0?'<div class="pj-meta3"><span class="pj-lbl-row">削り額：</span> <span class="pj-dv pj-burn">'+fmtU(burn_)+'</span></div>':'')
