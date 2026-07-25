@@ -230,6 +230,19 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .sc-scatter-title{font-size:11.5px;font-weight:800;color:var(--t1);margin-bottom:4px;padding-left:2px;}
 .sc-scatter-svg{width:100%;height:auto;display:block;}
 .sc-scatter-axis{font-size:9.5px;color:var(--t3);text-align:right;margin-top:-2px;padding-right:4px;}
+/* ── 期待値スコアの精度：見出し・散布図・凡例 ── */
+.prec-headline{display:flex;align-items:center;gap:14px;margin-top:6px;}
+.prec-pct{font-size:.5em;font-weight:800;margin-left:1px;}
+.prec-headline-sub{font-size:12px;color:var(--t2);font-weight:600;}
+.prec-scatter-wrap{background:var(--card2);border:1px solid var(--bb);border-radius:12px;padding:10px;margin-bottom:10px;}
+.prec-scatter-svg{width:100%;height:auto;display:block;border-radius:6px;overflow:hidden;}
+.prec-axis-x{font-size:9.5px;color:var(--t3);text-align:center;margin-top:4px;}
+.prec-dot.sel{stroke:#fff;stroke-width:2.2;}
+.prec-legend{display:flex;flex-wrap:wrap;gap:8px 14px;margin:10px 2px 4px;}
+.prec-leg-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--t2);font-weight:700;}
+.prec-leg-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.prec-pop{margin-top:2px;background:var(--card);border:1.5px solid var(--acc);border-radius:10px;padding:9px 10px;animation:scPopIn .15s ease-out;}
+.prec-pop-mid{font-size:12px;color:var(--t2);font-weight:700;margin-bottom:6px;}
 .sc-dot.sel{stroke:#fff;stroke-width:2.5;r:7;}
 .sc-pop{margin-top:8px;background:var(--card);border:1.5px solid var(--acc);border-radius:10px;padding:9px 10px;animation:scPopIn .15s ease-out;}
 @keyframes scPopIn{from{opacity:0;transform:translateY(-4px);}to{opacity:1;transform:translateY(0);}}
@@ -1021,12 +1034,14 @@ var SP=[
   {name:'Yama',handle:'yamacrypto',bg:'#ef6c00',img:null,ptG:2,ptM:1},
 ];
 var W={refa_g:2,refa_m:0,refa_b:0,low_g:1.5,low_m:0,low_b:0,qual_g:0,qual_m:0,qual_b:0,
-  w_sm:35,sm_full:12,w_ef:35,ef_full:25,et_full:3,w_deduct:30,d_m:5,d_b:10};
+  w_sm:35,sm_full:12,w_ef:35,ef_full:25,et_full:3,w_deduct:30,d_m:5,d_b:10,
+  goalApr:20,goalHourly:5000,goalMinUsd:400}; // 期待値スコアの精度検証：投資=年利/無料=時給の目標値と最低獲得額
 // 保存データからWを安全に読込（未定義キーはデフォルト維持、マイナス許容）
 function mergeW(src){
   if(!src||typeof src!=='object')return;
   ['refa_g','refa_m','refa_b','low_g','low_m','low_b','qual_g','qual_m','qual_b',
-   'w_sm','sm_full','w_ef','ef_full','et_full','w_deduct','d_m','d_b'].forEach(function(k){
+   'w_sm','sm_full','w_ef','ef_full','et_full','w_deduct','d_m','d_b',
+   'goalApr','goalHourly','goalMinUsd'].forEach(function(k){
     if(src[k]!==undefined&&src[k]!==null&&src[k]!=='')W[k]=num(src[k]);
   });
 }
@@ -1600,6 +1615,119 @@ function projBadge(p){
 
 // ─────────── スコア答え合わせ（期待値 vs 実績）───────────
 var scFoldOpen=false;
+// ─────── 期待値スコアの精度検証：実績年利／実績時給から目標達成率を算出 ───────
+// デポジットがあれば投資案件（実績年利で判定）、無ければ無料案件（実績時給で判定）。
+// どちらも計算できない（データ不足）場合は null を返す。
+function actualPerfItem(p){
+  if(!p.endDate||!Array.isArray(p.results)||!p.results.length)return null;
+  var su=0,sj=0;
+  p.results.forEach(function(r){su+=num(r.usd);sj+=num(r.jpy);});
+  if(su===0&&sj===0)return null;
+  var burnUsd=num(p.burnUsd);
+  var netUsdEq=su+sj/ACHV_FX-burnUsd; // 削り額（USD）を引いた手残り、USD換算で統一
+  var principal=depShowUsd(p); // 既存の時間加重平均残高
+  var type,actualRate,goalRate,achievePct;
+  if(principal>0){
+    var months=depMonths(p);
+    if(!(months>0))return null;
+    var apr=(netUsdEq/principal)/(months/12)*100;
+    type='invest';actualRate=apr;goalRate=W.goalApr||20;
+    achievePct=goalRate>0?(apr/goalRate*100):0;
+  }else{
+    if(!(p.workMin>0)||!p.startDate)return null;
+    var days=Math.max(1,Math.round((new Date(p.endDate+'T00:00:00')-new Date(p.startDate+'T00:00:00'))/86400000));
+    var hours=(p.workMin*days)/60;
+    if(!(hours>0))return null;
+    var netJpyEq=sj+su*ACHV_FX-burnUsd*ACHV_FX;
+    var hourly=netJpyEq/hours;
+    type='free';actualRate=hourly;goalRate=W.goalHourly||5000;
+    achievePct=goalRate>0?(hourly/goalRate*100):0;
+  }
+  // 最低獲得額チェック：基準未満なら、率がどれだけ高くても未達成扱いに抑える
+  var belowMin=netUsdEq<(W.goalMinUsd||400);
+  if(belowMin&&achievePct>=100)achievePct=99;
+  return {pid:p.id,name:p.name||'（無題）',sc:Math.round(score(p)),type:type,
+    actualRate:Math.round(actualRate*10)/10,goalRate:goalRate,
+    achievePct:Math.max(0,Math.round(achievePct*10)/10),netUsdEq:Math.round(netUsdEq),belowMin:belowMin};
+}
+// 終了済み全案件から実績算出可能なものだけを集め、4象限（正しく高評価／過小評価／過大評価／正しく低評価）に分類する
+function precisionItems(){
+  var items=[];
+  (Array.isArray(PROJ)?PROJ:[]).forEach(function(p){
+    if(!p.endDate)return;
+    var it=actualPerfItem(p);
+    if(it)items.push(it);
+  });
+  return items;
+}
+function precisionQuadrant(it){
+  var scHigh=it.sc>=50, achHigh=it.achievePct>=100;
+  if(scHigh&&achHigh)return 'hit';    // 正しく高評価
+  if(!scHigh&&achHigh)return 'under'; // 過小評価（もったいない）
+  if(scHigh&&!achHigh)return 'over';  // 過大評価（改善が必要）
+  return 'miss';                       // 正しく低評価
+}
+function precisionSummary(){
+  var items=precisionItems();
+  if(!items.length)return null;
+  var q={hit:[],under:[],over:[],miss:[]};
+  items.forEach(function(it){ q[precisionQuadrant(it)].push(it); });
+  var matchCount=q.hit.length+q.miss.length;
+  var matchRate=Math.round(matchCount/items.length*100);
+  return {items:items,q:q,matchRate:matchRate,total:items.length};
+}
+// 期待値スコアの精度：スコア(横軸)×目標達成率(縦軸)の4象限散布図
+// 右上=正しく高評価(緑)／左上=過小評価(青)／右下=過大評価(橙)／左下=正しく低評価(グレー)
+var _precPopItems={};
+function buildPrecisionScatterSvg(summary){
+  var items=summary.items;
+  if(!items.length)return '';
+  var W=300,H=210,padL=8,padR=8,padT=8,padB=8;
+  var plotW=W-padL-padR, plotH=H-padT-padB;
+  var capY=Math.max(200,Math.min(300,Math.ceil(Math.max.apply(null,items.map(function(it){return it.achievePct;}))/50)*50));
+  function px(sc){ return padL+(Math.max(0,Math.min(100,sc))/100)*plotW; }
+  function py(ach){ return padT+(1-Math.max(0,Math.min(capY,ach))/capY)*plotH; }
+  var midX=px(50), lineY=py(100);
+  var quadCol={hit:'rgba(52,209,123,.10)',under:'rgba(74,144,232,.10)',over:'rgba(255,138,60,.10)',miss:'rgba(255,255,255,.05)'};
+  var quads=''
+    +'<rect x="'+midX+'" y="'+padT+'" width="'+(padL+plotW-midX)+'" height="'+(lineY-padT)+'" fill="'+quadCol.hit+'"></rect>'
+    +'<rect x="'+padL+'" y="'+padT+'" width="'+(midX-padL)+'" height="'+(lineY-padT)+'" fill="'+quadCol.under+'"></rect>'
+    +'<rect x="'+midX+'" y="'+lineY+'" width="'+(padL+plotW-midX)+'" height="'+(padT+plotH-lineY)+'" fill="'+quadCol.over+'"></rect>'
+    +'<rect x="'+padL+'" y="'+lineY+'" width="'+(midX-padL)+'" height="'+(padT+plotH-lineY)+'" fill="'+quadCol.miss+'"></rect>';
+  var lines='<line x1="'+midX+'" y1="'+padT+'" x2="'+midX+'" y2="'+(padT+plotH)+'" stroke="var(--bb)" stroke-width="1"></line>'
+    +'<line x1="'+padL+'" y1="'+lineY+'" x2="'+(padL+plotW)+'" y2="'+lineY+'" stroke="var(--acc)" stroke-width="1.2" stroke-dasharray="3,3"></line>';
+  var dotCol={hit:'#34d17b',under:'#4a90e8',over:'#ff8a3c',miss:'#8d95a7'};
+  var pts=items.map(function(it){
+    var quad=precisionQuadrant(it);
+    var cx=px(it.sc), cy=py(it.achievePct);
+    _precPopItems[it.pid]=it;
+    return '<circle id="prec-dot-'+it.pid+'" class="prec-dot" cx="'+cx+'" cy="'+cy+'" r="5" fill="'+dotCol[quad]+'" fill-opacity=".9" stroke="var(--card)" stroke-width="1.3" style="cursor:pointer;" onclick="showPrecPop('+it.pid+')"></circle>';
+  }).join('');
+  return '<div class="prec-scatter-wrap">'
+    +'<svg viewBox="0 0 '+W+' '+H+'" class="prec-scatter-svg">'+quads+lines+pts+'</svg>'
+    +'<div class="prec-axis-x">→ 期待値スコア</div>'
+    +'<div class="prec-pop" id="prec-pop" style="display:none;">'
+    +'<div class="sc-pop-row"><span class="sc-pop-score" id="prec-pop-score"></span><span class="sc-pop-name" id="prec-pop-name"></span></div>'
+    +'<div class="prec-pop-mid" id="prec-pop-mid"></div>'
+    +'<div class="sc-pop-bottom"><span class="sc-pop-amt" id="prec-pop-amt"></span><button class="sc-pop-btn" id="prec-pop-btn">詳細カードへ ›</button></div>'
+    +'</div>'
+    +'</div>';
+}
+function showPrecPop(pid){
+  var it=_precPopItems[pid];
+  var pop=document.getElementById('prec-pop');
+  if(!it||!pop)return;
+  document.getElementById('prec-pop-score').textContent=it.sc;
+  document.getElementById('prec-pop-name').textContent=it.name;
+  var rateTxt=it.type==='invest'?('実績年利 '+it.actualRate+'%'):('実績時給 '+Math.round(it.actualRate).toLocaleString('en-US')+'円');
+  document.getElementById('prec-pop-mid').textContent=rateTxt+'　→　達成率 '+it.achievePct+'%';
+  document.getElementById('prec-pop-amt').textContent=(it.netUsdEq<0?'-':'')+'$'+Math.abs(it.netUsdEq).toLocaleString('en-US');
+  document.getElementById('prec-pop-btn').onclick=function(){ jumpToProject(pid,true); };
+  document.querySelectorAll('.prec-dot').forEach(function(c){ c.classList.remove('sel'); });
+  var dot=document.getElementById('prec-dot-'+pid);
+  if(dot)dot.classList.add('sel');
+  pop.style.display='block';
+}
 function scoreCheckItems(){
   var items=[];
   (Array.isArray(PROJ)?PROJ:[]).forEach(function(p){
@@ -1677,7 +1805,8 @@ function renderScoreCheck(){
   var el=document.getElementById('scorecheck-card');
   if(!el)return;
   var items=scoreCheckItems();
-  if(!items.length){el.style.display='none';return;}
+  var prec=precisionSummary();
+  if(!items.length&&!prec){el.style.display='none';return;}
   // スコア帯ごとの集計（80+/60-79/40-59/〜39）
   var bands=[
     {lbl:'80点以上',min:80,max:1000,list:[]},
@@ -1706,13 +1835,37 @@ function renderScoreCheck(){
       +'<span class="achv-rank-go">詳細カードへ ›</span>'
       +'</div>';
   }).join('');
+  // ── 見出し：予測方向一致率（大きく色付きで、既存の期待値スコア表示と同じ見た目に揃える）──
+  var headHtml='';
+  if(prec){
+    var mCls=prec.matchRate>=80?'c-g':prec.matchRate>=60?'c-a':prec.matchRate>=35?'c-y':'c-r';
+    headHtml='<div class="prec-headline">'
+      +'<div class="sc-wrap"><div class="sc-lbl">予測方向一致率</div><div class="sc-val '+mCls+'">'+prec.matchRate+'<span class="prec-pct">%</span></div></div>'
+      +'<div class="prec-headline-sub">'+prec.total+'件中 '+(prec.q.hit.length+prec.q.miss.length)+'件が方向一致</div>'
+      +'</div>';
+  }
+  var expandHtml='';
+  if(prec){
+    expandHtml+='<div class="sc-desc">投資案件：年利'+(W.goalApr||20)+'%以上／無料案件：時給'+num(W.goalHourly||5000).toLocaleString('en-US')+'円以上（獲得額$'+num(W.goalMinUsd||400).toLocaleString('en-US')+'未満は未達成扱い）</div>'
+      +buildPrecisionScatterSvg(prec)
+      +'<div class="prec-legend">'
+      +'<span class="prec-leg-item"><span class="prec-leg-dot" style="background:#34d17b;"></span>正しく高評価 '+prec.q.hit.length+'件</span>'
+      +'<span class="prec-leg-item"><span class="prec-leg-dot" style="background:#4a90e8;"></span>過小評価 '+prec.q.under.length+'件</span>'
+      +'<span class="prec-leg-item"><span class="prec-leg-dot" style="background:#ff8a3c;"></span>過大評価 '+prec.q.over.length+'件</span>'
+      +'<span class="prec-leg-item"><span class="prec-leg-dot" style="background:#8d95a7;"></span>正しく低評価 '+prec.q.miss.length+'件</span>'
+      +'</div>';
+  }
+  if(items.length){
+    expandHtml+=(INFO.scorecheck?'<div class="sc-desc" style="margin-top:10px;">'+esc(INFO.scorecheck).replace(/\n/g,'<br>')+'</div>':'')
+      +buildScoreScatterSvg(items,'jumpToProject')
+      +bandHtml
+      +'<div style="display:flex;flex-direction:column;gap:6px;margin-top:8px;">'+rowsHtml+'</div>';
+  }
   el.innerHTML='<div class="set-card-title fa-title-row" style="margin-bottom:'+(scFoldOpen?'10px':'0')+';cursor:pointer;" onclick="toggleScFold()"><span class="dh-i2"><svg class="dh-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"></path><path d="M7 14l4-4 3 3 5-6"></path></svg>期待値スコアの精度</span><button class="tl-fold-btn'+(scFoldOpen?' open':'')+'">'+(scFoldOpen?'閉じる':'詳細')+'<span class="dt-arrow">▼</span></button></div>'
+    +headHtml
     +'<div id="sc-fold-body" style="display:'+(scFoldOpen?'block':'none')+';margin-top:8px;">'
-    +(INFO.scorecheck?'<div class="sc-desc">'+esc(INFO.scorecheck).replace(/\n/g,'<br>')+'</div>':'')
-    +buildScoreScatterSvg(items,'jumpToProject')
-    +bandHtml
-    +'<div style="display:flex;flex-direction:column;gap:6px;margin-top:8px;">'+rowsHtml+'</div>'
-    +'<div class="sc-note">※ スコアは現在の配点設定で算出</div>'
+    +expandHtml
+    +'<div class="sc-note">※ スコアは終了時点の凍結値。目標値は設定タブで変更できます</div>'
     +'</div>';
   el.classList.toggle('fold-closed',!scFoldOpen); // 閉時はヘッダー帯だけの見た目に
   el.style.display='block';
@@ -2138,6 +2291,7 @@ function sanProj(o,spLen){
     periodOverrideMonths:Math.max(0,num(o.periodOverrideMonths)),
     quality:sanMark(o.quality),
     pieShare:sanMark3(o.pieShare!==undefined?o.pieShare:o.pie), // パイ・シェア（○△✕／未判断は空のまま。1項目に統合）
+    workMin:Math.max(0,num(o.workMin)), // 無料案件の1日あたり作業工数（分）。期待値スコアの精度検証（実績時給の算出）に使用
     tge:(o.tge==='g'||o.tge==='m'||o.tge==='b')?o.tge:'',
     earlyStart:/^\d{4}-\d{2}-\d{2}$/.test(o.earlyStart)?o.earlyStart:null,
     earlyEnd:/^\d{4}-\d{2}-\d{2}$/.test(o.earlyEnd)?o.earlyEnd:null,
