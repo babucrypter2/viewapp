@@ -1458,7 +1458,7 @@ function renderAchv(){
       var rank=pageStart+i;
       var rc=rank===0?'rank-1':rank===1?'rank-2':rank===2?'rank-3':'rank-n';
       var clk=it.pid!=null;
-      return '<div class="achv-rank-row'+(clk?' achv-rank-clk':'')+'"'+(clk?' onclick="jumpToProject('+it.pid+')"':'')+'>'
+      return '<div class="achv-rank-row'+(clk?' achv-rank-clk':'')+'"'+(clk?' onclick="jumpToProject('+it.pid+',true)"':'')+'>'
         +'<span class="achv-rank-badge '+rc+'">'+(rank+1)+'</span>'
         +'<span class="achv-rank-name">'+esc(it.name)+'</span>'
         +'<span class="achv-rank-amt'+(it._eq<0?' neg':'')+'">'+fmtAchvItemAmt(it)+'</span>'
@@ -1668,7 +1668,7 @@ function renderScoreCheck(){
   }).join('');
   var rowsHtml=items.map(function(it){
     var pc=it.sc>=80?'hi':it.sc>=60?'mid':'';
-    return '<div class="achv-rank-row achv-rank-clk" onclick="jumpToProject('+it.pid+')">'
+    return '<div class="achv-rank-row achv-rank-clk" onclick="jumpToProject('+it.pid+',true)">'
       +'<span class="sc-score-pill '+pc+'">'+it.sc+'</span>'
       +'<span class="achv-rank-name">'+esc(it.name)+'</span>'
       +'<span class="achv-rank-amt'+(it._eq<0?' neg':'')+'">'+fmtAchvItemAmt(it)+'</span>'
