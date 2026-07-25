@@ -2066,6 +2066,8 @@ function sanDep(o){
   return {date:date,cur:clampStr(o.cur,12),amt:num(o.amt),usd:num(o.usd),note:clampStr(o.note,120)};
 }
 function sanMark(v){return (v==='g'||v==='m'||v==='b')?v:'b';}
+// 報酬パイ・シェア率用：未判断（空文字）をそのまま残す。従来のsanMarkは''を✕に変えてしまうため別関数にした
+function sanMark3(v){return (v==='g'||v==='m'||v==='b')?v:'';}
 function sanFrozen(f){
   if(!f||typeof f!=='object')return null;
   if(typeof f.total!=='number'||!isFinite(f.total))return null;
@@ -2105,8 +2107,8 @@ function sanProj(o,spLen){
     depOverrideUsd:Math.max(0,num(o.depOverrideUsd)),
     periodOverrideMonths:Math.max(0,num(o.periodOverrideMonths)),
     quality:sanMark(o.quality),
-    pie:sanMark(o.pie),      // 報酬パイ（○△✕・手動判断）
-    share:sanMark(o.share),  // シェア率（○△✕・手動判断）
+    pie:sanMark3(o.pie),      // 報酬パイ（○△✕／未判断は空のまま）
+    share:sanMark3(o.share),  // シェア率（○△✕／未判断は空のまま）
     tge:(o.tge==='g'||o.tge==='m'||o.tge==='b')?o.tge:'',
     earlyStart:/^\d{4}-\d{2}-\d{2}$/.test(o.earlyStart)?o.earlyStart:null,
     earlyEnd:/^\d{4}-\d{2}-\d{2}$/.test(o.earlyEnd)?o.earlyEnd:null,
