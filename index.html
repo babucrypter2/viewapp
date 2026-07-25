@@ -687,9 +687,13 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .strategy-bar.fold-closed{padding-bottom:0;}
 .strategy-bar.fold-closed>.detail-h{margin-bottom:0;border-bottom:none;border-radius:13px;}
 .strategy-txt{font-size:12px;color:var(--t1);line-height:1.45;white-space:pre-wrap;word-break:break-word;}
-.tl-body{font-size:12px;color:var(--t1);line-height:1.8;white-space:pre-wrap;word-break:break-word;}
+.tl-body{font-size:12px;color:var(--t1);line-height:1.8;white-space:pre-wrap;word-break:break-word;margin-top:10px;}
 .tl-head-row{display:flex;align-items:center;justify-content:space-between;gap:8px;}
 .tl-fold-btn{flex-shrink:0;background:rgba(255,255,255,.09);border:1.5px solid rgba(255,255,255,.28);border-radius:8px;padding:5px 10px;font-size:12px;font-weight:800;color:#fff;cursor:pointer;display:flex;align-items:center;gap:4px;white-space:nowrap;}
+.tl-stat{margin-left:auto;flex-shrink:0;font-size:11.5px;font-weight:700;color:var(--t2);white-space:nowrap;}
+/* 案件カードの「タップで詳細」との混同を避けるため、横長・明るめの見た目で存在感を出す */
+.tl-fold-btn-wide{width:100%;margin-top:8px;background:var(--acc-d);border:1.5px solid var(--acc);border-radius:9px;padding:10px 0;font-size:13.5px;font-weight:800;color:var(--acc);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;}
+.tl-fold-btn-wide.open{background:var(--acc);color:#fff;}
 .tl-fold-btn .dt-arrow{font-size:8px;}
 .tl-fold-btn.open{background:var(--acc);border-color:var(--acc);}
 .tl-fold-btn:active{filter:brightness(.85);}
@@ -1129,9 +1133,12 @@ function renderStrategy(){
 
 // ─────────── 今のエアドロタスク日課（戦略の下に固定表示、折りたたみ式）───────────
 var TASKLIST='';
+var TASK_COUNT=0;  // 今のエアドロタスク日課：件数
+var TASK_MIN=0;    // 今のエアドロタスク日課：1日あたりの工数（分）
 var CALENDAR={}; // {'2026-07-21':'その日のイベント本文（複数行・URL可）'}
 var taskListFoldOpen=false;
 function sanTaskList(v){ return typeof v==='string'?clampStr(v,3000):''; }
+function sanTaskNum(v){ var n=Math.round(num(v)); return (n>0&&n<100000)?n:0; }
 // カレンダー：{'YYYY-MM-DD':'本文'} 形式のみ許可。日付キーの形式チェックと件数・文字数の上限で防御
 function sanCalendar(o){
   var out={};
@@ -1310,15 +1317,22 @@ function selectCalDate(ds){
 function renderTaskList(){
   var el=document.getElementById('tasklist-bar');
   if(!el)return;
-  if(!TASKLIST){el.style.display='none';return;}
-  el.innerHTML='<div class="detail-h tl-head-row" style="margin-bottom:'+(taskListFoldOpen?'6px':'0')+';cursor:pointer;" onclick="toggleTaskListFold()">'
+  if(!TASKLIST&&!TASK_COUNT&&!TASK_MIN){el.style.display='none';return;} // 本文が空でも件数/工数だけ入っていれば表示する
+  var statBits=[];
+  if(TASK_COUNT)statBits.push(TASK_COUNT+'件');
+  if(TASK_MIN)statBits.push(TASK_MIN+'分/D');
+  var statHtml=statBits.length?'<span class="tl-stat">'+statBits.join('　')+'</span>':'';
+  el.innerHTML='<div class="detail-h tl-head-row">'
     +'<span class="dh-i"><svg class="dh-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a8 8 0 0 1 16 0"></path><path d="M4 11l4.5 7.5"></path><path d="M20 11l-4.5 7.5"></path><path d="M9.5 11l1 7.5"></path><path d="M14.5 11l-1 7.5"></path><rect x="9.5" y="17.5" width="5" height="3" rx="1"></rect></svg>今のエアドロタスク日課</span>'
-    +'<button class="tl-fold-btn'+(taskListFoldOpen?' open':'')+'">'
-    +(taskListFoldOpen?'閉じる':'詳細')+'<span class="dt-arrow">▼</span>'
-    +'</button>'
+    +statHtml
     +'</div>'
+    // 横長のボタンにして、下の案件カードの「タップで詳細」と紛れないよう存在感を出す
+    +'<button class="tl-fold-btn-wide'+(taskListFoldOpen?' open':'')+'" onclick="toggleTaskListFold()">'
+    +(taskListFoldOpen?'閉じる':'詳細を開く')+'<span class="dt-arrow">▼</span>'
+    +'</button>'
     +'<div class="tl-body" id="tl-fold-body" style="display:'+(taskListFoldOpen?'block':'none')+';">'+renderTaskListHtml(TASKLIST)+'</div>';
-  el.classList.toggle('fold-closed',!taskListFoldOpen); // 閉時はヘッダー帯だけの見た目に
+  // このカードは閉時も「詳細を開く」ボタンを常に表示する2段構成にしたので、
+  // 他の折りたたみのようにヘッダー帯だけの見た目にはしない（fold-closedは付けない）
   el.style.display='block';
 }
 // 折りたたみを開いた時、そのカードの見出しが画面上部（少し余白を残した位置）に来るよう自動スクロール。
@@ -2015,6 +2029,8 @@ function applyLoadedData(d,opts){
   ACHV=sanAchv(d.achv);
   STRATEGY=sanStrategy(d.strategy);
   TASKLIST=sanTaskList(d.tasklist);
+  TASK_COUNT=sanTaskNum(d.taskCount);
+  TASK_MIN=sanTaskNum(d.taskMin);
   CALENDAR=sanCalendar(d.calendar);
   // 更新バッジの判定は「完全なデータ」の時だけ行う。
   // 画像を省いた軽量キャッシュで判定すると、画像の有無の差で毎回「更新」扱いになってしまう
