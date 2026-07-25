@@ -230,6 +230,7 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .sc-scatter-title{font-size:11.5px;font-weight:800;color:var(--t1);margin-bottom:4px;padding-left:2px;}
 .sc-scatter-svg{width:100%;height:auto;display:block;}
 .sc-scatter-axis{font-size:9.5px;color:var(--t3);text-align:right;margin-top:-2px;padding-right:4px;}
+.sc-dot.sel{stroke:#fff;stroke-width:2.5;r:7;}
 .sc-pop{margin-top:8px;background:var(--card);border:1.5px solid var(--acc);border-radius:10px;padding:9px 10px;animation:scPopIn .15s ease-out;}
 @keyframes scPopIn{from{opacity:0;transform:translateY(-4px);}to{opacity:1;transform:translateY(0);}}
 .sc-pop-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
@@ -1615,9 +1616,8 @@ function buildScoreScatterSvg(items,jumpFn){
   var pts=items.map(function(it){
     var cx=px(it.sc), cy=py(it._eq);
     var col=it._eq>=0?'#34d17b':'#ff5c5c';
-    var eqLabel=fmtManyen(Math.round(it._eq))||'0円';
-    _scPopItems[it.pid]={name:it.name,sc:it.sc,eqLabel:eqLabel,usd:it.usd||0};
-    return '<circle cx="'+cx+'" cy="'+cy+'" r="5.5" fill="'+col+'" fill-opacity=".85" stroke="var(--card)" stroke-width="1.5" style="cursor:pointer;" onclick="showScorePop('+it.pid+',\''+jumpFn+'\')"></circle>';
+    _scPopItems[it.pid]={name:it.name,sc:it.sc,amtLabel:fmtAchvItemAmt(it)}; // 下のリストと全く同じ整形を使い、表示のズレをなくす
+    return '<circle id="sc-dot-'+it.pid+'" class="sc-dot" cx="'+cx+'" cy="'+cy+'" r="5.5" fill="'+col+'" fill-opacity=".85" stroke="var(--card)" stroke-width="1.5" style="cursor:pointer;" onclick="showScorePop('+it.pid+',\''+jumpFn+'\')"></circle>';
   }).join('');
   return '<div class="sc-scatter-wrap">'
     +'<div class="sc-scatter-title">スコア × 実際の獲得額</div>'
@@ -1637,9 +1637,12 @@ function showScorePop(pid,jumpFn){
   if(!it||!pop)return;
   document.getElementById('sc-pop-score').textContent=it.sc;
   document.getElementById('sc-pop-name').textContent=it.name;
-  var usdLabel=it.usd?('$'+Math.abs(Math.round(it.usd)).toLocaleString('en-US')+(it.usd<0?'（マイナス）':'')):'';
-  document.getElementById('sc-pop-amt').textContent=usdLabel?(it.eqLabel+' ／ '+usdLabel):it.eqLabel;
+  document.getElementById('sc-pop-amt').innerHTML=it.amtLabel; // リストと同じ表記をそのまま使う
   document.getElementById('sc-pop-btn').onclick=function(){ window[jumpFn](pid,true); };
+  // 選択中のプロットだけ枠を付けて、どれを見ているか分かるようにする
+  document.querySelectorAll('.sc-dot').forEach(function(c){ c.classList.remove('sel'); });
+  var dot=document.getElementById('sc-dot-'+pid);
+  if(dot)dot.classList.add('sel');
   pop.style.display='block';
 }
 function renderScoreCheck(){
@@ -2945,6 +2948,8 @@ function toggleDetail(mode,idx){
 function jumpToProject(pid,skipExpand){
   var idx=PROJ.findIndex(function(p){return p.id===pid;});
   if(idx<0)return;
+  // 以前その案件を開いた記憶が残っていると、飛んだ先で開いたまま表示されてしまうので先に消しておく
+  if(skipExpand){ delete openDetailKeys['ended:'+pid]; renderList('list-ended','ended'); }
   var navBtn=document.getElementById('bni-ended');
   sv('ended',navBtn,'b');
   setTimeout(function(){
