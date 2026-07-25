@@ -1616,7 +1616,7 @@ function buildScoreScatterSvg(items,jumpFn){
     var cx=px(it.sc), cy=py(it._eq);
     var col=it._eq>=0?'#34d17b':'#ff5c5c';
     var eqLabel=fmtManyen(Math.round(it._eq))||'0円';
-    _scPopItems[it.pid]={name:it.name,sc:it.sc,eqLabel:eqLabel};
+    _scPopItems[it.pid]={name:it.name,sc:it.sc,eqLabel:eqLabel,usd:it.usd||0};
     return '<circle cx="'+cx+'" cy="'+cy+'" r="5.5" fill="'+col+'" fill-opacity=".85" stroke="var(--card)" stroke-width="1.5" style="cursor:pointer;" onclick="showScorePop('+it.pid+',\''+jumpFn+'\')"></circle>';
   }).join('');
   return '<div class="sc-scatter-wrap">'
@@ -1629,15 +1629,17 @@ function buildScoreScatterSvg(items,jumpFn){
     +'</div>'
     +'</div>';
 }
-// 散布図の点をタップした時：吹き出しにスコア・名前・金額を表示し、「詳細カードへ」を押した時だけジャンプする
+// 散布図の点をタップした時：吹き出しにスコア・名前・金額（ドル＋円換算）を表示し、
+// 「詳細カードへ」を押した時だけ、詳細窓を開かずカードの位置まで移動する
 function showScorePop(pid,jumpFn){
   var it=_scPopItems[pid];
   var pop=document.getElementById('sc-pop');
   if(!it||!pop)return;
   document.getElementById('sc-pop-score').textContent=it.sc;
   document.getElementById('sc-pop-name').textContent=it.name;
-  document.getElementById('sc-pop-amt').textContent=it.eqLabel;
-  document.getElementById('sc-pop-btn').onclick=function(){ window[jumpFn](pid); };
+  var usdLabel=it.usd?('$'+Math.abs(Math.round(it.usd)).toLocaleString('en-US')+(it.usd<0?'（マイナス）':'')):'';
+  document.getElementById('sc-pop-amt').textContent=usdLabel?(usdLabel+' ／ '+it.eqLabel):it.eqLabel;
+  document.getElementById('sc-pop-btn').onclick=function(){ window[jumpFn](pid,true); };
   pop.style.display='block';
 }
 function renderScoreCheck(){
@@ -2940,7 +2942,7 @@ function toggleDetail(mode,idx){
   }
 }
 // ランキングの案件行タップ→「仕込み終了」タブの該当カードへ移動し、詳細を開いた状態にする
-function jumpToProject(pid){
+function jumpToProject(pid,skipExpand){
   var idx=PROJ.findIndex(function(p){return p.id===pid;});
   if(idx<0)return;
   var navBtn=document.getElementById('bni-ended');
@@ -2948,7 +2950,7 @@ function jumpToProject(pid){
   setTimeout(function(){
     var body=document.getElementById('dt-body-ended-'+idx);
     var btn=document.getElementById('dt-btn-ended-'+idx);
-    if(body&&btn&&!btn.classList.contains('open'))toggleDetail('ended',idx);
+    if(!skipExpand&&body&&btn&&!btn.classList.contains('open'))toggleDetail('ended',idx);
     var card=btn&&btn.closest('.proj-card');
     if(card)card.scrollIntoView({behavior:'smooth',block:'start'});
   },60);
