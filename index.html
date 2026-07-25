@@ -328,6 +328,7 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .sc-val.sc-sm{font-size:32px;}
 .sc-max{font-size:11px;font-weight:700;color:var(--t3);opacity:.55;margin-left:1px;letter-spacing:0;}
 .sc-prov{font-size:8.5px;color:var(--ylw);font-weight:700;text-align:center;margin-top:2px;line-height:1.25;max-width:78px;}
+.st-pie{font-size:8.5px;color:var(--t3);line-height:1.3;margin-top:2px;white-space:nowrap;text-align:center;}
 .st-prov{font-size:8px;color:var(--ylw);font-weight:700;text-align:center;margin-top:1px;line-height:1.2;white-space:nowrap;}
 .sc-val.sc-sm .sc-max{font-size:9px;}
 .c-g{color:var(--grn);}
@@ -2168,6 +2169,15 @@ function smFullAuto(){
 }
 // ○△✕を点数に変換（○=満点／△=半分／✕=0）
 function markScore(v,full){ return v==='g'?full:(v==='m'?full/2:0); }
+// 報酬パイ・シェア率は同じ25点枠の指標なので、効率スコアの真下に記号だけ小さく添える。
+// 未判断（空）の項目は出さないので、入力していない案件では何も増えない
+function pieShareHtml(p){
+  // 効率スコアの列は幅が狭いので、1行に詰めず1項目ずつ改行して確実に収める
+  var out='';
+  if(p.pie)out+='<div class="st-pie">パイ'+msym(p.pie)+'</div>';
+  if(p.share)out+='<div class="st-pie">シェア'+msym(p.share)+'</div>';
+  return out;
+}
 function scoreBreakdown(p){
   // 終了時に凍結したスコアがあれば、それをそのまま使う（配点を後から変えても答え合わせが壊れないように）
   if(p&&p.frozen&&typeof p.frozen.total==='number'){
@@ -2671,7 +2681,7 @@ function renderList(id,mode){
       +'<div class="st-col"><div class="st-lbl">'+ICO.fund+' 調達額</div><div class="st-val">'+(p.fund?'$'+num(p.fund)+'M':'—')+'</div></div>'
       +'<div class="st-col"><div class="st-lbl">'+ICO.usr+' 参加者</div><div class="st-val">'+(p.usr?num(p.usr)+'万':'—')+'</div></div>'
       +'<div class="st-col"><div class="st-lbl">'+ICO.tvl+' TVL/Vol</div><div class="st-val">'+(p.tvl?'$'+num(p.tvl)+'M':'—')+'</div></div>'
-      +'<div class="st-col st-col-sc"><div class="st-val eff">'+(eff_disp!=='—'?eff_disp:'—')+'</div>'+(bd.effImputed?'<div class="st-prov">暫定値</div>':'')+'</div>'
+      +'<div class="st-col st-col-sc"><div class="st-val eff">'+(eff_disp!=='—'?eff_disp:'—')+'</div>'+(bd.effImputed?'<div class="st-prov">暫定値</div>':'')+pieShareHtml(p)+'</div>'
       +'</div>'
 
       // ── Row 3: head (colon-style) + avatars left ──
