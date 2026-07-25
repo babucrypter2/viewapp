@@ -230,6 +230,15 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .sc-scatter-title{font-size:11.5px;font-weight:800;color:var(--t1);margin-bottom:4px;padding-left:2px;}
 .sc-scatter-svg{width:100%;height:auto;display:block;}
 .sc-scatter-axis{font-size:9.5px;color:var(--t3);text-align:right;margin-top:-2px;padding-right:4px;}
+.sc-pop{margin-top:8px;background:var(--card);border:1.5px solid var(--acc);border-radius:10px;padding:9px 10px;animation:scPopIn .15s ease-out;}
+@keyframes scPopIn{from{opacity:0;transform:translateY(-4px);}to{opacity:1;transform:translateY(0);}}
+.sc-pop-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.sc-pop-score{flex-shrink:0;background:var(--acc-d);color:var(--acc);font-size:13px;font-weight:900;border-radius:6px;padding:2px 7px;}
+.sc-pop-name{font-size:13px;font-weight:800;color:var(--t1);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.sc-pop-bottom{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.sc-pop-amt{font-size:12.5px;font-weight:700;color:var(--t2);}
+.sc-pop-btn{background:var(--acc);color:#fff;border:none;border-radius:7px;padding:7px 12px;font-size:12.5px;font-weight:800;cursor:pointer;white-space:nowrap;}
+
 .fa-total{font-size:12px;font-weight:800;color:var(--t1);margin-bottom:8px;}
 .fa-title-row{display:flex;align-items:center;justify-content:space-between;gap:8px;}
 .fa-title-right{display:flex;align-items:center;gap:8px;flex-shrink:0;}
@@ -1577,7 +1586,11 @@ function scoreCheckItems(){
   items.sort(function(a,b){return b.sc-a.sc;});
   return items;
 }
-// スコア（横軸）× 実際の獲得額（縦軸）の散布図。「高スコアの案件は本当に稼げてるか」を一目で検証できるようにする
+// タップした点の情報を貯めておく場所（pid→{name,sc,eqLabel}）。文字列をonclick属性に直接埋め込まず、
+// ここから引くことで、案件名に引用符等が含まれていても安全に扱える
+var _scPopItems={};
+// スコア（横軸）× 実際の獲得額（縦軸）の散布図。「高スコアの案件は本当に稼げてるか」を一目で検証できるようにする。
+// タップしてもいきなり詳細には飛ばず、まず吹き出しでスコア・名前・金額を見せ、「詳細カードへ」を押した時だけ飛ぶ
 function buildScoreScatterSvg(items,jumpFn){
   if(!items.length)return '';
   var W=300,H=190,padL=40,padR=10,padT=12,padB=26;
@@ -1602,14 +1615,30 @@ function buildScoreScatterSvg(items,jumpFn){
   var pts=items.map(function(it){
     var cx=px(it.sc), cy=py(it._eq);
     var col=it._eq>=0?'#34d17b':'#ff5c5c';
-    var label=esc(it.name)+'：'+it.sc+'点／'+(fmtManyen(Math.round(it._eq))||'0円');
-    return '<circle cx="'+cx+'" cy="'+cy+'" r="4.5" fill="'+col+'" fill-opacity=".85" stroke="var(--card)" stroke-width="1.5" style="cursor:pointer;" onclick="'+jumpFn+'('+it.pid+')"><title>'+label+'</title></circle>';
+    var eqLabel=fmtManyen(Math.round(it._eq))||'0円';
+    _scPopItems[it.pid]={name:it.name,sc:it.sc,eqLabel:eqLabel};
+    return '<circle cx="'+cx+'" cy="'+cy+'" r="5.5" fill="'+col+'" fill-opacity=".85" stroke="var(--card)" stroke-width="1.5" style="cursor:pointer;" onclick="showScorePop('+it.pid+',\''+jumpFn+'\')"></circle>';
   }).join('');
   return '<div class="sc-scatter-wrap">'
     +'<div class="sc-scatter-title">スコア × 実際の獲得額</div>'
     +'<svg viewBox="0 0 '+W+' '+H+'" class="sc-scatter-svg">'+gridX+zeroLine+yLabels+pts+'</svg>'
     +'<div class="sc-scatter-axis">→ 期待値スコア（横軸）</div>'
+    +'<div class="sc-pop" id="sc-pop" style="display:none;">'
+    +'<div class="sc-pop-row"><span class="sc-pop-score" id="sc-pop-score"></span><span class="sc-pop-name" id="sc-pop-name"></span></div>'
+    +'<div class="sc-pop-bottom"><span class="sc-pop-amt" id="sc-pop-amt"></span><button class="sc-pop-btn" id="sc-pop-btn">詳細カードへ ›</button></div>'
+    +'</div>'
     +'</div>';
+}
+// 散布図の点をタップした時：吹き出しにスコア・名前・金額を表示し、「詳細カードへ」を押した時だけジャンプする
+function showScorePop(pid,jumpFn){
+  var it=_scPopItems[pid];
+  var pop=document.getElementById('sc-pop');
+  if(!it||!pop)return;
+  document.getElementById('sc-pop-score').textContent=it.sc;
+  document.getElementById('sc-pop-name').textContent=it.name;
+  document.getElementById('sc-pop-amt').textContent=it.eqLabel;
+  document.getElementById('sc-pop-btn').onclick=function(){ window[jumpFn](pid); };
+  pop.style.display='block';
 }
 function renderScoreCheck(){
   var el=document.getElementById('scorecheck-card');
