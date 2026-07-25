@@ -626,6 +626,12 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .cal-entry-time-tbd{background:var(--card2);color:var(--t3);}
 .cal-agenda-day{display:inline-block;min-width:40px;text-align:center;background:var(--card2);color:var(--t2);font-size:11px;font-weight:800;border-radius:5px;padding:2px 6px;margin-right:6px;vertical-align:middle;}
 .cal-agenda-entry{cursor:pointer;border-radius:8px;margin-left:-4px;margin-right:-4px;padding-left:4px;padding-right:4px;}
+.cal-agenda-group{margin-bottom:16px;}
+.cal-agenda-group:last-child{margin-bottom:0;}
+.cal-agenda-group+.cal-agenda-group{border-top:1px solid var(--bb);padding-top:14px;}
+.cal-agenda-date-hdr{font-size:13px;font-weight:800;color:var(--t1);margin-bottom:8px;}
+.cal-agenda-group .cal-agenda-entry{margin-bottom:6px;}
+.cal-agenda-group .cal-agenda-entry:last-child{margin-bottom:0;}
 .cal-agenda-entry:active{background:var(--acc-d);}
 .cal-detail-empty{font-size:13px;color:var(--t3);}
 
@@ -1257,18 +1263,21 @@ function renderCalMonthAgenda(){
   dateEl.textContent=calYear+'年'+(calMonth+1)+'月の予定';
   var prefix=calYear+'-'+String(calMonth+1).padStart(2,'0')+'-';
   var dates=Object.keys(CALENDAR||{}).filter(function(k){return k.indexOf(prefix)===0;}).sort();
-  var rows=[];
-  dates.forEach(function(ds){
-    sortCalEntries(CALENDAR[ds]).forEach(function(it){ rows.push({ds:ds,day:parseInt(ds.split('-')[2],10),it:it}); });
-  });
-  if(!rows.length){
+  if(!dates.length){
     bodyEl.innerHTML='<div class="cal-detail-empty">この月の予定はありません</div>';
   }else{
-    bodyEl.innerHTML=rows.map(function(r){
-      var timeHtml='<span class="cal-entry-time'+(r.it.time?'':' cal-entry-time-tbd')+'">'+(r.it.time?esc(r.it.time):'時間未定')+'</span>';
-      return '<div class="cal-entry cal-agenda-entry" onclick="selectCalDate(\''+r.ds+'\')">'
-        +'<div class="cal-entry-title"><span class="cal-agenda-day">'+r.day+'日</span>'+timeHtml+emojiToIcon(esc(r.it.t||'(無題)'))+'</div>'
-        +'</div>';
+    var wdJ=['日','月','火','水','木','金','土'];
+    // 日付ごとにグループ化し、見出し（例：23日（木））を1回だけ出してから、その日の予定を並べる
+    bodyEl.innerHTML=dates.map(function(ds){
+      var day=parseInt(ds.split('-')[2],10);
+      var wd=wdJ[new Date(ds+'T00:00:00').getDay()];
+      var entriesHtml=sortCalEntries(CALENDAR[ds]).map(function(it){
+        var timeHtml='<span class="cal-entry-time'+(it.time?'':' cal-entry-time-tbd')+'">'+(it.time?esc(it.time):'時間未定')+'</span>';
+        return '<div class="cal-entry cal-agenda-entry" onclick="selectCalDate(\''+ds+'\')">'
+          +'<div class="cal-entry-title">'+timeHtml+emojiToIcon(esc(it.t||'(無題)'))+'</div>'
+          +'</div>';
+      }).join('');
+      return '<div class="cal-agenda-group"><div class="cal-agenda-date-hdr">'+day+'日（'+wd+'）</div>'+entriesHtml+'</div>';
     }).join('');
   }
   detail.style.display='block';
