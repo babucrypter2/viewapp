@@ -691,8 +691,7 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .tl-head-row{display:flex;align-items:center;justify-content:space-between;gap:8px;}
 .tl-fold-btn{flex-shrink:0;background:rgba(255,255,255,.09);border:1.5px solid rgba(255,255,255,.28);border-radius:8px;padding:5px 10px;font-size:12px;font-weight:800;color:#fff;cursor:pointer;display:flex;align-items:center;gap:4px;white-space:nowrap;}
 .tl-stat{flex-shrink:0;font-size:11.5px;font-weight:700;color:var(--t2);white-space:nowrap;}
-/* 件数/工数の右側、余ったスペースをできるだけ埋めるように伸びる（色は元のガラス風のまま） */
-.tl-fold-btn-grow{flex:1;min-width:84px;background:rgba(255,255,255,.09);border:1.5px solid rgba(255,255,255,.28);border-radius:8px;padding:6px 10px;font-size:12px;font-weight:800;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;white-space:nowrap;}
+.tl-head-left{display:flex;align-items:center;gap:8px;min-width:0;overflow:hidden;}
 /* 案件カードの「タップで詳細」との混同を避けるため、横長・明るめの見た目で存在感を出す */
 .tl-fold-btn-wide{width:100%;margin-top:8px;background:var(--acc-d);border:1.5px solid var(--acc);border-radius:9px;padding:10px 0;font-size:13.5px;font-weight:800;color:var(--acc);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;}
 .tl-fold-btn-wide.open{background:var(--acc);color:#fff;}
@@ -1324,12 +1323,12 @@ function renderTaskList(){
   if(TASK_COUNT)statBits.push(TASK_COUNT+'件');
   if(TASK_MIN)statBits.push(TASK_MIN+'分/D');
   var statHtml=statBits.length?'<span class="tl-stat">'+statBits.join('　')+'</span>':'';
-  el.innerHTML='<div class="detail-h tl-head-row">'
+  el.innerHTML='<div class="detail-h tl-head-row" style="cursor:pointer;" onclick="toggleTaskListFold()">'
+    +'<span class="tl-head-left">'
     +'<span class="dh-i"><svg class="dh-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a8 8 0 0 1 16 0"></path><path d="M4 11l4.5 7.5"></path><path d="M20 11l-4.5 7.5"></path><path d="M9.5 11l1 7.5"></path><path d="M14.5 11l-1 7.5"></path><rect x="9.5" y="17.5" width="5" height="3" rx="1"></rect></svg>今のエアドロタスク日課</span>'
     +statHtml
-    +'<button class="tl-fold-btn-grow'+(taskListFoldOpen?' open':'')+'" onclick="toggleTaskListFold()">'
-    +(taskListFoldOpen?'閉じる':'詳細を開く')+'<span class="dt-arrow">▼</span>'
-    +'</button>'
+    +'</span>'
+    +'<button class="tl-fold-btn'+(taskListFoldOpen?' open':'')+'">'+(taskListFoldOpen?'閉じる':'詳細を開く')+'<span class="dt-arrow">▼</span></button>'
     +'</div>'
     +'<div class="tl-body" id="tl-fold-body" style="display:'+(taskListFoldOpen?'block':'none')+';">'+renderTaskListHtml(TASKLIST)+'</div>';
   el.classList.toggle('fold-closed',!taskListFoldOpen); // 閉時はヘッダー帯だけの見た目に
