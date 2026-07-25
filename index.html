@@ -330,7 +330,7 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .sc-prov{font-size:8.5px;color:var(--ylw);font-weight:700;text-align:center;margin-top:2px;line-height:1.25;max-width:78px;}
 /* .ms が別用途の定義で display:flex になっているため、ここでは横並びのflex行にして   ラベルと記号が縦にバラけないようにする */
 .st-pie{display:flex;align-items:center;justify-content:center;gap:2px;font-size:7.3px;color:var(--t3);line-height:1.2;margin-top:2px;white-space:nowrap;letter-spacing:-.2px;}
-.st-pie .ms{display:inline;font-size:9px;line-height:1;}
+.st-pie .ms{display:inline-block;font-size:9px;line-height:1;vertical-align:-1px;}
 .st-prov{font-size:8px;color:var(--ylw);font-weight:700;text-align:center;margin-top:1px;line-height:1.2;white-space:nowrap;}
 .sc-val.sc-sm .sc-max{font-size:9px;}
 .c-g{color:var(--grn);}
@@ -791,7 +791,10 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 /* ═══ PC表示の追加調整（後勝ちさせるため末尾に配置） ═══ */
 @media(min-width:1100px){
   /* このアプリについて／設定タブは、横幅いっぱいに伸びると読みづらいので程よい幅に制限して中央寄せ */
-  .set-scroll{max-width:700px;margin:0 auto;width:100%;scrollbar-width:none;}
+  /* .set-scroll自体はフル幅・スクロール可能なままにして、マウスホイールがどこでも効くようにする。
+     中央寄せ・幅の制限は中身（直下の子要素）だけにかける */
+  .set-scroll{scrollbar-width:none;}
+  .set-scroll>*{max-width:700px;margin-left:auto;margin-right:auto;}
   .set-scroll::-webkit-scrollbar{display:none;}
 
   /* 左上のランク番号・カテゴリタグも、余白に対して小さすぎたので一回り大きく */
@@ -2832,21 +2835,29 @@ function tgeSym(v){
   return '';
 }
 // アーリー度：開始〜終了予定に対する現在位置を横帯で可視化（コンパクト）
+// 序盤=緑／中盤=黄／終盤=赤 で色分け（終了日の有無どちらでも）
+function earlyFillGrad(stage){
+  return stage==='g'?'linear-gradient(90deg,#34D17B,#5FB98D)':stage==='m'?'linear-gradient(90deg,#e8b23d,#e8a020)':'linear-gradient(90deg,#ff8a6a,#ff5c5c)';
+}
 function earlyHtml(p){
   if(!p.earlyStart)return '';
   function fmtD(d){return d.getFullYear()+'/'+(d.getMonth()+1)+'/'+d.getDate();}
   var tgeTail=p.tge?'<span class="early-sep"></span><span class="early-wk">TGE予定：</span>'+tgeSym(p.tge):'';
   var d0=new Date(p.earlyStart+'T00:00:00');
-  // 終了予定日が未入力：経過期間から簡易判定（3ヶ月以下=○序盤/半年経過=△中盤/1年以上=×終盤）
+  // 終了予定日が未入力：経過期間から簡易判定（3ヶ月以下=○序盤/半年経過=△中盤/1年以上=×終盤）。
+  // 終了日が無いので実際の進捗%は出せないが、段階だけは分かるので固定位置（25/50/75%）のバーを表示する
   if(!p.earlyEnd){
     var elapsedDays=Math.max(0,Math.floor((Date.now()-d0.getTime())/86400000));
     var elapsedMonths=elapsedDays/30.44;
-    var emk = elapsedMonths<=6?'<span class="tge-g"><span class="tge-ico tge-ico-o">○</span> 序盤</span>' : elapsedMonths<12?'<span class="tge-m"><span class="tge-ico tge-ico-o">△</span> 中盤</span>' : '<span class="tge-b"><span class="tge-ico">✕</span> 終盤</span>';
+    var stage=elapsedMonths<=6?'g':elapsedMonths<12?'m':'b';
+    var emk = stage==='g'?'<span class="tge-g"><span class="tge-ico tge-ico-o">○</span> 序盤</span>' : stage==='m'?'<span class="tge-m"><span class="tge-ico tge-ico-o">△</span> 中盤</span>' : '<span class="tge-b"><span class="tge-ico">✕</span> 終盤</span>';
+    var fixedPct=stage==='g'?25:stage==='m'?50:75;
     var tmE=Math.floor(elapsedDays/30.44);
     var eyE=Math.floor(tmE/12),emE=tmE%12,ewE=Math.round(elapsedDays/7);
     var elapsedTxt=(eyE>0?eyE+'年':'')+(emE>0?emE+'ヶ月':'')||(ewE>0?ewE+'週':'1週未満');
     return '<div class="early-wrap">'
       +'<div class="early-top"><span class="early-lbl">アーリー度：</span>'+emk+tgeTail+'</div>'
+      +'<div class="early-track"><div class="early-fill" style="width:'+fixedPct+'%;background:'+earlyFillGrad(stage)+';"></div></div>'
       +'<div class="early-dates"><span class="early-date-w">開始 '+fmtD(d0)+'</span><span class="early-pct-mid">'+elapsedTxt+' 経過</span><span class="early-date-w">終了 不明</span></div>'
       +'</div>';
   }
@@ -2858,7 +2869,8 @@ function earlyHtml(p){
   var pct=Math.max(0,Math.min(100,Math.round((now-t0)/(t1-t0)*100)));
   var curWClamped=Math.max(0,Math.min(totalW,curW));
   // アーリー度の評価：序盤ほどアーリー（○）、終盤は×（TGE予定と同じ配色・記号に統一）
-  var mark = pct<33?'<span class="tge-g"><span class="tge-ico tge-ico-o">○</span> 序盤</span>' : pct<70?'<span class="tge-m"><span class="tge-ico tge-ico-o">△</span> 中盤</span>' : '<span class="tge-b"><span class="tge-ico">✕</span> 終盤</span>';
+  var stage2 = pct<33?'g':pct<70?'m':'b';
+  var mark = stage2==='g'?'<span class="tge-g"><span class="tge-ico tge-ico-o">○</span> 序盤</span>' : stage2==='m'?'<span class="tge-m"><span class="tge-ico tge-ico-o">△</span> 中盤</span>' : '<span class="tge-b"><span class="tge-ico">✕</span> 終盤</span>';
   // 残り期間（日数→年月換算。終了済みなら「終了」表示）
   var remDays=Math.round((t1-now)/86400000);
   var remTxt;
@@ -2877,7 +2889,7 @@ function earlyHtml(p){
   var pctMid=pct+'%（'+curWClamped+'週/'+totalW+'週）';
   return '<div class="early-wrap">'
     +'<div class="early-top"><span class="early-lbl">アーリー度：</span>'+mark+'<span class="early-sep"></span>'+topInner+tgeTail+'</div>'
-    +'<div class="early-track"><div class="early-fill" style="width:'+pct+'%;"></div></div>'
+    +'<div class="early-track"><div class="early-fill" style="width:'+pct+'%;background:'+earlyFillGrad(stage2)+';"></div></div>'
     +'<div class="early-dates"><span class="early-date-w">開始 '+fmtD(d0)+'</span><span class="early-pct-mid">'+pctMid+'</span><span class="early-date-w">終了 '+fmtD(d1)+'</span></div>'
     +'</div>';
 }
