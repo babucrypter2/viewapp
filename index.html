@@ -329,7 +329,7 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .sc-max{font-size:11px;font-weight:700;color:var(--t3);opacity:.55;margin-left:1px;letter-spacing:0;}
 .sc-prov{font-size:8.5px;color:var(--ylw);font-weight:700;text-align:center;margin-top:2px;line-height:1.25;max-width:78px;}
 /* .ms が別用途の定義で display:flex になっているため、ここでは横並びのflex行にして   ラベルと記号が縦にバラけないようにする */
-.st-pie{display:flex;align-items:center;justify-content:center;gap:2px;font-size:8.5px;color:var(--t3);line-height:1.25;margin-top:2px;white-space:nowrap;}
+.st-pie{display:flex;align-items:center;justify-content:center;gap:2px;font-size:7.3px;color:var(--t3);line-height:1.2;margin-top:2px;white-space:nowrap;letter-spacing:-.2px;}
 .st-pie .ms{display:inline;font-size:9px;line-height:1;}
 .st-prov{font-size:8px;color:var(--ylw);font-weight:700;text-align:center;margin-top:1px;line-height:1.2;white-space:nowrap;}
 .sc-val.sc-sm .sc-max{font-size:9px;}
@@ -2110,8 +2110,7 @@ function sanProj(o,spLen){
     depOverrideUsd:Math.max(0,num(o.depOverrideUsd)),
     periodOverrideMonths:Math.max(0,num(o.periodOverrideMonths)),
     quality:sanMark(o.quality),
-    pie:sanMark3(o.pie),      // 報酬パイ（○△✕／未判断は空のまま）
-    share:sanMark3(o.share),  // シェア率（○△✕／未判断は空のまま）
+    pieShare:sanMark3(o.pieShare!==undefined?o.pieShare:o.pie), // パイ・シェア（○△✕／未判断は空のまま。1項目に統合）
     tge:(o.tge==='g'||o.tge==='m'||o.tge==='b')?o.tge:'',
     earlyStart:/^\d{4}-\d{2}-\d{2}$/.test(o.earlyStart)?o.earlyStart:null,
     earlyEnd:/^\d{4}-\d{2}-\d{2}$/.test(o.earlyEnd)?o.earlyEnd:null,
@@ -2174,11 +2173,8 @@ function markScore(v,full){ return v==='g'?full:(v==='m'?full/2:0); }
 // 報酬パイ・シェア率は同じ25点枠の指標なので、効率スコアの真下に記号だけ小さく添える。
 // 未判断（空）の項目は出さないので、入力していない案件では何も増えない
 function pieShareHtml(p){
-  // 効率スコアの列は幅が狭いので、1行に詰めず1項目ずつ改行して確実に収める
-  var out='';
-  if(p.pie)out+='<div class="st-pie">パイ'+msym(p.pie)+'</div>';
-  if(p.share)out+='<div class="st-pie">シェア'+msym(p.share)+'</div>';
-  return out;
+  if(!p.pieShare)return '';
+  return '<div class="st-pie">パイ・シェア'+msym(p.pieShare)+'</div>';
 }
 function scoreBreakdown(p){
   // 終了時に凍結したスコアがあれば、それをそのまま使う（配点を後から変えても答え合わせが壊れないように）
@@ -2206,11 +2202,8 @@ function scoreBreakdown(p){
     if(p.tvl)parts.push(Math.min((p.fund/p.tvl)/(W.et_full||3),1));
     if(parts.length)calcEff=(parts.reduce(function(a,b){return a+b;},0)/parts.length)*wEf;
   }
-  // 報酬パイ・シェア率（○△✕）。両方入っていれば平均、片方だけならその値
-  var rwParts=[];
-  if(p.pie)rwParts.push(markScore(p.pie,wEf));
-  if(p.share)rwParts.push(markScore(p.share,wEf));
-  var rewardEff=rwParts.length?(rwParts.reduce(function(a,b){return a+b;},0)/rwParts.length):null;
+  // パイ・シェア（○△✕、1項目）
+  var rewardEff=p.pieShare?markScore(p.pieShare,wEf):null;
   // 使える指標だけで最終決定
   if(rewardEff!==null&&calcEff!==null){ effScore=(rewardEff+calcEff)/2; }      // 両方あり→平均
   else if(rewardEff!==null){ effScore=rewardEff; }                              // 報酬パイのみ→それを優先
