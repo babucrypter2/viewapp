@@ -1638,7 +1638,7 @@ function showScorePop(pid,jumpFn){
   document.getElementById('sc-pop-score').textContent=it.sc;
   document.getElementById('sc-pop-name').textContent=it.name;
   var usdLabel=it.usd?('$'+Math.abs(Math.round(it.usd)).toLocaleString('en-US')+(it.usd<0?'（マイナス）':'')):'';
-  document.getElementById('sc-pop-amt').textContent=usdLabel?(usdLabel+' ／ '+it.eqLabel):it.eqLabel;
+  document.getElementById('sc-pop-amt').textContent=usdLabel?(it.eqLabel+' ／ '+usdLabel):it.eqLabel;
   document.getElementById('sc-pop-btn').onclick=function(){ window[jumpFn](pid,true); };
   pop.style.display='block';
 }
