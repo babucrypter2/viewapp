@@ -238,6 +238,14 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .prec-scatter-wrap{background:rgba(255,255,255,.028);border:1px solid rgba(255,255,255,.075);border-radius:14px;padding:12px 12px 9px;margin-bottom:12px;}
 .prec-scatter-svg{width:100%;height:auto;display:block;}
 .prec-axis-x{font-size:9px;color:var(--t3);text-align:center;margin-top:2px;letter-spacing:.06em;}
+/* トレンド線（回帰直線）の読み取り結果。右上がりならスコアが機能している */
+.prec-trend{display:flex;align-items:center;gap:7px;margin-top:9px;padding-top:9px;border-top:1px solid rgba(255,255,255,.07);}
+.prec-trend-line{flex-shrink:0;width:16px;height:0;border-top:1.6px dashed var(--acc);}
+.prec-trend-txt{flex:1;min-width:0;font-size:10.5px;font-weight:700;line-height:1.45;}
+.prec-trend.good .prec-trend-txt{color:#3ddc86;}
+.prec-trend.mid .prec-trend-txt{color:#e8c34a;}
+.prec-trend.bad .prec-trend-txt{color:var(--t2);}
+.prec-trend-r{flex-shrink:0;font-size:9.5px;font-weight:800;color:var(--t3);font-variant-numeric:tabular-nums;}
 .prec-dot{transition:r .12s ease-out;}
 .prec-dot.sel{stroke:#fff;stroke-width:2;r:6;}
 .prec-legend{display:flex;flex-wrap:wrap;gap:7px 16px;margin:0 2px 14px;}
@@ -1881,6 +1889,43 @@ function buildPrecisionScatterSvg(summary){
     }).join('')
     +'<text x="'+padL+'" y="'+(padT-6)+'" font-size="8.5" fill="var(--t3)" letter-spacing=".4">獲得額</text>'
     +'<text x="'+(padL+plotW)+'" y="'+(lineY+10)+'" font-size="7.5" fill="#ff5a5a" fill-opacity=".8" text-anchor="end">未達ライン</text>';
+  // ── トレンド線（最小二乗法の回帰直線）──
+  // 「スコアが高い案件ほど実際に稼げているか」を一目で判定できるようにする。
+  // 右上がりならスコアが機能している、水平/右下がりなら機能していない。
+  var trend='',trendInfo=null;
+  (function(){
+    var n=items.length;
+    if(n<3)return;                                   // 2件以下では直線が意味を持たないので引かない
+    var mx=0,my=0;
+    items.forEach(function(it){mx+=it.sc;my+=it.netUsdEq;});
+    mx/=n;my/=n;
+    var sxy=0,sxx=0,syy=0;
+    items.forEach(function(it){
+      var dx=it.sc-mx,dy=it.netUsdEq-my;
+      sxy+=dx*dy;sxx+=dx*dx;syy+=dy*dy;
+    });
+    if(sxx<=0||syy<=0)return;                        // スコアが全部同じ等、傾きが定まらない場合は引かない
+    var slope=sxy/sxx, intercept=my-slope*mx;
+    var r=sxy/Math.sqrt(sxx*syy);                    // 相関係数（-1〜1）
+    function yAt(x){return slope*x+intercept;}
+    // 直線がプロット枠から出る場合は、枠内に収まる区間だけを描く
+    var x0=0,x1=100,y0=yAt(0),y1=yAt(100);
+    function clampSeg(){
+      [[capTop,'>'],[capBottom,'<']].forEach(function(lim){
+        var v=lim[0],over=lim[1];
+        function out(y){return over==='>'?y>v:y<v;}
+        if(out(y0)&&out(y1))return;
+        if(out(y0)){ x0=(v-intercept)/slope; y0=v; }
+        else if(out(y1)){ x1=(v-intercept)/slope; y1=v; }
+      });
+    }
+    clampSeg();
+    x0=Math.max(0,Math.min(100,x0));x1=Math.max(0,Math.min(100,x1));
+    if(!(isFinite(x0)&&isFinite(x1))||Math.abs(x1-x0)<1)return;
+    trend='<line x1="'+px(x0)+'" y1="'+py(yAt(x0))+'" x2="'+px(x1)+'" y2="'+py(yAt(x1))+'"'
+      +' stroke="var(--acc)" stroke-width="1.6" stroke-dasharray="3,3" stroke-linecap="round" stroke-opacity=".95"></line>';
+    trendInfo={r:r,up:slope>0};
+  })();
   var pts=items.map(function(it){
     var green=precisionIsGreen(it);
     var cx=px(it.sc), cy=py(it.netUsdEq), c=green?'#3ddc86':'#ff5a5a';
@@ -1890,9 +1935,24 @@ function buildPrecisionScatterSvg(summary){
       +'<circle id="prec-dot-'+it.pid+'" class="prec-dot" cx="'+cx+'" cy="'+cy+'" r="4.6" fill="'+c+'" stroke="var(--card2)" stroke-width="1.4"></circle>'
       +'</g>';
   }).join('');
+  // トレンド線の意味を日本語で言い切る（グラフだけ見て判断に迷わないように）
+  var trendNote='';
+  if(trendInfo){
+    var ar=Math.abs(trendInfo.r), verdict, cls;
+    if(!trendInfo.up&&ar>=0.2){ verdict='高く見た案件ほど稼げていない（スコアが逆行）'; cls='bad'; }
+    else if(ar<0.2){ verdict='スコアと結果はほぼ無関係（スコアが効いていない）'; cls='bad'; }
+    else if(ar<0.5){ verdict='スコアが高い案件ほどゆるく稼げている'; cls='mid'; }
+    else{ verdict='スコアが高い案件ほど実際に稼げている'; cls='good'; }
+    trendNote='<div class="prec-trend '+cls+'">'
+      +'<span class="prec-trend-line"></span>'
+      +'<span class="prec-trend-txt">'+verdict+'</span>'
+      +'<span class="prec-trend-r">相関 '+(trendInfo.r>0?'+':'')+(Math.round(trendInfo.r*100)/100).toFixed(2)+'</span>'
+      +'</div>';
+  }
   return '<div class="prec-scatter-wrap">'
-    +'<svg viewBox="0 0 '+svgW+' '+svgH+'" class="prec-scatter-svg">'+bands+grid+lines+axis+pts+'</svg>'
+    +'<svg viewBox="0 0 '+svgW+' '+svgH+'" class="prec-scatter-svg">'+bands+grid+lines+axis+trend+pts+'</svg>'
     +'<div class="prec-axis-x">期待値スコア →</div>'
+    +trendNote
     +'<div class="prec-pop" id="prec-pop" style="display:none;">'
     +'<div class="pp-row"><span class="pp-score" id="prec-pop-score"></span><span class="pp-name" id="prec-pop-name"></span></div>'
     +'<div class="prec-pop-mid" id="prec-pop-mid"></div>'
