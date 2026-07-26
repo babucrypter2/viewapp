@@ -1165,10 +1165,12 @@ function achvRankItems(){
 // 円とドルは為替換算で足し合わせない（実際に受け取った金額をそのまま見せる）。
 // エアドロ結果（p.results）に入っている実額をそのまま表示するだけで、合計値は作らない
 function fmtAchvItemAmt(it){
+  // 円とドルは「同じ受け取り結果を円建て・ドル建てそれぞれで見せている」だけで、
+  // 別々の金額を合算しているわけではない。「＋」は足し算に見えて誤解を招くため使わない
   var parts=[];
   if(it.jpy)parts.push('¥'+Math.abs(num(it.jpy)).toLocaleString('en-US'));
   if(it.usd)parts.push((it.usd<0?'-':'')+'$'+Math.abs(num(it.usd)).toLocaleString('en-US'));
-  return parts.join(' ＋ ')||'—';
+  return parts.join(' / ')||'—';
 }
 // 「今の戦略」固定カード（ホーム上部・データ最終更新の下に常時表示。書込アプリで編集）
 var STRATEGY='';
