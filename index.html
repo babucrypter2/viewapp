@@ -360,7 +360,7 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .early-sep{width:1.5px;height:12px;background:rgba(255,255,255,.45);flex-shrink:0;align-self:center;}
 .early-arrow{color:var(--t1);flex-shrink:0;font-size:9px;}
 .early-track{height:6px;background:rgba(255,255,255,.14);border-radius:3px;overflow:hidden;margin-top:6px;}
-.early-fill{height:100%;background:linear-gradient(90deg,#34D17B,#5FB98D);border-radius:3px;}
+.early-fill{height:100%;background:linear-gradient(90deg,#a8f5cd,#22c176);border-radius:3px;}
 .early-dates{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;font-size:9.5px;color:var(--t1);margin-top:4px;}
 .early-dates .early-date-w:last-child{text-align:right;}
 .early-dates .early-date-w{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -1601,7 +1601,7 @@ function renderAchv(){
         +'<span class="achv-rank-badge '+rc+'">'+(rank+1)+'</span>'
         +'<span class="achv-rank-name">'+esc(it.name)+'</span>'
         +'<span class="achv-rank-amt'+(it._eq<0?' neg':'')+'">'+fmtAchvItemAmt(it)+'</span>'
-        +(clk?'<span class="achv-rank-go">詳細カードへ ›</span>':'')
+        +(clk?'<span class="achv-rank-go">詳細へ ›</span>':'')
         +'</div>';
     }).join('')
     :'<div class="achv-rank-empty">まだエアドロ結果がありません</div>';
@@ -2001,7 +2001,7 @@ function renderScoreCheck(){
       +'<span class="sc-score-pill '+pc+'">'+it.sc+'</span>'
       +'<span class="achv-rank-name">'+esc(it.name)+'</span>'
       +'<span class="achv-rank-amt'+(it._eq<0?' neg':'')+'">'+fmtAchvItemAmt(it)+'</span>'
-      +'<span class="achv-rank-go">詳細カードへ ›</span>'
+      +'<span class="achv-rank-go">詳細へ ›</span>'
       +'</div>';
   }).join('');
   // ── 見出し：予測精度率（エアドロ実績カードの「勝率」と同じ、控えめな1行インライン表示）──
@@ -3192,7 +3192,8 @@ function tgeSym(v){
 // アーリー度：開始〜終了予定に対する現在位置を横帯で可視化（コンパクト）
 // 序盤=緑／中盤=黄／終盤=赤 で色分け（終了日の有無どちらでも）
 function earlyFillGrad(stage){
-  return stage==='g'?'linear-gradient(90deg,#34D17B,#5FB98D)':stage==='m'?'linear-gradient(90deg,#e8b23d,#e8a020)':'linear-gradient(90deg,#ff8a6a,#ff5c5c)';
+  // 赤(終盤)の「淡い色→リッチな色」の奥行き感を、緑・黄にも揃える
+  return stage==='g'?'linear-gradient(90deg,#a8f5cd,#22c176)':stage==='m'?'linear-gradient(90deg,#ffe6a3,#f0a730)':'linear-gradient(90deg,#ff8a6a,#ff5c5c)';
 }
 function earlyHtml(p){
   if(!p.earlyStart)return '';
