@@ -235,13 +235,14 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .prec-headline{display:flex;align-items:center;gap:14px;margin-top:6px;}
 .prec-pct{font-size:.5em;font-weight:800;margin-left:1px;}
 .prec-headline-sub{font-size:12px;color:var(--t2);font-weight:600;}
-.prec-scatter-wrap{background:var(--card2);border:1px solid var(--bb);border-radius:12px;padding:10px;margin-bottom:10px;}
-.prec-scatter-svg{width:100%;height:auto;display:block;border-radius:6px;overflow:hidden;}
-.prec-axis-x{font-size:9.5px;color:var(--t3);text-align:center;margin-top:4px;}
-.prec-dot.sel{stroke:#fff;stroke-width:2.2;}
-.prec-legend{display:flex;flex-wrap:wrap;gap:8px 14px;margin:10px 2px 4px;}
-.prec-leg-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--t2);font-weight:700;}
-.prec-leg-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.prec-scatter-wrap{background:rgba(255,255,255,.028);border:1px solid rgba(255,255,255,.075);border-radius:14px;padding:12px 12px 9px;margin-bottom:12px;}
+.prec-scatter-svg{width:100%;height:auto;display:block;}
+.prec-axis-x{font-size:9px;color:var(--t3);text-align:center;margin-top:2px;letter-spacing:.06em;}
+.prec-dot{transition:r .12s ease-out;}
+.prec-dot.sel{stroke:#fff;stroke-width:2;r:6;}
+.prec-legend{display:flex;flex-wrap:wrap;gap:7px 16px;margin:0 2px 14px;}
+.prec-leg-item{display:flex;align-items:center;gap:6px;font-size:10.5px;color:var(--t2);font-weight:700;letter-spacing:.02em;}
+.prec-leg-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
 .prec-pop{margin-top:2px;background:linear-gradient(160deg,var(--card2),var(--card));border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:10px 11px;animation:scPopIn .15s ease-out;box-shadow:0 4px 16px rgba(0,0,0,.28);}
 .prec-pop-mid{font-size:12px;color:var(--t2);font-weight:700;margin-bottom:6px;}
 .pp-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
@@ -251,28 +252,35 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .pp-amt{font-size:12.5px;font-weight:700;color:var(--t2);}
 .pp-btn{background:transparent;color:#3ddc86;border:1.3px solid rgba(61,220,134,.55);border-radius:20px;padding:6px 12px;font-size:12.5px;font-weight:800;cursor:pointer;white-space:nowrap;}
 .pp-btn:active{background:rgba(61,220,134,.15);}
-.prec-def{background:var(--card2);border:1px solid var(--bb);border-radius:11px;padding:11px 12px;margin-bottom:10px;}
-.prec-def-t{font-size:11px;font-weight:800;color:var(--t3);letter-spacing:.05em;margin-bottom:7px;}
-.prec-def-row{display:flex;gap:8px;align-items:baseline;margin-bottom:5px;}
-.prec-def-k{flex-shrink:0;min-width:74px;font-size:11.5px;font-weight:800;color:var(--acc);}
+.prec-def{background:rgba(255,255,255,.028);border:1px solid rgba(255,255,255,.075);border-radius:14px;padding:12px 13px;margin-bottom:12px;}
+.prec-def-t{font-size:9.5px;font-weight:800;color:var(--t3);letter-spacing:.12em;margin-bottom:9px;text-transform:uppercase;}
+.prec-def-row{display:flex;gap:10px;align-items:baseline;margin-bottom:6px;}
+.prec-def-k{flex-shrink:0;min-width:66px;font-size:10.5px;font-weight:800;color:var(--t3);letter-spacing:.04em;}
 .prec-def-v{font-size:12.5px;color:var(--t1);font-weight:600;}
-.prec-def-note{font-size:10.5px;color:var(--t3);margin-top:6px;}
+.prec-def-note{font-size:10.5px;color:var(--t3);margin-top:9px;padding-top:8px;border-top:1px solid rgba(255,255,255,.06);}
 .amt-sub{font-size:9.5px;color:var(--t3);margin-left:4px;font-weight:600;}
 .fac-wrap{margin-top:14px;}
 .fac-hdr{font-size:12.5px;font-weight:800;color:var(--t1);margin-bottom:8px;}
-.fac-grid{display:flex;flex-direction:column;gap:8px;}
-.fac-box{border-radius:11px;padding:10px 11px;border:1px solid var(--bb);}
-.fac-box.good{background:rgba(52,209,123,.08);border-color:rgba(52,209,123,.35);}
-.fac-box.bad{background:rgba(255,138,60,.08);border-color:rgba(255,138,60,.35);}
-.fac-t{font-size:11.5px;font-weight:800;margin-bottom:6px;}
-.fac-box.good .fac-t{color:#34d17b;}
+.fac-grid{display:flex;flex-direction:column;gap:2px;}
+.fac-box{padding:11px 0 13px;border-top:1px solid rgba(255,255,255,.08);}
+.fac-box:first-child{border-top:none;padding-top:2px;}
+.fac-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:9px;}
+.fac-t{font-size:11.5px;font-weight:800;letter-spacing:.02em;display:flex;align-items:center;gap:6px;}
+.fac-t::before{content:'';width:3px;height:12px;border-radius:2px;background:currentColor;}
+.fac-box.good .fac-t{color:#3ddc86;}
 .fac-box.bad .fac-t{color:#ff8a3c;}
-.fac-row{display:flex;justify-content:space-between;gap:8px;font-size:11.5px;padding:3px 0;}
-.fac-k{color:var(--t1);font-weight:600;}
-.fac-v{font-weight:800;flex-shrink:0;}
-.fac-box.good .fac-v{color:#34d17b;}
+.fac-unit{font-size:9.5px;font-weight:700;color:var(--t3);letter-spacing:.08em;flex-shrink:0;}
+.fac-row{display:grid;grid-template-columns:1fr 52px auto;align-items:center;gap:9px;font-size:11.5px;padding:4px 0;}
+.fac-k{color:var(--t1);font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.fac-bar{height:4px;border-radius:2px;background:rgba(255,255,255,.07);overflow:hidden;}
+.fac-bar>i{display:block;height:100%;border-radius:2px;}
+.fac-box.good .fac-bar>i{background:linear-gradient(90deg,rgba(61,220,134,.45),#3ddc86);}
+.fac-box.bad .fac-bar>i{background:linear-gradient(90deg,rgba(255,138,60,.45),#ff8a3c);}
+.fac-v{font-weight:800;flex-shrink:0;font-variant-numeric:tabular-nums;text-align:right;min-width:30px;}
+.fac-pct{font-size:.72em;font-weight:700;margin-left:1px;opacity:.75;}
+.fac-box.good .fac-v{color:#3ddc86;}
 .fac-box.bad .fac-v{color:#ff8a3c;}
-.fac-note{font-size:10px;color:var(--t3);margin-top:7px;line-height:1.6;}
+.fac-note{font-size:10px;color:var(--t3);margin-top:9px;line-height:1.6;padding-top:9px;border-top:1px solid rgba(255,255,255,.06);}
 .sc-dot.sel{stroke:#fff;stroke-width:2.5;r:7;}
 .sc-pop{margin-top:8px;background:var(--card);border:1.5px solid var(--acc);border-radius:10px;padding:9px 10px;animation:scPopIn .15s ease-out;}
 @keyframes scPopIn{from{opacity:0;transform:translateY(-4px);}to{opacity:1;transform:translateY(0);}}
@@ -739,12 +747,15 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .tl-body{font-size:12px;color:var(--t1);line-height:1.8;white-space:pre-wrap;word-break:break-word;margin-top:10px;}
 .tl-line{min-height:1.8em;}
 .tl-blank{height:8px;}
-.tl-task-row{display:flex;align-items:flex-start;gap:8px;padding:5px 0;cursor:pointer;-webkit-tap-highlight-color:transparent;}
-.tl-check{flex-shrink:0;width:19px;height:19px;margin-top:1px;appearance:none;-webkit-appearance:none;border-radius:6px;border:1.5px solid var(--bb);background:var(--card2);cursor:pointer;position:relative;}
-.tl-check:checked{background:linear-gradient(135deg,#0f7a52,#0a5c3d);border-color:#0f7a52;}
-.tl-check:checked::after{content:'';position:absolute;left:5px;top:1px;width:5px;height:9px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg);}
+.tl-task-row{display:flex;align-items:center;gap:9px;padding:5px 0;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+.tl-check{flex-shrink:0;width:18px;height:18px;margin:0;appearance:none;-webkit-appearance:none;border-radius:5px;border:1.5px solid var(--bb);background:transparent;cursor:pointer;position:relative;}
+.tl-check:checked{background:#3ddc86;border-color:#3ddc86;}
+.tl-check:checked::after{content:'';position:absolute;left:5.5px;top:2.5px;width:4px;height:8px;border:solid #10151b;border-width:0 2.2px 2.2px 0;transform:rotate(45deg);}
 .tl-task-txt{flex:1;min-width:0;}
-.tl-task-row.done .tl-task-txt{opacity:.5;text-decoration:line-through;text-decoration-color:var(--t3);}
+/* タスク行の番号バッジは、チェックボックスの緑と混ざらないようグレー系にする */
+.tl-task-row .tl-num{background:rgba(255,255,255,.1);color:var(--t2);box-shadow:none;font-weight:700;transform:none;}
+.tl-task-row.done .tl-task-txt{opacity:.42;}
+.tl-task-row.done .tl-task-txt .tl-num{opacity:.7;}
 .tl-head-row{display:flex;align-items:center;justify-content:space-between;gap:8px;}
 .tl-fold-btn{flex-shrink:0;background:rgba(255,255,255,.09);border:1.5px solid rgba(255,255,255,.28);border-radius:8px;padding:5px 10px;font-size:12px;font-weight:800;color:#fff;cursor:pointer;display:flex;align-items:center;gap:4px;white-space:nowrap;}
 .tl-stat{flex-shrink:0;font-size:11.5px;font-weight:700;color:var(--t2);white-space:nowrap;}
@@ -1802,7 +1813,7 @@ var _precPopItems={};
 function buildPrecisionScatterSvg(summary){
   var items=summary.items;
   if(!items.length)return '';
-  var svgW=300,svgH=228,padL=40,padR=10,padT=16,padB=26;
+  var svgW=300,svgH=228,padL=43,padR=12,padT=18,padB=26;
   var plotW=svgW-padL-padR, plotH=svgH-padT-padB;
   var goalMin=num(W.goalMinUsd||400); // 獲得額のライン（$400）。これ以上 or 期待値クリアで緑
   var vals=items.map(function(it){return it.netUsdEq;});
@@ -1818,35 +1829,62 @@ function buildPrecisionScatterSvg(summary){
   function px(sc){ return padL+(Math.max(0,Math.min(100,sc))/100)*plotW; }
   function py(v){ var c=Math.max(capBottom,Math.min(capTop,v)); return padT+(1-(c-capBottom)/range)*plotH; }
   var lineY=py(goalMin);
-  var zeroY=capBottom<0?py(0):null;
   function fmtAxisUsd(v){
     var sign=v<0?'-':'';
     var a=Math.abs(v);
     if(a>=1000)return sign+'$'+(a/1000>=10?Math.round(a/1000):(Math.round(a/100)/10))+'K';
     return sign+'$'+Math.round(a);
   }
-  var bands='<rect x="'+padL+'" y="'+padT+'" width="'+plotW+'" height="'+(lineY-padT)+'" fill="rgba(52,209,123,.08)"></rect>'
-    +'<rect x="'+padL+'" y="'+lineY+'" width="'+plotW+'" height="'+(padT+plotH-lineY)+'" fill="rgba(255,90,90,.07)"></rect>';
-  var lines='<line x1="'+padL+'" y1="'+lineY+'" x2="'+(padL+plotW)+'" y2="'+lineY+'" stroke="var(--acc)" stroke-width="1.2" stroke-dasharray="3,3"></line>'
-    +(zeroY!=null?'<line x1="'+padL+'" y1="'+zeroY+'" x2="'+(padL+plotW)+'" y2="'+zeroY+'" stroke="var(--bb)" stroke-width="1"></line>':'');
-  var yTicks=(capBottom<0?[capBottom,0,goalMin,capTop]:[0,goalMin,capTop]).filter(function(v,i,a){return a.indexOf(v)===i;});
+  // 目盛り候補を「重要な順」に並べ、上から採用しつつ既存ラベルと11px以上離れているものだけ残す。
+  // （$500 と $0 と -$500 のように値が近いと、ラベルが物理的に重なって読めなくなるのを防ぐ）
+  function niceStep(span){
+    var raw=span/4, mag=Math.pow(10,Math.floor(Math.log(raw)/Math.LN10)), n=raw/mag;
+    return (n>=5?5:n>=2?2:1)*mag;
+  }
+  var cands=[capTop,goalMin];
+  var st=niceStep(capTop-capBottom);
+  for(var t=Math.ceil((goalMin+1)/st)*st;t<capTop;t+=st)cands.push(t);
+  cands.push(0);
+  if(capBottom<0)cands.push(capBottom);
+  var yTicks=[],usedY=[];
+  cands.forEach(function(v){
+    if(v>capTop||v<capBottom)return;
+    var y=py(v);
+    for(var i=0;i<usedY.length;i++){ if(Math.abs(usedY[i]-y)<11)return; }
+    usedY.push(y);yTicks.push(v);
+  });
+  // 未達ゾーン（$500ライン以下）だけを薄く赤で示す。達成側はベタ塗りせず、細いグリッド線だけで高さを読ませる
+  var bands='<rect x="'+padL+'" y="'+lineY+'" width="'+plotW+'" height="'+(padT+plotH-lineY)+'" fill="rgba(255,90,90,.055)"></rect>';
+  var grid=yTicks.map(function(v){
+    if(v===goalMin)return '';
+    return '<line x1="'+padL+'" y1="'+py(v)+'" x2="'+(padL+plotW)+'" y2="'+py(v)+'" stroke="rgba(255,255,255,.055)" stroke-width="1"></line>';
+  }).join('')
+    +[50].map(function(v){
+      return '<line x1="'+px(v)+'" y1="'+padT+'" x2="'+px(v)+'" y2="'+(padT+plotH)+'" stroke="rgba(255,255,255,.045)" stroke-width="1"></line>';
+    }).join('');
+  var lines='<line x1="'+padL+'" y1="'+lineY+'" x2="'+(padL+plotW)+'" y2="'+lineY+'" stroke="#ff5a5a" stroke-width="1.1" stroke-dasharray="4,3" stroke-opacity=".75"></line>'
+    +'<line x1="'+padL+'" y1="'+padT+'" x2="'+padL+'" y2="'+(padT+plotH)+'" stroke="rgba(255,255,255,.12)" stroke-width="1"></line>';
   var axis=[0,50,100].map(function(v){
     return '<text x="'+px(v)+'" y="'+(svgH-9)+'" font-size="8.5" fill="var(--t3)" text-anchor="middle">'+v+'</text>';
   }).join('')
     +yTicks.map(function(v){
-      return '<text x="'+(padL-4)+'" y="'+(py(v)+3)+'" font-size="8.5" fill="var(--t3)" text-anchor="end">'+fmtAxisUsd(v)+'</text>';
+      var isLine=(v===goalMin);
+      return '<text x="'+(padL-6)+'" y="'+(py(v)+3)+'" font-size="8.5" fill="'+(isLine?'#ff5a5a':'var(--t3)')+'" font-weight="'+(isLine?'700':'400')+'" text-anchor="end">'+fmtAxisUsd(v)+'</text>';
     }).join('')
-    +'<text x="'+(padL-2)+'" y="'+(padT-5)+'" font-size="8.5" fill="var(--t3)">獲得額</text>'
-    +'<text x="'+(padL+plotW)+'" y="'+(lineY-4)+'" font-size="8" fill="var(--acc)" text-anchor="end">'+fmtAxisUsd(goalMin)+' ライン</text>';
+    +'<text x="'+padL+'" y="'+(padT-6)+'" font-size="8.5" fill="var(--t3)" letter-spacing=".4">獲得額</text>'
+    +'<text x="'+(padL+plotW)+'" y="'+(lineY+10)+'" font-size="7.5" fill="#ff5a5a" fill-opacity=".8" text-anchor="end">未達ライン</text>';
   var pts=items.map(function(it){
     var green=precisionIsGreen(it);
-    var cx=px(it.sc), cy=py(it.netUsdEq);
+    var cx=px(it.sc), cy=py(it.netUsdEq), c=green?'#3ddc86':'#ff5a5a';
     _precPopItems[it.pid]=it;
-    return '<circle id="prec-dot-'+it.pid+'" class="prec-dot" cx="'+cx+'" cy="'+cy+'" r="5" fill="'+(green?'#34d17b':'#ff5a5a')+'" fill-opacity=".9" stroke="var(--card)" stroke-width="1.3" style="cursor:pointer;" onclick="showPrecPop('+it.pid+')"></circle>';
+    return '<g style="cursor:pointer;" onclick="showPrecPop('+it.pid+')">'
+      +'<circle cx="'+cx+'" cy="'+cy+'" r="9" fill="'+c+'" fill-opacity=".13"></circle>'
+      +'<circle id="prec-dot-'+it.pid+'" class="prec-dot" cx="'+cx+'" cy="'+cy+'" r="4.6" fill="'+c+'" stroke="var(--card2)" stroke-width="1.4"></circle>'
+      +'</g>';
   }).join('');
   return '<div class="prec-scatter-wrap">'
-    +'<svg viewBox="0 0 '+svgW+' '+svgH+'" class="prec-scatter-svg">'+bands+lines+axis+pts+'</svg>'
-    +'<div class="prec-axis-x">→ 期待値スコア</div>'
+    +'<svg viewBox="0 0 '+svgW+' '+svgH+'" class="prec-scatter-svg">'+bands+grid+lines+axis+pts+'</svg>'
+    +'<div class="prec-axis-x">期待値スコア →</div>'
     +'<div class="prec-pop" id="prec-pop" style="display:none;">'
     +'<div class="pp-row"><span class="pp-score" id="prec-pop-score"></span><span class="pp-name" id="prec-pop-name"></span></div>'
     +'<div class="prec-pop-mid" id="prec-pop-mid"></div>'
@@ -1973,7 +2011,7 @@ function renderScoreCheck(){
       +'</div>'
       +buildPrecisionScatterSvg(prec)
       +'<div class="prec-legend">'
-      +'<span class="prec-leg-item"><span class="prec-leg-dot" style="background:#34d17b;"></span>期待値通り '+prec.q.green.length+'件</span>'
+      +'<span class="prec-leg-item"><span class="prec-leg-dot" style="background:#3ddc86;"></span>期待値通り '+prec.q.green.length+'件</span>'
       +'<span class="prec-leg-item"><span class="prec-leg-dot" style="background:#ff5a5a;"></span>未達 '+prec.q.red.length+'件</span>'
       +'</div>';
     // ③ 要因分析（達成した案件と未達の案件で、各項目の○率の差を見る）
@@ -1981,11 +2019,18 @@ function renderScoreCheck(){
     if(fac&&fac.rows.length){
       var hit=fac.rows.filter(function(r){return r.diff>0;}).slice(0,4);
       var mis=fac.rows.filter(function(r){return r.diff<0;}).slice(-4).reverse();
-      function facBox(title,cls,list,sign){
+      var facMax=Math.max.apply(null,fac.rows.map(function(r){return Math.abs(r.diff);}).concat([1]));
+      function facBox(title,cls,list){
         if(!list.length)return '';
-        return '<div class="fac-box '+cls+'"><div class="fac-t">'+title+'</div>'
+        return '<div class="fac-box '+cls+'">'
+          +'<div class="fac-head"><span class="fac-t">'+title+'</span><span class="fac-unit">寄与率</span></div>'
           +list.map(function(r){
-            return '<div class="fac-row"><span class="fac-k">'+r.k+'</span><span class="fac-v">'+(r.diff>0?'+':'')+r.diff+'%</span></div>';
+            var mag=Math.abs(r.diff);
+            return '<div class="fac-row">'
+              +'<span class="fac-k">'+r.k+'</span>'
+              +'<span class="fac-bar"><i style="width:'+Math.round(mag/facMax*100)+'%;"></i></span>'
+              +'<span class="fac-v">'+mag+'<span class="fac-pct">%</span></span>'
+              +'</div>';
           }).join('')
           +'</div>';
       }
