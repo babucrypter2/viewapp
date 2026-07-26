@@ -226,6 +226,56 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .sc-score-pill.mid{background:#8a6a14;}
 .sc-note{font-size:10px;color:var(--t3);margin-top:8px;line-height:1.6;}
 .sc-desc{font-size:11px;color:var(--t1);line-height:1.7;margin-bottom:10px;background:rgba(255,255,255,.05);border-radius:8px;padding:9px 10px;}
+.sc-list-hdr{font-size:11.5px;font-weight:800;color:var(--t2);margin:12px 0 8px;}
+.sc-scatter-wrap{background:var(--card2);border:1px solid var(--bb);border-radius:10px;padding:10px 8px 6px;margin-bottom:12px;}
+.sc-scatter-title{font-size:11.5px;font-weight:800;color:var(--t1);margin-bottom:4px;padding-left:2px;}
+.sc-scatter-svg{width:100%;height:auto;display:block;}
+.sc-scatter-axis{font-size:9.5px;color:var(--t3);text-align:right;margin-top:-2px;padding-right:4px;}
+/* ── 期待値スコアの精度：見出し・散布図・凡例 ── */
+.prec-headline{display:flex;align-items:center;gap:14px;margin-top:6px;}
+.prec-pct{font-size:.5em;font-weight:800;margin-left:1px;}
+.prec-headline-sub{font-size:12px;color:var(--t2);font-weight:600;}
+.prec-scatter-wrap{background:var(--card2);border:1px solid var(--bb);border-radius:12px;padding:10px;margin-bottom:10px;}
+.prec-scatter-svg{width:100%;height:auto;display:block;border-radius:6px;overflow:hidden;}
+.prec-axis-x{font-size:9.5px;color:var(--t3);text-align:center;margin-top:4px;}
+.prec-dot.sel{stroke:#fff;stroke-width:2.2;}
+.prec-legend{display:flex;flex-wrap:wrap;gap:8px 14px;margin:10px 2px 4px;}
+.prec-leg-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--t2);font-weight:700;}
+.prec-leg-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.prec-pop{margin-top:2px;background:var(--card);border:1.5px solid var(--acc);border-radius:10px;padding:9px 10px;animation:scPopIn .15s ease-out;}
+.prec-pop-mid{font-size:12px;color:var(--t2);font-weight:700;margin-bottom:6px;}
+.prec-def{background:var(--card2);border:1px solid var(--bb);border-radius:11px;padding:11px 12px;margin-bottom:10px;}
+.prec-def-t{font-size:11px;font-weight:800;color:var(--t3);letter-spacing:.05em;margin-bottom:7px;}
+.prec-def-row{display:flex;gap:8px;align-items:baseline;margin-bottom:5px;}
+.prec-def-k{flex-shrink:0;min-width:74px;font-size:11.5px;font-weight:800;color:var(--acc);}
+.prec-def-v{font-size:12.5px;color:var(--t1);font-weight:600;}
+.prec-def-note{font-size:10.5px;color:var(--t3);margin-top:6px;}
+.amt-sub{font-size:9.5px;color:var(--t3);margin-left:4px;font-weight:600;}
+.fac-wrap{margin-top:14px;}
+.fac-hdr{font-size:12.5px;font-weight:800;color:var(--t1);margin-bottom:8px;}
+.fac-grid{display:flex;flex-direction:column;gap:8px;}
+.fac-box{border-radius:11px;padding:10px 11px;border:1px solid var(--bb);}
+.fac-box.good{background:rgba(52,209,123,.08);border-color:rgba(52,209,123,.35);}
+.fac-box.bad{background:rgba(255,138,60,.08);border-color:rgba(255,138,60,.35);}
+.fac-t{font-size:11.5px;font-weight:800;margin-bottom:6px;}
+.fac-box.good .fac-t{color:#34d17b;}
+.fac-box.bad .fac-t{color:#ff8a3c;}
+.fac-row{display:flex;justify-content:space-between;gap:8px;font-size:11.5px;padding:3px 0;}
+.fac-k{color:var(--t1);font-weight:600;}
+.fac-v{font-weight:800;flex-shrink:0;}
+.fac-box.good .fac-v{color:#34d17b;}
+.fac-box.bad .fac-v{color:#ff8a3c;}
+.fac-note{font-size:10px;color:var(--t3);margin-top:7px;line-height:1.6;}
+.sc-dot.sel{stroke:#fff;stroke-width:2.5;r:7;}
+.sc-pop{margin-top:8px;background:var(--card);border:1.5px solid var(--acc);border-radius:10px;padding:9px 10px;animation:scPopIn .15s ease-out;}
+@keyframes scPopIn{from{opacity:0;transform:translateY(-4px);}to{opacity:1;transform:translateY(0);}}
+.sc-pop-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.sc-pop-score{flex-shrink:0;background:var(--acc-d);color:var(--acc);font-size:13px;font-weight:900;border-radius:6px;padding:2px 7px;}
+.sc-pop-name{font-size:13px;font-weight:800;color:var(--t1);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.sc-pop-bottom{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.sc-pop-amt{font-size:12.5px;font-weight:700;color:var(--t2);}
+.sc-pop-btn{background:var(--acc);color:#fff;border:none;border-radius:7px;padding:7px 12px;font-size:12.5px;font-weight:800;cursor:pointer;white-space:nowrap;}
+
 .fa-total{font-size:12px;font-weight:800;color:var(--t1);margin-bottom:8px;}
 .fa-title-row{display:flex;align-items:center;justify-content:space-between;gap:8px;}
 .fa-title-right{display:flex;align-items:center;gap:8px;flex-shrink:0;}
@@ -314,6 +364,9 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .sc-val.sc-sm{font-size:32px;}
 .sc-max{font-size:11px;font-weight:700;color:var(--t3);opacity:.55;margin-left:1px;letter-spacing:0;}
 .sc-prov{font-size:8.5px;color:var(--ylw);font-weight:700;text-align:center;margin-top:2px;line-height:1.25;max-width:78px;}
+/* .ms が別用途の定義で display:flex になっているため、ここでは横並びのflex行にして   ラベルと記号が縦にバラけないようにする */
+.st-pie{display:flex;align-items:center;justify-content:center;gap:2px;font-size:7.3px;color:var(--t3);line-height:1.2;margin-top:2px;white-space:nowrap;letter-spacing:-.2px;}
+.st-pie .ms{display:inline-block;font-size:9px;line-height:1;vertical-align:-1px;}
 .st-prov{font-size:8px;color:var(--ylw);font-weight:700;text-align:center;margin-top:1px;line-height:1.2;white-space:nowrap;}
 .sc-val.sc-sm .sc-max{font-size:9px;}
 .c-g{color:var(--grn);}
@@ -609,6 +662,12 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .cal-entry-time-tbd{background:var(--card2);color:var(--t3);}
 .cal-agenda-day{display:inline-block;min-width:40px;text-align:center;background:var(--card2);color:var(--t2);font-size:11px;font-weight:800;border-radius:5px;padding:2px 6px;margin-right:6px;vertical-align:middle;}
 .cal-agenda-entry{cursor:pointer;border-radius:8px;margin-left:-4px;margin-right:-4px;padding-left:4px;padding-right:4px;}
+.cal-agenda-group{margin-bottom:16px;}
+.cal-agenda-group:last-child{margin-bottom:0;}
+.cal-agenda-group+.cal-agenda-group{border-top:1px solid var(--bb);padding-top:14px;}
+.cal-agenda-date-hdr{font-size:13px;font-weight:800;color:var(--t1);margin-bottom:8px;}
+.cal-agenda-group .cal-agenda-entry{margin-bottom:6px;}
+.cal-agenda-group .cal-agenda-entry:last-child{margin-bottom:0;}
 .cal-agenda-entry:active{background:var(--acc-d);}
 .cal-detail-empty{font-size:13px;color:var(--t3);}
 
@@ -670,9 +729,14 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .strategy-bar.fold-closed{padding-bottom:0;}
 .strategy-bar.fold-closed>.detail-h{margin-bottom:0;border-bottom:none;border-radius:13px;}
 .strategy-txt{font-size:12px;color:var(--t1);line-height:1.45;white-space:pre-wrap;word-break:break-word;}
-.tl-body{font-size:12px;color:var(--t1);line-height:1.8;white-space:pre-wrap;word-break:break-word;}
+.tl-body{font-size:12px;color:var(--t1);line-height:1.8;white-space:pre-wrap;word-break:break-word;margin-top:10px;}
 .tl-head-row{display:flex;align-items:center;justify-content:space-between;gap:8px;}
 .tl-fold-btn{flex-shrink:0;background:rgba(255,255,255,.09);border:1.5px solid rgba(255,255,255,.28);border-radius:8px;padding:5px 10px;font-size:12px;font-weight:800;color:#fff;cursor:pointer;display:flex;align-items:center;gap:4px;white-space:nowrap;}
+.tl-stat{flex-shrink:0;font-size:11.5px;font-weight:700;color:var(--t2);white-space:nowrap;}
+.tl-head-left{display:flex;align-items:center;gap:8px;min-width:0;overflow:hidden;}
+/* 案件カードの「タップで詳細」との混同を避けるため、横長・明るめの見た目で存在感を出す */
+.tl-fold-btn-wide{width:100%;margin-top:8px;background:var(--acc-d);border:1.5px solid var(--acc);border-radius:9px;padding:10px 0;font-size:13.5px;font-weight:800;color:var(--acc);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;}
+.tl-fold-btn-wide.open{background:var(--acc);color:#fff;}
 .tl-fold-btn .dt-arrow{font-size:8px;}
 .tl-fold-btn.open{background:var(--acc);border-color:var(--acc);}
 .tl-fold-btn:active{filter:brightness(.85);}
@@ -769,7 +833,10 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 /* ═══ PC表示の追加調整（後勝ちさせるため末尾に配置） ═══ */
 @media(min-width:1100px){
   /* このアプリについて／設定タブは、横幅いっぱいに伸びると読みづらいので程よい幅に制限して中央寄せ */
-  .set-scroll{max-width:700px;margin:0 auto;width:100%;scrollbar-width:none;}
+  /* .set-scroll自体はフル幅・スクロール可能なままにして、マウスホイールがどこでも効くようにする。
+     中央寄せ・幅の制限は中身（直下の子要素）だけにかける */
+  .set-scroll{scrollbar-width:none;}
+  .set-scroll>*{max-width:700px;margin-left:auto;margin-right:auto;}
   .set-scroll::-webkit-scrollbar{display:none;}
 
   /* 左上のランク番号・カテゴリタグも、余白に対して小さすぎたので一回り大きく */
@@ -990,12 +1057,14 @@ var SP=[
   {name:'Yama',handle:'yamacrypto',bg:'#ef6c00',img:null,ptG:2,ptM:1},
 ];
 var W={refa_g:2,refa_m:0,refa_b:0,low_g:1.5,low_m:0,low_b:0,qual_g:0,qual_m:0,qual_b:0,
-  w_sm:35,sm_full:12,w_ef:35,ef_full:25,et_full:3,w_deduct:30,d_m:5,d_b:10};
+  w_sm:35,sm_full:12,w_ef:35,ef_full:25,et_full:3,w_deduct:30,d_m:5,d_b:10,
+  goalApr:20,goalHourly:5000,goalMinUsd:400}; // 期待値スコアの精度検証：投資=年利/無料=時給の目標値と最低獲得額
 // 保存データからWを安全に読込（未定義キーはデフォルト維持、マイナス許容）
 function mergeW(src){
   if(!src||typeof src!=='object')return;
   ['refa_g','refa_m','refa_b','low_g','low_m','low_b','qual_g','qual_m','qual_b',
-   'w_sm','sm_full','w_ef','ef_full','et_full','w_deduct','d_m','d_b'].forEach(function(k){
+   'w_sm','sm_full','w_ef','ef_full','et_full','w_deduct','d_m','d_b',
+   'goalApr','goalHourly','goalMinUsd'].forEach(function(k){
     if(src[k]!==undefined&&src[k]!==null&&src[k]!=='')W[k]=num(src[k]);
   });
 }
@@ -1093,10 +1162,14 @@ function achvRankItems(){
   items.sort(function(a,b){return b._eq-a._eq;});
   return items;
 }
+// 円とドルは為替換算で足し合わせない（実際に受け取った金額をそのまま見せる）。
+// エアドロ結果（p.results）に入っている実額をそのまま表示するだけで、合計値は作らない
 function fmtAchvItemAmt(it){
+  // 円とドルは「同じ受け取り結果を円建て・ドル建てそれぞれで見せている」だけで、
+  // 別々の金額を合算しているわけではない。「＋」は足し算に見えて誤解を招くため使わない
   var parts=[];
-  if(it.jpy)parts.push(fmtManyen(it.jpy));
-  if(it.usd)parts.push((it.usd<0?'-$':'$')+Math.abs(num(it.usd)).toLocaleString('en-US'));
+  if(it.jpy)parts.push('¥'+Math.abs(num(it.jpy)).toLocaleString('en-US'));
+  if(it.usd)parts.push((it.usd<0?'-':'')+'$'+Math.abs(num(it.usd)).toLocaleString('en-US'));
   return parts.join(' / ')||'—';
 }
 // 「今の戦略」固定カード（ホーム上部・データ最終更新の下に常時表示。書込アプリで編集）
@@ -1112,9 +1185,12 @@ function renderStrategy(){
 
 // ─────────── 今のエアドロタスク日課（戦略の下に固定表示、折りたたみ式）───────────
 var TASKLIST='';
+var TASK_COUNT=0;  // 今のエアドロタスク日課：件数
+var TASK_MIN=0;    // 今のエアドロタスク日課：1日あたりの工数（分）
 var CALENDAR={}; // {'2026-07-21':'その日のイベント本文（複数行・URL可）'}
 var taskListFoldOpen=false;
 function sanTaskList(v){ return typeof v==='string'?clampStr(v,3000):''; }
+function sanTaskNum(v){ var n=Math.round(num(v)); return (n>0&&n<100000)?n:0; }
 // カレンダー：{'YYYY-MM-DD':'本文'} 形式のみ許可。日付キーの形式チェックと件数・文字数の上限で防御
 function sanCalendar(o){
   var out={};
@@ -1229,18 +1305,21 @@ function renderCalMonthAgenda(){
   dateEl.textContent=calYear+'年'+(calMonth+1)+'月の予定';
   var prefix=calYear+'-'+String(calMonth+1).padStart(2,'0')+'-';
   var dates=Object.keys(CALENDAR||{}).filter(function(k){return k.indexOf(prefix)===0;}).sort();
-  var rows=[];
-  dates.forEach(function(ds){
-    sortCalEntries(CALENDAR[ds]).forEach(function(it){ rows.push({ds:ds,day:parseInt(ds.split('-')[2],10),it:it}); });
-  });
-  if(!rows.length){
+  if(!dates.length){
     bodyEl.innerHTML='<div class="cal-detail-empty">この月の予定はありません</div>';
   }else{
-    bodyEl.innerHTML=rows.map(function(r){
-      var timeHtml='<span class="cal-entry-time'+(r.it.time?'':' cal-entry-time-tbd')+'">'+(r.it.time?esc(r.it.time):'時間未定')+'</span>';
-      return '<div class="cal-entry cal-agenda-entry" onclick="selectCalDate(\''+r.ds+'\')">'
-        +'<div class="cal-entry-title"><span class="cal-agenda-day">'+r.day+'日</span>'+timeHtml+emojiToIcon(esc(r.it.t||'(無題)'))+'</div>'
-        +'</div>';
+    var wdJ=['日','月','火','水','木','金','土'];
+    // 日付ごとにグループ化し、見出し（例：23日（木））を1回だけ出してから、その日の予定を並べる
+    bodyEl.innerHTML=dates.map(function(ds){
+      var day=parseInt(ds.split('-')[2],10);
+      var wd=wdJ[new Date(ds+'T00:00:00').getDay()];
+      var entriesHtml=sortCalEntries(CALENDAR[ds]).map(function(it){
+        var timeHtml='<span class="cal-entry-time'+(it.time?'':' cal-entry-time-tbd')+'">'+(it.time?esc(it.time):'時間未定')+'</span>';
+        return '<div class="cal-entry cal-agenda-entry" onclick="selectCalDate(\''+ds+'\')">'
+          +'<div class="cal-entry-title">'+timeHtml+emojiToIcon(esc(it.t||'(無題)'))+'</div>'
+          +'</div>';
+      }).join('');
+      return '<div class="cal-agenda-group"><div class="cal-agenda-date-hdr">'+day+'日（'+wd+'）</div>'+entriesHtml+'</div>';
     }).join('');
   }
   detail.style.display='block';
@@ -1293,12 +1372,17 @@ function selectCalDate(ds){
 function renderTaskList(){
   var el=document.getElementById('tasklist-bar');
   if(!el)return;
-  if(!TASKLIST){el.style.display='none';return;}
-  el.innerHTML='<div class="detail-h tl-head-row" style="margin-bottom:'+(taskListFoldOpen?'6px':'0')+';cursor:pointer;" onclick="toggleTaskListFold()">'
+  if(!TASKLIST&&!TASK_COUNT&&!TASK_MIN){el.style.display='none';return;} // 本文が空でも件数/工数だけ入っていれば表示する
+  var statBits=[];
+  if(TASK_COUNT)statBits.push(TASK_COUNT+'件');
+  if(TASK_MIN)statBits.push(TASK_MIN+'分/D');
+  var statHtml=statBits.length?'<span class="tl-stat">'+statBits.join('　')+'</span>':'';
+  el.innerHTML='<div class="detail-h tl-head-row" style="cursor:pointer;" onclick="toggleTaskListFold()">'
+    +'<span class="tl-head-left">'
     +'<span class="dh-i"><svg class="dh-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a8 8 0 0 1 16 0"></path><path d="M4 11l4.5 7.5"></path><path d="M20 11l-4.5 7.5"></path><path d="M9.5 11l1 7.5"></path><path d="M14.5 11l-1 7.5"></path><rect x="9.5" y="17.5" width="5" height="3" rx="1"></rect></svg>今のエアドロタスク日課</span>'
-    +'<button class="tl-fold-btn'+(taskListFoldOpen?' open':'')+'">'
-    +(taskListFoldOpen?'閉じる':'詳細')+'<span class="dt-arrow">▼</span>'
-    +'</button>'
+    +statHtml
+    +'</span>'
+    +'<button class="tl-fold-btn'+(taskListFoldOpen?' open':'')+'">'+(taskListFoldOpen?'閉じる':'詳細を開く')+'<span class="dt-arrow">▼</span></button>'
     +'</div>'
     +'<div class="tl-body" id="tl-fold-body" style="display:'+(taskListFoldOpen?'block':'none')+';">'+renderTaskListHtml(TASKLIST)+'</div>';
   el.classList.toggle('fold-closed',!taskListFoldOpen); // 閉時はヘッダー帯だけの見た目に
@@ -1445,7 +1529,7 @@ function renderAchv(){
       var rank=pageStart+i;
       var rc=rank===0?'rank-1':rank===1?'rank-2':rank===2?'rank-3':'rank-n';
       var clk=it.pid!=null;
-      return '<div class="achv-rank-row'+(clk?' achv-rank-clk':'')+'"'+(clk?' onclick="jumpToProject('+it.pid+')"':'')+'>'
+      return '<div class="achv-rank-row'+(clk?' achv-rank-clk':'')+'"'+(clk?' onclick="jumpToProject('+it.pid+',true)"':'')+'>'
         +'<span class="achv-rank-badge '+rc+'">'+(rank+1)+'</span>'
         +'<span class="achv-rank-name">'+esc(it.name)+'</span>'
         +'<span class="achv-rank-amt'+(it._eq<0?' neg':'')+'">'+fmtAchvItemAmt(it)+'</span>'
@@ -1558,12 +1642,174 @@ function projBadge(p){
 
 // ─────────── スコア答え合わせ（期待値 vs 実績）───────────
 var scFoldOpen=false;
+// ─────── 期待値スコアの精度検証：実績年利／実績時給から目標達成率を算出 ───────
+// デポジットがあれば投資案件（実績年利で判定）、無ければ無料案件（実績時給で判定）。
+// どちらも計算できない（データ不足）場合は null を返す。
+function actualPerfItem(p){
+  if(!p.endDate||!Array.isArray(p.results)||!p.results.length)return null;
+  var su=0,sj=0;
+  p.results.forEach(function(r){su+=num(r.usd);sj+=num(r.jpy);});
+  if(su===0&&sj===0)return null;
+  var burnUsd=burnAmt(p); // 既存のエアドロ実績カードと同じ計算に揃える
+  // 金額は「円換算の合計」に一本化する。$と¥を別々に並べると内訳が合計に見えて誤解のもとになるため
+  var netJpyEq=sj+su*ACHV_FX-burnUsd*ACHV_FX;
+  var netUsdEq=netJpyEq/ACHV_FX; // 削り額（USD）を引いた手残り、USD換算で統一
+  var principal=depShowUsd(p); // 既存の時間加重平均残高
+  var type,actualRate,goalRate,achievePct;
+  if(principal>0){
+    var months=depMonths(p);
+    if(!(months>0))return null;
+    var apr=(netUsdEq/principal)/(months/12)*100;
+    type='invest';actualRate=apr;goalRate=W.goalApr||20;
+    achievePct=goalRate>0?(apr/goalRate*100):0;
+  }else{
+    if(!(p.workMin>0)||!p.startDate)return null;
+    var days=Math.max(1,Math.round((new Date(p.endDate+'T00:00:00')-new Date(p.startDate+'T00:00:00'))/86400000));
+    var hours=(p.workMin*days)/60;
+    if(!(hours>0))return null;
+    var hourly=netJpyEq/hours;
+    type='free';actualRate=hourly;goalRate=W.goalHourly||5000;
+    achievePct=goalRate>0?(hourly/goalRate*100):0;
+  }
+  // 最低獲得額チェック：基準未満なら、率がどれだけ高くても未達成扱いに抑える
+  var belowMin=netUsdEq<(W.goalMinUsd||400);
+  if(belowMin&&achievePct>=100)achievePct=99;
+  return {pid:p.id,name:p.name||'（無題）',sc:Math.round(score(p)),type:type,
+    actualRate:Math.round(actualRate*10)/10,goalRate:goalRate,
+    achievePct:Math.max(0,Math.round(achievePct*10)/10),
+    netUsdEq:Math.round(netUsdEq),netJpyEq:Math.round(netJpyEq),belowMin:belowMin,
+    jpy:sj,usd:su-burnUsd}; // 表示用：エアドロ実績一覧（achvAutoItems）と同じく円とドルは合算せず内訳のまま持たせる
+}
+// 終了済み全案件から実績算出可能なものだけを集め、4象限（正しく高評価／過小評価／過大評価／正しく低評価）に分類する
+function precisionItems(){
+  var items=[];
+  (Array.isArray(PROJ)?PROJ:[]).forEach(function(p){
+    if(!p.endDate)return;
+    var it=actualPerfItem(p);
+    if(it)items.push(it);
+  });
+  return items;
+}
+// ③ 要因分析：達成した案件と未達だった案件で、各評価項目の○率がどれだけ違うかを見る。
+// 差が大きい項目ほど「効いていた／外していた」と言える。件数が少ないうちは参考値。
+function precisionFactors(){
+  var prec=precisionSummary();
+  if(!prec||prec.total<3)return null;
+  var win=[],lose=[];
+  prec.items.forEach(function(it){
+    var p=(Array.isArray(PROJ)?PROJ:[]).find(function(x){return x.id===it.pid;});
+    if(!p)return;
+    (it.achievePct>=100?win:lose).push(p);
+  });
+  if(!win.length||!lose.length)return null;
+  function ratio(list,fn){ if(!list.length)return 0; return list.filter(fn).length/list.length; }
+  var defs=[
+    {k:'リファ無し',f:function(p){return p.refa==='g';}},
+    {k:'低資金向き',f:function(p){return p.low==='g';}},
+    {k:'運営の質が高い',f:function(p){return p.quality==='g';}},
+    {k:'パイ・シェアが大きい',f:function(p){return p.pieShare==='g';}},
+    {k:'TGE予定あり',f:function(p){return p.tge==='g';}},
+    {k:'強者の言及が多い(平均以上)',f:function(p){
+      var pts=(p.sm||[]).reduce(function(a,v,j){var q=SP[j];if(!q)return a;return a+(v==='g'?q.ptG:v==='m'?q.ptM:(q.ptB||0));},0);
+      return pts>=smFullAuto()*0.6;
+    }}
+  ];
+  var rows=defs.map(function(d){
+    var w=ratio(win,d.f), l=ratio(lose,d.f);
+    return {k:d.k,diff:Math.round((w-l)*100),winPct:Math.round(w*100),losePct:Math.round(l*100)};
+  }).filter(function(r){return r.diff!==0;});
+  rows.sort(function(a,b){return b.diff-a.diff;});
+  return {rows:rows,winN:win.length,loseN:lose.length};
+}
+function precisionQuadrant(it){
+  var scHigh=it.sc>=50, achHigh=it.achievePct>=100;
+  if(scHigh&&achHigh)return 'hit';    // 正しく高評価
+  if(!scHigh&&achHigh)return 'under'; // 過小評価（もったいない）
+  if(scHigh&&!achHigh)return 'over';  // 過大評価（改善が必要）
+  return 'miss';                       // 正しく低評価
+}
+function precisionSummary(){
+  var items=precisionItems();
+  if(!items.length)return null;
+  var q={hit:[],under:[],over:[],miss:[]};
+  items.forEach(function(it){ q[precisionQuadrant(it)].push(it); });
+  var matchCount=q.hit.length+q.miss.length;
+  var matchRate=Math.round(matchCount/items.length*100);
+  return {items:items,q:q,matchRate:matchRate,total:items.length};
+}
+// 期待値スコアの精度：スコア(横軸)×目標達成率(縦軸)の4象限散布図
+// 右上=正しく高評価(緑)／左上=過小評価(青)／右下=過大評価(橙)／左下=正しく低評価(グレー)
+var _precPopItems={};
+function buildPrecisionScatterSvg(summary){
+  var items=summary.items;
+  if(!items.length)return '';
+  var W=300,H=228,padL=30,padR=10,padT=16,padB=26;
+  var plotW=W-padL-padR, plotH=H-padT-padB;
+  var capY=200; // 目標達成率の上限は200%で固定。それ以上の値は頭打ちにして描画（上抜けで見づらくなるのを防ぐ）
+  function px(sc){ return padL+(Math.max(0,Math.min(100,sc))/100)*plotW; }
+  function py(ach){ return padT+(1-Math.max(0,Math.min(capY,ach))/capY)*plotH; }
+  var midX=px(50), lineY=py(100);
+  var quadCol={hit:'rgba(52,209,123,.10)',under:'rgba(74,144,232,.10)',over:'rgba(255,138,60,.10)',miss:'rgba(255,255,255,.05)'};
+  var quads=''
+    +'<rect x="'+midX+'" y="'+padT+'" width="'+(padL+plotW-midX)+'" height="'+(lineY-padT)+'" fill="'+quadCol.hit+'"></rect>'
+    +'<rect x="'+padL+'" y="'+padT+'" width="'+(midX-padL)+'" height="'+(lineY-padT)+'" fill="'+quadCol.under+'"></rect>'
+    +'<rect x="'+midX+'" y="'+lineY+'" width="'+(padL+plotW-midX)+'" height="'+(padT+plotH-lineY)+'" fill="'+quadCol.over+'"></rect>'
+    +'<rect x="'+padL+'" y="'+lineY+'" width="'+(midX-padL)+'" height="'+(padT+plotH-lineY)+'" fill="'+quadCol.miss+'"></rect>';
+  var lines='<line x1="'+midX+'" y1="'+padT+'" x2="'+midX+'" y2="'+(padT+plotH)+'" stroke="var(--bb)" stroke-width="1"></line>'
+    +'<line x1="'+padL+'" y1="'+lineY+'" x2="'+(padL+plotW)+'" y2="'+lineY+'" stroke="var(--acc)" stroke-width="1.2" stroke-dasharray="3,3"></line>';
+  // 目盛りと象限ラベル（グラフだけ見て意味が分かるように）
+  var axis=[0,50,100].map(function(v){
+    return '<text x="'+px(v)+'" y="'+(H-9)+'" font-size="8.5" fill="var(--t3)" text-anchor="middle">'+v+'</text>';
+  }).join('')
+    +[0,100,capY].map(function(v){
+      return '<text x="'+(padL-4)+'" y="'+(py(v)+3)+'" font-size="8.5" fill="var(--t3)" text-anchor="end">'+v+'%</text>';
+    }).join('')
+    +'<text x="'+(padL-2)+'" y="'+(padT-5)+'" font-size="8.5" fill="var(--t3)">目標達成率</text>'
+    +'<text x="'+(padL+plotW)+'" y="'+(lineY-4)+'" font-size="8" fill="var(--acc)" text-anchor="end">100% 達成ライン</text>';
+  var quadLbl=''
+    +'<text x="'+(padL+plotW-4)+'" y="'+(padT+11)+'" font-size="8" fill="#34d17b" text-anchor="end" font-weight="700">正しく高評価</text>'
+    +'<text x="'+(padL+4)+'" y="'+(padT+11)+'" font-size="8" fill="#4a90e8" font-weight="700">過小評価</text>'
+    +'<text x="'+(padL+plotW-4)+'" y="'+(padT+plotH-5)+'" font-size="8" fill="#ff8a3c" text-anchor="end" font-weight="700">過大評価</text>'
+    +'<text x="'+(padL+4)+'" y="'+(padT+plotH-5)+'" font-size="8" fill="#8d95a7" font-weight="700">正しく低評価</text>';
+  var dotCol={hit:'#34d17b',under:'#4a90e8',over:'#ff8a3c',miss:'#8d95a7'};
+  var pts=items.map(function(it){
+    var quad=precisionQuadrant(it);
+    var cx=px(it.sc), cy=py(it.achievePct);
+    _precPopItems[it.pid]=it;
+    return '<circle id="prec-dot-'+it.pid+'" class="prec-dot" cx="'+cx+'" cy="'+cy+'" r="5" fill="'+dotCol[quad]+'" fill-opacity=".9" stroke="var(--card)" stroke-width="1.3" style="cursor:pointer;" onclick="showPrecPop('+it.pid+')"></circle>';
+  }).join('');
+  return '<div class="prec-scatter-wrap">'
+    +'<svg viewBox="0 0 '+W+' '+H+'" class="prec-scatter-svg">'+quads+lines+axis+quadLbl+pts+'</svg>'
+    +'<div class="prec-axis-x">→ 期待値スコア</div>'
+    +'<div class="prec-pop" id="prec-pop" style="display:none;">'
+    +'<div class="sc-pop-row"><span class="sc-pop-score" id="prec-pop-score"></span><span class="sc-pop-name" id="prec-pop-name"></span></div>'
+    +'<div class="prec-pop-mid" id="prec-pop-mid"></div>'
+    +'<div class="sc-pop-bottom"><span class="sc-pop-amt" id="prec-pop-amt"></span><button class="sc-pop-btn" id="prec-pop-btn">詳細カードへ ›</button></div>'
+    +'</div>'
+    +'</div>';
+}
+function showPrecPop(pid){
+  var it=_precPopItems[pid];
+  var pop=document.getElementById('prec-pop');
+  if(!it||!pop)return;
+  document.getElementById('prec-pop-score').textContent=it.sc;
+  document.getElementById('prec-pop-name').textContent=it.name;
+  var rateTxt=it.type==='invest'?('実績年利 '+it.actualRate+'%'):('実績時給 '+Math.round(it.actualRate).toLocaleString('en-US')+'円');
+  document.getElementById('prec-pop-mid').textContent=rateTxt+'　→　達成率 '+it.achievePct+'%';
+  document.getElementById('prec-pop-amt').innerHTML=fmtAchvItemAmt(it); // 円とドルは合算せず、上部のエアドロ実績一覧と同じ内訳表示にする
+  document.getElementById('prec-pop-btn').onclick=function(){ jumpToProject(pid,true); };
+  document.querySelectorAll('.prec-dot').forEach(function(c){ c.classList.remove('sel'); });
+  var dot=document.getElementById('prec-dot-'+pid);
+  if(dot)dot.classList.add('sel');
+  pop.style.display='block';
+}
 function scoreCheckItems(){
   var items=[];
   (Array.isArray(PROJ)?PROJ:[]).forEach(function(p){
     if(p.endDate&&Array.isArray(p.results)&&p.results.length){
       var su=0,sj=0;
       p.results.forEach(function(r){su+=num(r.usd);sj+=num(r.jpy);});
+      su-=burnAmt(p); // 受け取り額から削り額（$）を差し引いた純益。エアドロ実績一覧（achvAutoItems）と揃える
       if(su!==0||sj!==0){
         var sc=score(p);
         items.push({name:p.name||'（無題）',usd:su,jpy:sj,sc:Math.round(sc),pid:p.id,_eq:sj+su*ACHV_FX});
@@ -1573,45 +1819,133 @@ function scoreCheckItems(){
   items.sort(function(a,b){return b.sc-a.sc;});
   return items;
 }
+// タップした点の情報を貯めておく場所（pid→{name,sc,eqLabel}）。文字列をonclick属性に直接埋め込まず、
+// ここから引くことで、案件名に引用符等が含まれていても安全に扱える
+var _scPopItems={};
+// スコア（横軸）× 実際の獲得額（縦軸）の散布図。「高スコアの案件は本当に稼げてるか」を一目で検証できるようにする。
+// タップしてもいきなり詳細には飛ばず、まず吹き出しでスコア・名前・金額を見せ、「詳細カードへ」を押した時だけ飛ぶ
+function buildScoreScatterSvg(items,jumpFn){
+  if(!items.length)return '';
+  var W=300,H=190,padL=40,padR=10,padT=12,padB=26;
+  var plotW=W-padL-padR, plotH=H-padT-padB;
+  var maxScore=scoreMax()||100;
+  var vals=items.map(function(it){return it._eq;});
+  var minV=Math.min.apply(null,vals), maxV=Math.max.apply(null,vals);
+  if(minV===maxV){ minV-=1; maxV+=1; } // 全件同額など、幅が0になるケースの防御
+  var padV=(maxV-minV)*0.08; minV-=padV; maxV+=padV;
+  function px(sc){ return padL+(sc/maxScore)*plotW; }
+  function py(v){ return padT+(1-(v-minV)/(maxV-minV))*plotH; }
+  var zeroY=(minV<0&&maxV>0)?py(0):null;
+  var gridX=[0,50,100].map(function(s){
+    return '<line x1="'+px(s)+'" y1="'+padT+'" x2="'+px(s)+'" y2="'+(padT+plotH)+'" stroke="var(--b)" stroke-width="1"></line>'
+      +'<text x="'+px(s)+'" y="'+(H-8)+'" font-size="9" fill="var(--t3)" text-anchor="middle">'+s+'</text>';
+  }).join('');
+  var zeroLine=zeroY!==null?('<line x1="'+padL+'" y1="'+zeroY+'" x2="'+(padL+plotW)+'" y2="'+zeroY+'" stroke="var(--t3)" stroke-width="1" stroke-dasharray="2,2"></line>'):'';
+  var yLabels=[maxV,minV].map(function(v,i){
+    var y=i===0?padT+3:padT+plotH;
+    return '<text x="2" y="'+y+'" font-size="9" fill="var(--t3)">'+(fmtManyen(Math.round(v))||'0円')+'</text>';
+  }).join('');
+  var pts=items.map(function(it){
+    var cx=px(it.sc), cy=py(it._eq);
+    var col=it._eq>=0?'#34d17b':'#ff5c5c';
+    _scPopItems[it.pid]={name:it.name,sc:it.sc,amtLabel:fmtAchvItemAmt(it)}; // 下のリストと全く同じ整形を使い、表示のズレをなくす
+    return '<circle id="sc-dot-'+it.pid+'" class="sc-dot" cx="'+cx+'" cy="'+cy+'" r="5.5" fill="'+col+'" fill-opacity=".85" stroke="var(--card)" stroke-width="1.5" style="cursor:pointer;" onclick="showScorePop('+it.pid+',\''+jumpFn+'\')"></circle>';
+  }).join('');
+  return '<div class="sc-scatter-wrap">'
+    +'<div class="sc-scatter-title">スコア × 実際の獲得額</div>'
+    +'<svg viewBox="0 0 '+W+' '+H+'" class="sc-scatter-svg">'+gridX+zeroLine+yLabels+pts+'</svg>'
+    +'<div class="sc-scatter-axis">→ 期待値スコア（横軸）</div>'
+    +'<div class="sc-pop" id="sc-pop" style="display:none;">'
+    +'<div class="sc-pop-row"><span class="sc-pop-score" id="sc-pop-score"></span><span class="sc-pop-name" id="sc-pop-name"></span></div>'
+    +'<div class="sc-pop-bottom"><span class="sc-pop-amt" id="sc-pop-amt"></span><button class="sc-pop-btn" id="sc-pop-btn">詳細カードへ ›</button></div>'
+    +'</div>'
+    +'</div>';
+}
+// 散布図の点をタップした時：吹き出しにスコア・名前・金額（ドル＋円換算）を表示し、
+// 「詳細カードへ」を押した時だけ、詳細窓を開かずカードの位置まで移動する
+function showScorePop(pid,jumpFn){
+  var it=_scPopItems[pid];
+  var pop=document.getElementById('sc-pop');
+  if(!it||!pop)return;
+  document.getElementById('sc-pop-score').textContent=it.sc;
+  document.getElementById('sc-pop-name').textContent=it.name;
+  document.getElementById('sc-pop-amt').innerHTML=it.amtLabel; // リストと同じ表記をそのまま使う
+  document.getElementById('sc-pop-btn').onclick=function(){ window[jumpFn](pid,true); };
+  // 選択中のプロットだけ枠を付けて、どれを見ているか分かるようにする
+  document.querySelectorAll('.sc-dot').forEach(function(c){ c.classList.remove('sel'); });
+  var dot=document.getElementById('sc-dot-'+pid);
+  if(dot)dot.classList.add('sel');
+  pop.style.display='block';
+}
 function renderScoreCheck(){
   var el=document.getElementById('scorecheck-card');
   if(!el)return;
   var items=scoreCheckItems();
-  if(!items.length){el.style.display='none';return;}
-  // スコア帯ごとの集計（80+/60-79/40-59/〜39）
-  var bands=[
-    {lbl:'80点以上',min:80,max:1000,list:[]},
-    {lbl:'60〜79点',min:60,max:79,list:[]},
-    {lbl:'40〜59点',min:40,max:59,list:[]},
-    {lbl:'39点以下',min:-1000,max:39,list:[]}
-  ];
-  items.forEach(function(it){
-    for(var i=0;i<bands.length;i++){ if(it.sc>=bands[i].min&&it.sc<=bands[i].max){bands[i].list.push(it);break;} }
-  });
-  var bandHtml=bands.filter(function(b){return b.list.length;}).map(function(b){
-    var sum=b.list.reduce(function(a,it){return a+it._eq;},0);
-    var avg=sum/b.list.length;
-    return '<div class="sc-band-row">'
-      +'<span class="sc-band-lbl">'+b.lbl+'</span>'
-      +'<span class="sc-band-cnt">'+b.list.length+'件</span>'
-      +'<span class="sc-band-avg'+(avg<0?' neg':'')+'">平均 '+(fmtManyen(Math.round(avg))||'0円')+'</span>'
-      +'</div>';
-  }).join('');
+  var prec=precisionSummary();
+  if(!items.length&&!prec){el.style.display='none';return;}
   var rowsHtml=items.map(function(it){
     var pc=it.sc>=80?'hi':it.sc>=60?'mid':'';
-    return '<div class="achv-rank-row achv-rank-clk" onclick="jumpToProject('+it.pid+')">'
+    return '<div class="achv-rank-row achv-rank-clk" onclick="jumpToProject('+it.pid+',true)">'
       +'<span class="sc-score-pill '+pc+'">'+it.sc+'</span>'
       +'<span class="achv-rank-name">'+esc(it.name)+'</span>'
       +'<span class="achv-rank-amt'+(it._eq<0?' neg':'')+'">'+fmtAchvItemAmt(it)+'</span>'
       +'<span class="achv-rank-go">詳細カードへ ›</span>'
       +'</div>';
   }).join('');
+  // ── 見出し：予測方向一致率（大きく色付きで、既存の期待値スコア表示と同じ見た目に揃える）──
+  var headHtml='';
+  if(prec){
+    var mCls=prec.matchRate>=80?'c-g':prec.matchRate>=60?'c-a':prec.matchRate>=35?'c-y':'c-r';
+    headHtml='<div class="prec-headline">'
+      +'<div class="sc-wrap"><div class="sc-lbl">予測方向一致率</div><div class="sc-val '+mCls+'">'+prec.matchRate+'<span class="prec-pct">%</span></div></div>'
+      +'<div class="prec-headline-sub">'+prec.total+'件中 '+(prec.q.hit.length+prec.q.miss.length)+'件が方向一致</div>'
+      +'</div>';
+  }
+  var expandHtml='';
+  if(prec){
+    expandHtml+='<div class="prec-def">'
+      +'<div class="prec-def-t">期待値の定義</div>'
+      +'<div class="prec-def-row"><span class="prec-def-k">デポジット</span><span class="prec-def-v">年利 '+(W.goalApr||20)+'% 以上取れる確度</span></div>'
+      +'<div class="prec-def-row"><span class="prec-def-k">無料系</span><span class="prec-def-v">時給 '+num(W.goalHourly||5000).toLocaleString('en-US')+'円 以上取れる確度</span></div>'
+      +'<div class="prec-def-note">※ 獲得額 $'+num(W.goalMinUsd||400).toLocaleString('en-US')+' 以下は未達とする</div>'
+      +'</div>'
+      +buildPrecisionScatterSvg(prec)
+      +'<div class="prec-legend">'
+      +'<span class="prec-leg-item"><span class="prec-leg-dot" style="background:#34d17b;"></span>正しく高評価 '+prec.q.hit.length+'件</span>'
+      +'<span class="prec-leg-item"><span class="prec-leg-dot" style="background:#4a90e8;"></span>過小評価 '+prec.q.under.length+'件</span>'
+      +'<span class="prec-leg-item"><span class="prec-leg-dot" style="background:#ff8a3c;"></span>過大評価 '+prec.q.over.length+'件</span>'
+      +'<span class="prec-leg-item"><span class="prec-leg-dot" style="background:#8d95a7;"></span>正しく低評価 '+prec.q.miss.length+'件</span>'
+      +'</div>';
+    // ③ 要因分析（達成した案件と未達の案件で、各項目の○率の差を見る）
+    var fac=precisionFactors();
+    if(fac&&fac.rows.length){
+      var hit=fac.rows.filter(function(r){return r.diff>0;}).slice(0,4);
+      var mis=fac.rows.filter(function(r){return r.diff<0;}).slice(-4).reverse();
+      function facBox(title,cls,list,sign){
+        if(!list.length)return '';
+        return '<div class="fac-box '+cls+'"><div class="fac-t">'+title+'</div>'
+          +list.map(function(r){
+            return '<div class="fac-row"><span class="fac-k">'+r.k+'</span><span class="fac-v">'+(r.diff>0?'+':'')+r.diff+'pt</span></div>';
+          }).join('')
+          +'</div>';
+      }
+      expandHtml+='<div class="fac-wrap"><div class="fac-hdr">何が当たって、何が外れたか</div>'
+        +'<div class="fac-grid">'+facBox('よく当たっていた要因','good',hit)+facBox('外していた要因','bad',mis)+'</div>'
+        +'<div class="fac-note">達成'+fac.winN+'件と未達'+fac.loseN+'件で、各項目が○だった割合の差。件数が少ないうちは参考値です</div>'
+        +'</div>';
+    }
+  }
+  if(items.length){
+    // ここでは案件ごとの実績を一覧で見せるだけにする（円とドルの合算・帯平均など、通貨をまたいだ集計は行わない）
+    expandHtml+=(INFO.scorecheck?'<div class="sc-desc" style="margin-top:10px;">'+esc(INFO.scorecheck).replace(/\n/g,'<br>')+'</div>':'')
+      +'<div class="sc-list-hdr">案件ごとの実績（スコア順）</div>'
+      +'<div style="display:flex;flex-direction:column;gap:6px;">'+rowsHtml+'</div>';
+  }
   el.innerHTML='<div class="set-card-title fa-title-row" style="margin-bottom:'+(scFoldOpen?'10px':'0')+';cursor:pointer;" onclick="toggleScFold()"><span class="dh-i2"><svg class="dh-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"></path><path d="M7 14l4-4 3 3 5-6"></path></svg>期待値スコアの精度</span><button class="tl-fold-btn'+(scFoldOpen?' open':'')+'">'+(scFoldOpen?'閉じる':'詳細')+'<span class="dt-arrow">▼</span></button></div>'
+    +headHtml
     +'<div id="sc-fold-body" style="display:'+(scFoldOpen?'block':'none')+';margin-top:8px;">'
-    +(INFO.scorecheck?'<div class="sc-desc">'+esc(INFO.scorecheck).replace(/\n/g,'<br>')+'</div>':'')
-    +bandHtml
-    +'<div style="display:flex;flex-direction:column;gap:6px;margin-top:8px;">'+rowsHtml+'</div>'
-    +'<div class="sc-note">※ スコアは現在の配点設定で算出</div>'
+    +expandHtml
+    +'<div class="sc-note">※ スコアは終了時点の凍結値。目標値は設定タブで変更できます</div>'
     +'</div>';
   el.classList.toggle('fold-closed',!scFoldOpen); // 閉時はヘッダー帯だけの見た目に
   el.style.display='block';
@@ -1939,6 +2273,8 @@ function applyLoadedData(d,opts){
   ACHV=sanAchv(d.achv);
   STRATEGY=sanStrategy(d.strategy);
   TASKLIST=sanTaskList(d.tasklist);
+  TASK_COUNT=sanTaskNum(d.taskCount);
+  TASK_MIN=sanTaskNum(d.taskMin);
   CALENDAR=sanCalendar(d.calendar);
   // 更新バッジの判定は「完全なデータ」の時だけ行う。
   // 画像を省いた軽量キャッシュで判定すると、画像の有無の差で毎回「更新」扱いになってしまう
@@ -1993,6 +2329,8 @@ function sanDep(o){
   return {date:date,cur:clampStr(o.cur,12),amt:num(o.amt),usd:num(o.usd),note:clampStr(o.note,120)};
 }
 function sanMark(v){return (v==='g'||v==='m'||v==='b')?v:'b';}
+// 報酬パイ・シェア率用：未判断（空文字）をそのまま残す。従来のsanMarkは''を✕に変えてしまうため別関数にした
+function sanMark3(v){return (v==='g'||v==='m'||v==='b')?v:'';}
 function sanFrozen(f){
   if(!f||typeof f!=='object')return null;
   if(typeof f.total!=='number'||!isFinite(f.total))return null;
@@ -2032,6 +2370,8 @@ function sanProj(o,spLen){
     depOverrideUsd:Math.max(0,num(o.depOverrideUsd)),
     periodOverrideMonths:Math.max(0,num(o.periodOverrideMonths)),
     quality:sanMark(o.quality),
+    pieShare:sanMark3(o.pieShare!==undefined?o.pieShare:o.pie), // パイ・シェア（○△✕／未判断は空のまま。1項目に統合）
+    workMin:Math.max(0,num(o.workMin)), // 無料案件の1日あたり作業工数（分）。期待値スコアの精度検証（実績時給の算出）に使用
     tge:(o.tge==='g'||o.tge==='m'||o.tge==='b')?o.tge:'',
     earlyStart:/^\d{4}-\d{2}-\d{2}$/.test(o.earlyStart)?o.earlyStart:null,
     earlyEnd:/^\d{4}-\d{2}-\d{2}$/.test(o.earlyEnd)?o.earlyEnd:null,
@@ -2084,6 +2424,19 @@ function _effMedianCache(){
   var m=Math.floor(vals.length/2);
   return vals.length%2?vals[m]:(vals[m-1]+vals[m])/2;
 }
+// 「全員が○だった場合の合計pt」＝強者の言及の満点ライン。配点を変えても自動で追従する
+function smFullAuto(){
+  var t=(Array.isArray(SP)?SP:[]).reduce(function(a,q){return a+(q&&q.ptG?q.ptG:0);},0);
+  return t>0?t:12; // 誰も登録されていない時の保険
+}
+// ○△✕を点数に変換（○=満点／△=半分／✕=0）
+function markScore(v,full){ return v==='g'?full:(v==='m'?full/2:0); }
+// 報酬パイ・シェア率は同じ25点枠の指標なので、効率スコアの真下に記号だけ小さく添える。
+// 未判断（空）の項目は出さないので、入力していない案件では何も増えない
+function pieShareHtml(p){
+  if(!p.pieShare)return '';
+  return '<div class="st-pie">パイ・シェア'+msym(p.pieShare)+'</div>';
+}
 function scoreBreakdown(p){
   // 終了時に凍結したスコアがあれば、それをそのまま使う（配点を後から変えても答え合わせが壊れないように）
   if(p&&p.frozen&&typeof p.frozen.total==='number'){
@@ -2092,26 +2445,34 @@ function scoreBreakdown(p){
   }
   // ① 強い人の言及（生pt合計を上限で正規化 → w_sm点。マイナスにはしない）
   var smPts=(p.sm||[]).reduce(function(a,v,j){var q=SP[j];if(!q)return a;return a+(v==='g'?q.ptG:v==='m'?q.ptM:(q.ptB||0));},0);
-  var smFull=W.sm_full>0?W.sm_full:12;
+  // 満点ラインは「登録者全員が○だった場合の合計pt」から毎回自動算出する。
+  // 以前は手入力の固定値だったため、誰かの配点を変えると満点ラインとズレて上位が潰れていた。
+  var smFull=smFullAuto();
   var smScore=Math.max(0,Math.min(smPts/smFull,1))*(W.w_sm||0);
   // ② 調達効率（調達÷参加者、調達÷TVL を各0〜1に正規化し、利用可能な指標の平均 → w_ef点）
   //    調達額が未記入で計算不可能な場合は、記入済み案件の中央値を暫定値に（母数5件未満は満点の半分）
+  //    さらに、報酬パイ・シェア率（○△✕の手動判断）が入っていればそれも同じ枠で評価し、
+  //    「分かっている指標だけ」で平均する。分からない指標に暫定値を入れて薄めないのが方針。
+  var wEf=W.w_ef||0;
   var effScore, effImputed=false;
-  if(!p.fund){
-    var med=_effMedianCache();
-    if(med===null){ effScore=(W.w_ef||0)/2; } else { effScore=med; }
-    effImputed=true;
-  }else{
+  // 調達効率（数値から算出）
+  var calcEff=null;
+  if(p.fund){
     var parts=[];
     if(p.usr)parts.push(Math.min((p.fund/p.usr)/(W.ef_full||25),1));
     if(p.tvl)parts.push(Math.min((p.fund/p.tvl)/(W.et_full||3),1));
-    var effNorm=parts.length?parts.reduce(function(a,b){return a+b;},0)/parts.length:0;
-    if(parts.length){ effScore=effNorm*(W.w_ef||0); }
-    else { // 調達額はあるが参加者もTVLも無い→効率計算不能。これも暫定扱い（中央値→無ければ半分）
-      var med2=_effMedianCache();
-      effScore=(med2===null)?(W.w_ef||0)/2:med2;
-      effImputed=true;
-    }
+    if(parts.length)calcEff=(parts.reduce(function(a,b){return a+b;},0)/parts.length)*wEf;
+  }
+  // パイ・シェア（○△✕、1項目）
+  var rewardEff=p.pieShare?markScore(p.pieShare,wEf):null;
+  // 使える指標だけで最終決定
+  if(rewardEff!==null&&calcEff!==null){ effScore=(rewardEff+calcEff)/2; }      // 両方あり→平均
+  else if(rewardEff!==null){ effScore=rewardEff; }                              // 報酬パイのみ→それを優先
+  else if(calcEff!==null){ effScore=calcEff; }                                  // 調達額のみ→従来通り
+  else {                                                                        // 両方なし→暫定値
+    var med=_effMedianCache();
+    effScore=(med===null)?wEf/2:med;
+    effImputed=true;
   }
   // ③ 減点方式（満点 w_deduct から、△✕で3項目それぞれ減点）
   function ded(v){return v==='g'?0:(v==='m'?(W.d_m||0):(W.d_b||0));}
@@ -2559,9 +2920,9 @@ function renderList(id,mode){
 
       // ── Row 1: medal | icon | name+meta(2 lines) | X | score ──
       +'<div class="card-r1">'
-      +'<div class="pj-av-wrap">'+projAvHtml(p,60)+'<span class="rank-badge '+rankCls+'">'+rankNum+'</span>'+(p.endDate?'<span class="ended-badge">🏁終了</span>':'')+'</div>'
+      +'<div class="pj-av-wrap">'+projAvHtml(p,60)+'<span class="rank-badge '+rankCls+'">'+rankNum+'</span></div>'
       +'<div class="pj-inf">'
-      +'<div class="pj-nmr"><span class="pj-name">'+esc(p.name)+'</span>'+catTag(p.cat)+projBadge(p)+'</div>'
+      +'<div class="pj-nmr"><span class="pj-name">'+esc(p.name)+'</span>'+catTag(p.cat)+(p.endDate?'<span class="ended-badge">🏁終了</span>':'')+projBadge(p)+'</div>'
       +'<div class="pj-meta1"><span class="pj-lbl-row">仕込みLv：</span><span class="pj-stars">'+starsHtml(p.lv||0)+'</span></div>'
       +'<div class="pj-meta2"><span class="pj-lbl-row">仕込み額：</span> '+stakeHtml+'</div>'
       +(burn_>0?'<div class="pj-meta3"><span class="pj-lbl-row">削り額：</span> <span class="pj-dv pj-burn">'+fmtU(burn_)+'</span></div>':'')
@@ -2576,7 +2937,7 @@ function renderList(id,mode){
       +'<div class="st-col"><div class="st-lbl">'+ICO.fund+' 調達額</div><div class="st-val">'+(p.fund?'$'+num(p.fund)+'M':'—')+'</div></div>'
       +'<div class="st-col"><div class="st-lbl">'+ICO.usr+' 参加者</div><div class="st-val">'+(p.usr?num(p.usr)+'万':'—')+'</div></div>'
       +'<div class="st-col"><div class="st-lbl">'+ICO.tvl+' TVL/Vol</div><div class="st-val">'+(p.tvl?'$'+num(p.tvl)+'M':'—')+'</div></div>'
-      +'<div class="st-col st-col-sc"><div class="st-val eff">'+(eff_disp!=='—'?eff_disp:'—')+'</div>'+(bd.effImputed?'<div class="st-prov">暫定値</div>':'')+'</div>'
+      +'<div class="st-col st-col-sc"><div class="st-val eff">'+(eff_disp!=='—'?eff_disp:'—')+'</div>'+(bd.effImputed?'<div class="st-prov">暫定値</div>':'')+pieShareHtml(p)+'</div>'
       +'</div>'
 
       // ── Row 3: head (colon-style) + avatars left ──
@@ -2717,21 +3078,29 @@ function tgeSym(v){
   return '';
 }
 // アーリー度：開始〜終了予定に対する現在位置を横帯で可視化（コンパクト）
+// 序盤=緑／中盤=黄／終盤=赤 で色分け（終了日の有無どちらでも）
+function earlyFillGrad(stage){
+  return stage==='g'?'linear-gradient(90deg,#34D17B,#5FB98D)':stage==='m'?'linear-gradient(90deg,#e8b23d,#e8a020)':'linear-gradient(90deg,#ff8a6a,#ff5c5c)';
+}
 function earlyHtml(p){
   if(!p.earlyStart)return '';
   function fmtD(d){return d.getFullYear()+'/'+(d.getMonth()+1)+'/'+d.getDate();}
   var tgeTail=p.tge?'<span class="early-sep"></span><span class="early-wk">TGE予定：</span>'+tgeSym(p.tge):'';
   var d0=new Date(p.earlyStart+'T00:00:00');
-  // 終了予定日が未入力：経過期間から簡易判定（3ヶ月以下=○序盤/半年経過=△中盤/1年以上=×終盤）
+  // 終了予定日が未入力：経過期間から簡易判定（3ヶ月以下=○序盤/半年経過=△中盤/1年以上=×終盤）。
+  // 終了日が無いので実際の進捗%は出せないが、段階だけは分かるので固定位置（25/50/75%）のバーを表示する
   if(!p.earlyEnd){
     var elapsedDays=Math.max(0,Math.floor((Date.now()-d0.getTime())/86400000));
     var elapsedMonths=elapsedDays/30.44;
-    var emk = elapsedMonths<=6?'<span class="tge-g"><span class="tge-ico tge-ico-o">○</span> 序盤</span>' : elapsedMonths<12?'<span class="tge-m"><span class="tge-ico tge-ico-o">△</span> 中盤</span>' : '<span class="tge-b"><span class="tge-ico">✕</span> 終盤</span>';
+    var stage=elapsedMonths<=6?'g':elapsedMonths<12?'m':'b';
+    var emk = stage==='g'?'<span class="tge-g"><span class="tge-ico tge-ico-o">○</span> 序盤</span>' : stage==='m'?'<span class="tge-m"><span class="tge-ico tge-ico-o">△</span> 中盤</span>' : '<span class="tge-b"><span class="tge-ico">✕</span> 終盤</span>';
+    var fixedPct=stage==='g'?25:stage==='m'?50:75;
     var tmE=Math.floor(elapsedDays/30.44);
     var eyE=Math.floor(tmE/12),emE=tmE%12,ewE=Math.round(elapsedDays/7);
     var elapsedTxt=(eyE>0?eyE+'年':'')+(emE>0?emE+'ヶ月':'')||(ewE>0?ewE+'週':'1週未満');
     return '<div class="early-wrap">'
       +'<div class="early-top"><span class="early-lbl">アーリー度：</span>'+emk+tgeTail+'</div>'
+      +'<div class="early-track"><div class="early-fill" style="width:'+fixedPct+'%;background:'+earlyFillGrad(stage)+';"></div></div>'
       +'<div class="early-dates"><span class="early-date-w">開始 '+fmtD(d0)+'</span><span class="early-pct-mid">'+elapsedTxt+' 経過</span><span class="early-date-w">終了 不明</span></div>'
       +'</div>';
   }
@@ -2743,7 +3112,8 @@ function earlyHtml(p){
   var pct=Math.max(0,Math.min(100,Math.round((now-t0)/(t1-t0)*100)));
   var curWClamped=Math.max(0,Math.min(totalW,curW));
   // アーリー度の評価：序盤ほどアーリー（○）、終盤は×（TGE予定と同じ配色・記号に統一）
-  var mark = pct<33?'<span class="tge-g"><span class="tge-ico tge-ico-o">○</span> 序盤</span>' : pct<70?'<span class="tge-m"><span class="tge-ico tge-ico-o">△</span> 中盤</span>' : '<span class="tge-b"><span class="tge-ico">✕</span> 終盤</span>';
+  var stage2 = pct<33?'g':pct<70?'m':'b';
+  var mark = stage2==='g'?'<span class="tge-g"><span class="tge-ico tge-ico-o">○</span> 序盤</span>' : stage2==='m'?'<span class="tge-m"><span class="tge-ico tge-ico-o">△</span> 中盤</span>' : '<span class="tge-b"><span class="tge-ico">✕</span> 終盤</span>';
   // 残り期間（日数→年月換算。終了済みなら「終了」表示）
   var remDays=Math.round((t1-now)/86400000);
   var remTxt;
@@ -2762,7 +3132,7 @@ function earlyHtml(p){
   var pctMid=pct+'%（'+curWClamped+'週/'+totalW+'週）';
   return '<div class="early-wrap">'
     +'<div class="early-top"><span class="early-lbl">アーリー度：</span>'+mark+'<span class="early-sep"></span>'+topInner+tgeTail+'</div>'
-    +'<div class="early-track"><div class="early-fill" style="width:'+pct+'%;"></div></div>'
+    +'<div class="early-track"><div class="early-fill" style="width:'+pct+'%;background:'+earlyFillGrad(stage2)+';"></div></div>'
     +'<div class="early-dates"><span class="early-date-w">開始 '+fmtD(d0)+'</span><span class="early-pct-mid">'+pctMid+'</span><span class="early-date-w">終了 '+fmtD(d1)+'</span></div>'
     +'</div>';
 }
@@ -2872,15 +3242,17 @@ function toggleDetail(mode,idx){
   }
 }
 // ランキングの案件行タップ→「仕込み終了」タブの該当カードへ移動し、詳細を開いた状態にする
-function jumpToProject(pid){
+function jumpToProject(pid,skipExpand){
   var idx=PROJ.findIndex(function(p){return p.id===pid;});
   if(idx<0)return;
+  // 以前その案件を開いた記憶が残っていると、飛んだ先で開いたまま表示されてしまうので先に消しておく
+  if(skipExpand){ delete openDetailKeys['ended:'+pid]; renderList('list-ended','ended'); }
   var navBtn=document.getElementById('bni-ended');
   sv('ended',navBtn,'b');
   setTimeout(function(){
     var body=document.getElementById('dt-body-ended-'+idx);
     var btn=document.getElementById('dt-btn-ended-'+idx);
-    if(body&&btn&&!btn.classList.contains('open'))toggleDetail('ended',idx);
+    if(!skipExpand&&body&&btn&&!btn.classList.contains('open'))toggleDetail('ended',idx);
     var card=btn&&btn.closest('.proj-card');
     if(card)card.scrollIntoView({behavior:'smooth',block:'start'});
   },60);
