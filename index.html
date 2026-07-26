@@ -1839,7 +1839,15 @@ function buildPrecisionScatterSvg(summary){
   var capTop=Math.max(niceCeil(maxV*1.05),goalMin*2);
   var capBottom=minV<0?-niceCeil(Math.abs(minV)*1.1):0;
   var range=capTop-capBottom;
-  function px(sc){ return padL+(Math.max(0,Math.min(100,sc))/100)*plotW; }
+  // 横軸は実際のスコア範囲に合わせて自動トリミング（0〜20など出現しない範囲を切り捨てて横幅を活かす）
+  var scs=items.map(function(it){return it.sc;});
+  var xLo=Math.max(0,Math.floor((Math.min.apply(null,scs)-6)/10)*10);
+  var xHi=Math.min(100,Math.ceil((Math.max.apply(null,scs)+6)/10)*10);
+  if(xHi-xLo<30){                       // 範囲が狭すぎると点が団子になるので最低30は確保する
+    xLo=Math.max(0,Math.min(70,Math.round(((xLo+xHi)/2-15)/10)*10));
+    xHi=Math.min(100,xLo+30);
+  }
+  function px(sc){ return padL+((Math.max(xLo,Math.min(xHi,sc))-xLo)/(xHi-xLo))*plotW; }
   function py(v){ var c=Math.max(capBottom,Math.min(capTop,v)); return padT+(1-(c-capBottom)/range)*plotH; }
   var lineY=py(goalMin);
   function fmtAxisUsd(v){
@@ -1869,18 +1877,30 @@ function buildPrecisionScatterSvg(summary){
     for(var i=0;i<usedY.length;i++){ if(Math.abs(usedY[i]-y)<16)return; }
     usedY.push(y);yTicks.push(v);
   });
+  // 横軸の目盛りもトリミング後の範囲から生成する（両端を優先し、重なる中間目盛りは間引く）
+  var xSpan=xHi-xLo, xStep=xSpan<=60?10:20;
+  var xCands=[xLo,xHi];
+  for(var xv=Math.ceil((xLo+1)/xStep)*xStep; xv<xHi; xv+=xStep) xCands.push(xv);
+  var xTicks=[],usedX=[];
+  xCands.forEach(function(v){
+    var x=px(v);
+    for(var i=0;i<usedX.length;i++){ if(Math.abs(usedX[i]-x)<26)return; }
+    usedX.push(x);xTicks.push(v);
+  });
+  xTicks.sort(function(a,b){return a-b;});
   // 未達ゾーン（$500ライン以下）だけを薄く赤で示す。達成側はベタ塗りせず、細いグリッド線だけで高さを読ませる
   var bands='<rect x="'+padL+'" y="'+lineY+'" width="'+plotW+'" height="'+(padT+plotH-lineY)+'" fill="rgba(255,90,90,.055)"></rect>';
   var grid=yTicks.map(function(v){
     if(v===goalMin)return '';
     return '<line x1="'+padL+'" y1="'+py(v)+'" x2="'+(padL+plotW)+'" y2="'+py(v)+'" stroke="rgba(255,255,255,.055)" stroke-width="1"></line>';
   }).join('')
-    +[50].map(function(v){
+    +xTicks.map(function(v){
+      if(v===xLo)return '';   // 左端は軸線と重なるので描かない
       return '<line x1="'+px(v)+'" y1="'+padT+'" x2="'+px(v)+'" y2="'+(padT+plotH)+'" stroke="rgba(255,255,255,.045)" stroke-width="1"></line>';
     }).join('');
   var lines='<line x1="'+padL+'" y1="'+lineY+'" x2="'+(padL+plotW)+'" y2="'+lineY+'" stroke="#ff5a5a" stroke-width="1.1" stroke-dasharray="4,3" stroke-opacity=".75"></line>'
     +'<line x1="'+padL+'" y1="'+padT+'" x2="'+padL+'" y2="'+(padT+plotH)+'" stroke="rgba(255,255,255,.12)" stroke-width="1"></line>';
-  var axis=[0,50,100].map(function(v){
+  var axis=xTicks.map(function(v){
     return '<text x="'+px(v)+'" y="'+(svgH-9)+'" font-size="8.5" fill="var(--t3)" text-anchor="middle">'+v+'</text>';
   }).join('')
     +yTicks.map(function(v){
@@ -1909,7 +1929,7 @@ function buildPrecisionScatterSvg(summary){
     var r=sxy/Math.sqrt(sxx*syy);                    // 相関係数（-1〜1）
     function yAt(x){return slope*x+intercept;}
     // 直線がプロット枠から出る場合は、枠内に収まる区間だけを描く
-    var x0=0,x1=100,y0=yAt(0),y1=yAt(100);
+    var x0=xLo,x1=xHi,y0=yAt(xLo),y1=yAt(xHi);
     function clampSeg(){
       [[capTop,'>'],[capBottom,'<']].forEach(function(lim){
         var v=lim[0],over=lim[1];
@@ -1920,8 +1940,8 @@ function buildPrecisionScatterSvg(summary){
       });
     }
     clampSeg();
-    x0=Math.max(0,Math.min(100,x0));x1=Math.max(0,Math.min(100,x1));
-    if(!(isFinite(x0)&&isFinite(x1))||Math.abs(x1-x0)<1)return;
+    x0=Math.max(xLo,Math.min(xHi,x0));x1=Math.max(xLo,Math.min(xHi,x1));
+    if(!(isFinite(x0)&&isFinite(x1))||Math.abs(x1-x0)<(xHi-xLo)*0.02)return;
     trend='<line x1="'+px(x0)+'" y1="'+py(yAt(x0))+'" x2="'+px(x1)+'" y2="'+py(yAt(x1))+'"'
       +' stroke="var(--acc)" stroke-width="1.6" stroke-dasharray="3,3" stroke-linecap="round" stroke-opacity=".95"></line>';
     trendInfo={r:r,up:slope>0};
