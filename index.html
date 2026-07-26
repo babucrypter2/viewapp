@@ -255,7 +255,7 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .prec-def{background:rgba(255,255,255,.028);border:1px solid rgba(255,255,255,.075);border-radius:14px;padding:12px 13px;margin-bottom:12px;}
 .prec-def-t{font-size:9.5px;font-weight:800;color:var(--t3);letter-spacing:.12em;margin-bottom:9px;text-transform:uppercase;}
 .prec-def-row{display:flex;gap:10px;align-items:baseline;margin-bottom:6px;}
-.prec-def-k{flex-shrink:0;min-width:66px;font-size:10.5px;font-weight:800;color:var(--t3);letter-spacing:.04em;}
+.prec-def-k{flex-shrink:0;min-width:74px;font-size:12px;font-weight:800;color:var(--acc);letter-spacing:.02em;}
 .prec-def-v{font-size:12.5px;color:var(--t1);font-weight:600;}
 .prec-def-note{font-size:10.5px;color:var(--t3);margin-top:9px;padding-top:8px;border-top:1px solid rgba(255,255,255,.06);}
 .amt-sub{font-size:9.5px;color:var(--t3);margin-left:4px;font-weight:600;}
@@ -754,8 +754,7 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .tl-task-txt{flex:1;min-width:0;}
 /* タスク行の番号バッジは、チェックボックスの緑と混ざらないようグレー系にする */
 .tl-task-row .tl-num{background:rgba(255,255,255,.1);color:var(--t2);box-shadow:none;font-weight:700;transform:none;}
-.tl-task-row.done .tl-task-txt{opacity:.42;}
-.tl-task-row.done .tl-task-txt .tl-num{opacity:.7;}
+/* チェックしても右側の本文は暗くしない（チェックボックスの緑だけで状態を示す） */
 .tl-head-row{display:flex;align-items:center;justify-content:space-between;gap:8px;}
 .tl-fold-btn{flex-shrink:0;background:rgba(255,255,255,.09);border:1.5px solid rgba(255,255,255,.28);border-radius:8px;padding:5px 10px;font-size:12px;font-weight:800;color:#fff;cursor:pointer;display:flex;align-items:center;gap:4px;white-space:nowrap;}
 .tl-stat{flex-shrink:0;font-size:11.5px;font-weight:700;color:var(--t2);white-space:nowrap;}
@@ -1719,10 +1718,13 @@ function actualPerfItem(p){
   var su=0,sj=0;
   p.results.forEach(function(r){su+=num(r.usd);sj+=num(r.jpy);});
   if(su===0&&sj===0)return null;
-  var burnUsd=burnAmt(p); // 既存のエアドロ実績カードと同じ計算に揃える
-  // 金額は「円換算の合計」に一本化する。$と¥を別々に並べると内訳が合計に見えて誤解のもとになるため
-  var netJpyEq=sj+su*ACHV_FX-burnUsd*ACHV_FX;
-  var netUsdEq=netJpyEq/ACHV_FX; // 削り額（USD）を引いた手残り、USD換算で統一
+  var burnUsd=burnAmt(p);
+  // ¥と$は「同じ受け取りを円建て・ドル建てで見せているだけ」なので足し合わせない（足すと二重計上になる）。
+  // ドル建ての記録があればそれを、無ければ円建てから換算して、獲得額を1つの数値に決める。
+  var grossUsd=(su!==0)?su:(sj!==0?sj/ACHV_FX:0);
+  var grossJpy=(sj!==0)?sj:su*ACHV_FX;
+  var netUsdEq=grossUsd-burnUsd;              // 削り額（$）を引いた手残り。散布図の縦軸はこの値
+  var netJpyEq=grossJpy-burnUsd*ACHV_FX;      // 同じ手残りの円建て表現（実績時給の算出に使用）
   var principal=depShowUsd(p); // 既存の時間加重平均残高
   var type=null,actualRate=null,goalRate=null,achievePct=null;
   if(principal>0){
@@ -1819,12 +1821,15 @@ function buildPrecisionScatterSvg(summary){
   var vals=items.map(function(it){return it.netUsdEq;});
   var maxV=Math.max.apply(null,vals.concat([goalMin]));
   var minV=Math.min.apply(null,vals.concat([0]));
-  var STEPS=[goalMin,goalMin*1.5,goalMin*2,goalMin*3,goalMin*5,goalMin*8,goalMin*12,goalMin*20,goalMin*30,goalMin*50,goalMin*80,goalMin*120,goalMin*200,goalMin*400,goalMin*800,goalMin*1500];
-  var capTop=null;
-  for(var i=0;i<STEPS.length;i++){ if(STEPS[i]>=maxV*1.08){capTop=STEPS[i];break;} }
-  if(capTop==null)capTop=Math.ceil(maxV*1.1/100)*100;
-  capTop=Math.min(capTop,20000); // 縦軸の上限は$20,000まで。それ以上は頭打ちにして描画（上抜けで見づらくなるのを防ぐ）
-  var capBottom=minV<0?-Math.ceil(Math.abs(minV)*1.1/100)*100:0;
+  // 縦軸の上限は結果の最大値に合わせて自動調整（キリのいい値へ切り上げ）。固定キャップにしないので頭打ちで潰れない
+  function niceCeil(v){
+    if(!(v>0))return 100;
+    var mag=Math.pow(10,Math.floor(Math.log(v)/Math.LN10)), n=v/mag;
+    var m=n<=1?1:n<=1.25?1.25:n<=1.5?1.5:n<=2?2:n<=2.5?2.5:n<=3?3:n<=4?4:n<=5?5:n<=6?6:n<=8?8:10;
+    return m*mag;
+  }
+  var capTop=Math.max(niceCeil(maxV*1.05),goalMin*2);
+  var capBottom=minV<0?-niceCeil(Math.abs(minV)*1.1):0;
   var range=capTop-capBottom;
   function px(sc){ return padL+(Math.max(0,Math.min(100,sc))/100)*plotW; }
   function py(v){ var c=Math.max(capBottom,Math.min(capTop,v)); return padT+(1-(c-capBottom)/range)*plotH; }
@@ -1832,14 +1837,17 @@ function buildPrecisionScatterSvg(summary){
   function fmtAxisUsd(v){
     var sign=v<0?'-':'';
     var a=Math.abs(v);
-    if(a>=1000)return sign+'$'+(a/1000>=10?Math.round(a/1000):(Math.round(a/100)/10))+'K';
+    if(a>=1000){
+      var k=Math.round(a/100)/10;                 // 0.1K単位まで保持（12500→12.5K。丸めて13Kにしない）
+      return sign+'$'+(k%1===0?k.toFixed(0):k)+'K';
+    }
     return sign+'$'+Math.round(a);
   }
   // 目盛り候補を「重要な順」に並べ、上から採用しつつ既存ラベルと11px以上離れているものだけ残す。
   // （$500 と $0 と -$500 のように値が近いと、ラベルが物理的に重なって読めなくなるのを防ぐ）
   function niceStep(span){
-    var raw=span/4, mag=Math.pow(10,Math.floor(Math.log(raw)/Math.LN10)), n=raw/mag;
-    return (n>=5?5:n>=2?2:1)*mag;
+    var raw=span/3, mag=Math.pow(10,Math.floor(Math.log(raw)/Math.LN10)), n=raw/mag;
+    return (n>=3?5:n>=1.5?2:1)*mag;
   }
   var cands=[capTop,goalMin];
   var st=niceStep(capTop-capBottom);
@@ -1850,7 +1858,7 @@ function buildPrecisionScatterSvg(summary){
   cands.forEach(function(v){
     if(v>capTop||v<capBottom)return;
     var y=py(v);
-    for(var i=0;i<usedY.length;i++){ if(Math.abs(usedY[i]-y)<11)return; }
+    for(var i=0;i<usedY.length;i++){ if(Math.abs(usedY[i]-y)<16)return; }
     usedY.push(y);yTicks.push(v);
   });
   // 未達ゾーン（$500ライン以下）だけを薄く赤で示す。達成側はベタ塗りせず、細いグリッド線だけで高さを読ませる
