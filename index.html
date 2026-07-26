@@ -1657,9 +1657,8 @@ function actualPerfItem(p){
   var principal=depShowUsd(p); // 既存の時間加重平均残高
   var type,actualRate,goalRate,achievePct;
   if(principal>0){
-    var months=depMonths(p);
-    if(!(months>0))return null;
-    var apr=(netUsdEq/principal)/(months/12)*100;
+    var apr=calcApr(p); // カード上の「年利」バッジと同じ計算式（$のみ・calcApr）に統一。ここで円をさらに足すと二重計上になるため使わない
+    if(apr==null)return null;
     type='invest';actualRate=apr;goalRate=W.goalApr||20;
     achievePct=goalRate>0?(apr/goalRate*100):0;
   }else{
