@@ -242,8 +242,15 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .prec-legend{display:flex;flex-wrap:wrap;gap:8px 14px;margin:10px 2px 4px;}
 .prec-leg-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--t2);font-weight:700;}
 .prec-leg-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
-.prec-pop{margin-top:2px;background:var(--card);border:1.5px solid var(--acc);border-radius:10px;padding:9px 10px;animation:scPopIn .15s ease-out;}
+.prec-pop{margin-top:2px;background:linear-gradient(160deg,var(--card2),var(--card));border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:10px 11px;animation:scPopIn .15s ease-out;box-shadow:0 4px 16px rgba(0,0,0,.28);}
 .prec-pop-mid{font-size:12px;color:var(--t2);font-weight:700;margin-bottom:6px;}
+.pp-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.pp-score{flex-shrink:0;background:linear-gradient(135deg,#0f7a52,#0a5c3d);color:#fff;font-size:13px;font-weight:900;border-radius:7px;padding:2px 8px;box-shadow:0 1px 5px rgba(15,122,82,.4);}
+.pp-name{font-size:13px;font-weight:800;color:var(--t1);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.pp-bottom{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.pp-amt{font-size:12.5px;font-weight:700;color:var(--t2);}
+.pp-btn{background:transparent;color:#3ddc86;border:1.3px solid rgba(61,220,134,.55);border-radius:20px;padding:6px 12px;font-size:12.5px;font-weight:800;cursor:pointer;white-space:nowrap;}
+.pp-btn:active{background:rgba(61,220,134,.15);}
 .prec-def{background:var(--card2);border:1px solid var(--bb);border-radius:11px;padding:11px 12px;margin-bottom:10px;}
 .prec-def-t{font-size:11px;font-weight:800;color:var(--t3);letter-spacing:.05em;margin-bottom:7px;}
 .prec-def-row{display:flex;gap:8px;align-items:baseline;margin-bottom:5px;}
@@ -730,6 +737,14 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .strategy-bar.fold-closed>.detail-h{margin-bottom:0;border-bottom:none;border-radius:13px;}
 .strategy-txt{font-size:12px;color:var(--t1);line-height:1.45;white-space:pre-wrap;word-break:break-word;}
 .tl-body{font-size:12px;color:var(--t1);line-height:1.8;white-space:pre-wrap;word-break:break-word;margin-top:10px;}
+.tl-line{min-height:1.8em;}
+.tl-blank{height:8px;}
+.tl-task-row{display:flex;align-items:flex-start;gap:8px;padding:5px 0;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+.tl-check{flex-shrink:0;width:19px;height:19px;margin-top:1px;appearance:none;-webkit-appearance:none;border-radius:6px;border:1.5px solid var(--bb);background:var(--card2);cursor:pointer;position:relative;}
+.tl-check:checked{background:linear-gradient(135deg,#0f7a52,#0a5c3d);border-color:#0f7a52;}
+.tl-check:checked::after{content:'';position:absolute;left:5px;top:1px;width:5px;height:9px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg);}
+.tl-task-txt{flex:1;min-width:0;}
+.tl-task-row.done .tl-task-txt{opacity:.5;text-decoration:line-through;text-decoration-color:var(--t3);}
 .tl-head-row{display:flex;align-items:center;justify-content:space-between;gap:8px;}
 .tl-fold-btn{flex-shrink:0;background:rgba(255,255,255,.09);border:1.5px solid rgba(255,255,255,.28);border-radius:8px;padding:5px 10px;font-size:12px;font-weight:800;color:#fff;cursor:pointer;display:flex;align-items:center;gap:4px;white-space:nowrap;}
 .tl-stat{flex-shrink:0;font-size:11.5px;font-weight:700;color:var(--t2);white-space:nowrap;}
@@ -1242,6 +1257,49 @@ function renderTaskListHtml(raw){
   out+=linkifyMemo(raw.slice(last));
   return out;
 }
+// ── タスク日課のチェックボックス（毎日0時に自動リセット。閲覧者本人の「やったか」記録用、端末内保存） ──
+var TASK_CHECK_KEY='babuTaskCheckV1';
+function taskCheckToday(){
+  var d=new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function loadTaskChecks(){
+  try{
+    var raw=localStorage.getItem(TASK_CHECK_KEY);
+    var obj=raw?JSON.parse(raw):null;
+    if(!obj||obj.date!==taskCheckToday())return {date:taskCheckToday(),done:{}}; // 日付が変わっていれば自動リセット
+    return obj;
+  }catch(e){ return {date:taskCheckToday(),done:{}}; }
+}
+function saveTaskChecks(st){
+  try{ localStorage.setItem(TASK_CHECK_KEY,JSON.stringify(st)); }catch(e){}
+}
+function toggleTaskCheck(n,el){
+  var st=loadTaskChecks();
+  if(el.checked)st.done[n]=true; else delete st.done[n];
+  saveTaskChecks(st);
+  var row=el.closest('.tl-task-row');
+  if(row)row.classList.toggle('done',!!el.checked);
+}
+// 行ごとに、番号（1️⃣〜🔟）で始まる行だけチェックボックス付きの行として描画する
+function renderTaskListWithChecks(raw){
+  if(!raw)return '';
+  var st=loadTaskChecks();
+  var lines=String(raw).split(/\r?\n/);
+  return lines.map(function(line){
+    var m=line.match(/^(\s*)([0-9]\uFE0F?\u20E3|\uD83D\uDD1F)/);
+    if(m){
+      var n=/\uD83D\uDD1F/.test(m[2])?10:parseInt(m[2],10);
+      var checked=!!st.done[n];
+      return '<label class="tl-task-row'+(checked?' done':'')+'">'
+        +'<input type="checkbox" class="tl-check" '+(checked?'checked':'')+' onclick="event.stopPropagation();" onchange="toggleTaskCheck('+n+',this)">'
+        +'<span class="tl-task-txt">'+renderTaskListHtml(line)+'</span>'
+        +'</label>';
+    }
+    if(!line.trim())return '<div class="tl-blank"></div>';
+    return '<div class="tl-line">'+renderTaskListHtml(line)+'</div>';
+  }).join('');
+}
 // ─────────── カレンダー（閲覧版：読み取り専用） ───────────
 var calYear, calMonth; // 表示中の年月（初期値は起動時の実際の年月。ハードコードではなく毎回 new Date() から算出）
 (function(){ var t=new Date(); calYear=t.getFullYear(); calMonth=t.getMonth(); })();
@@ -1384,7 +1442,7 @@ function renderTaskList(){
     +'</span>'
     +'<button class="tl-fold-btn'+(taskListFoldOpen?' open':'')+'">'+(taskListFoldOpen?'閉じる':'詳細を開く')+'<span class="dt-arrow">▼</span></button>'
     +'</div>'
-    +'<div class="tl-body" id="tl-fold-body" style="display:'+(taskListFoldOpen?'block':'none')+';">'+renderTaskListHtml(TASKLIST)+'</div>';
+    +'<div class="tl-body" id="tl-fold-body" style="display:'+(taskListFoldOpen?'block':'none')+';">'+renderTaskListWithChecks(TASKLIST)+'</div>';
   el.classList.toggle('fold-closed',!taskListFoldOpen); // 閉時はヘッダー帯だけの見た目に
   el.style.display='block';
 }
@@ -1754,6 +1812,7 @@ function buildPrecisionScatterSvg(summary){
   var capTop=null;
   for(var i=0;i<STEPS.length;i++){ if(STEPS[i]>=maxV*1.08){capTop=STEPS[i];break;} }
   if(capTop==null)capTop=Math.ceil(maxV*1.1/100)*100;
+  capTop=Math.min(capTop,20000); // 縦軸の上限は$20,000まで。それ以上は頭打ちにして描画（上抜けで見づらくなるのを防ぐ）
   var capBottom=minV<0?-Math.ceil(Math.abs(minV)*1.1/100)*100:0;
   var range=capTop-capBottom;
   function px(sc){ return padL+(Math.max(0,Math.min(100,sc))/100)*plotW; }
@@ -1789,9 +1848,9 @@ function buildPrecisionScatterSvg(summary){
     +'<svg viewBox="0 0 '+svgW+' '+svgH+'" class="prec-scatter-svg">'+bands+lines+axis+pts+'</svg>'
     +'<div class="prec-axis-x">→ 期待値スコア</div>'
     +'<div class="prec-pop" id="prec-pop" style="display:none;">'
-    +'<div class="sc-pop-row"><span class="sc-pop-score" id="prec-pop-score"></span><span class="sc-pop-name" id="prec-pop-name"></span></div>'
+    +'<div class="pp-row"><span class="pp-score" id="prec-pop-score"></span><span class="pp-name" id="prec-pop-name"></span></div>'
     +'<div class="prec-pop-mid" id="prec-pop-mid"></div>'
-    +'<div class="sc-pop-bottom"><span class="sc-pop-amt" id="prec-pop-amt"></span><button class="sc-pop-btn" id="prec-pop-btn">詳細カードへ ›</button></div>'
+    +'<div class="pp-bottom"><span class="pp-amt" id="prec-pop-amt"></span><button class="pp-btn" id="prec-pop-btn">詳細カードへ ›</button></div>'
     +'</div>'
     +'</div>';
 }
@@ -1902,7 +1961,7 @@ function renderScoreCheck(){
   // ── 見出し：予測精度率（エアドロ実績カードの「勝率」と同じ、控えめな1行インライン表示）──
   var precRateHtml='';
   if(prec){
-    precRateHtml='<span class="fa-total-inline">予測精度率：'+prec.matchRate+'%（'+prec.q.green.length+'/'+prec.total+'件）</span>';
+    precRateHtml='<span class="fa-total-inline">'+prec.matchRate+'%（'+prec.q.green.length+'/'+prec.total+'件）</span>';
   }
   var expandHtml='';
   if(prec){
@@ -1930,7 +1989,7 @@ function renderScoreCheck(){
           }).join('')
           +'</div>';
       }
-      expandHtml+='<div class="fac-wrap"><div class="fac-hdr">何が当たって、何が外れたか</div>'
+      expandHtml+='<div class="fac-wrap">'
         +'<div class="fac-grid">'+facBox('稼げてた案件の特徴','good',hit)+facBox('稼げない案件の特徴','bad',mis)+'</div>'
         +'<div class="fac-note">達成'+fac.winN+'件と未達'+fac.loseN+'件で、各項目が○だった割合の差（寄与率）。件数が少ないうちは参考値です</div>'
         +'</div>';
@@ -3497,6 +3556,13 @@ document.addEventListener('visibilitychange',function(){ if(!document.hidden)ref
 window.addEventListener('focus',function(){ refreshFromCloud(); });
 window.addEventListener('pageshow',function(e){ if(e.persisted)refreshFromCloud(); }); // bfcache復帰
 window.addEventListener('online',function(){ refreshFromCloud(); });
+
+// 開きっぱなしでも、日付が変わった瞬間にタスク日課のチェックを自動リセットする
+var _taskCheckDate=taskCheckToday();
+setInterval(function(){
+  var d=taskCheckToday();
+  if(d!==_taskCheckDate){ _taskCheckDate=d; renderTaskList(); }
+},30000);
 
 // 開きっぱなしでも反映されるよう、表示中は一定間隔でチェック（非表示中は内部でスキップ）
 setInterval(function(){ refreshFromCloud(); },30000);
