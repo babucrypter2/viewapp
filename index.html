@@ -1753,6 +1753,18 @@ function workHours(p){
   var d=workDaysOf(p), m=num(p&&p.workMin);
   return (d>0&&m>0)?(m*d)/60:0;
 }
+// 無料案件のカード表示用：「5分/D · 2ヶ月」のような工数表記。工数が未入力なら空
+function workEffortTxt(p){
+  var m=num(p&&p.workMin);
+  if(!(m>0))return '';
+  var d=workDaysOf(p),per='';
+  if(d>0){
+    var mo=d/30.44;
+    if(mo>=1){var r=Math.round(mo*10)/10;per=(r%1===0?String(Math.round(r)):r.toFixed(1))+'ヶ月';}
+    else per=d+'日';
+  }
+  return m+'分/D'+(per?' · '+per:'');
+}
 function actualPerfItem(p){
   if(!p.endDate||!Array.isArray(p.results)||!p.results.length)return null;
   var su=0,sj=0;
@@ -3268,6 +3280,10 @@ function renderList(id,mode){
     var burn_=burnAmt(p);
     var stakeVal=depShowUsd(p); // 引き出しがあれば平均残高、なければ現在残高
     var stakeHtml=stakeVal>0?'<span class="pj-dv">'+(hasWithdrawal(p)?'平均':'')+fmtU(stakeVal)+(perT_?' · '+perT_:'')+'</span>':'<span style="color:var(--t3);">—</span>';
+    // 無料案件（デポジット無し）は仕込み額の代わりに工数を見せる。金額が無い案件で「—」が並ぶのを避ける
+    var effTxt_=(stakeVal>0)?'':workEffortTxt(p);
+    var stakeLbl_=effTxt_?'工数：':'仕込み額：';
+    if(effTxt_)stakeHtml='<span class="pj-dv">'+esc(effTxt_)+'</span>';
 
     // ALL SM avatars — no truncation
     var smRank={g:0,m:1,b:2};
@@ -3285,7 +3301,7 @@ function renderList(id,mode){
       +'<div class="pj-inf">'
       +'<div class="pj-nmr"><span class="pj-name">'+esc(p.name)+'</span>'+catTag(p.cat)+(p.endDate?'<span class="ended-badge">🏁仕込み終了</span>':'')+projBadge(p)+'</div>'
       +'<div class="pj-meta1"><span class="pj-lbl-row">仕込みLv：</span><span class="pj-stars">'+starsHtml(p.lv||0)+'</span></div>'
-      +'<div class="pj-meta2"><span class="pj-lbl-row">仕込み額：</span> '+stakeHtml+'</div>'
+      +'<div class="pj-meta2"><span class="pj-lbl-row">'+stakeLbl_+'</span> '+stakeHtml+'</div>'
       +(burn_>0?'<div class="pj-meta3"><span class="pj-lbl-row">削り額：</span> <span class="pj-dv pj-burn">'+fmtU(burn_)+'</span></div>':'')
       +(p.tge&&!p.earlyStart?'<div class="pj-meta3"><span class="pj-lbl-row">TGE予定：</span> <span class="pj-dv">'+tgeSym(p.tge)+'</span></div>':'')
       +'</div>'
