@@ -296,14 +296,14 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .fac-note{font-size:10px;color:var(--t3);margin-top:9px;line-height:1.6;padding-top:9px;border-top:1px solid rgba(255,255,255,.06);}
 /* 自動算出である旨の注釈（本人の見解と混同されないように先頭で明示する） */
 .fac-disc{font-size:10px;color:var(--t3);line-height:1.55;margin-bottom:11px;padding:7px 9px;border-radius:8px;background:rgba(255,255,255,.04);border-left:2px solid rgba(255,255,255,.18);}
-/* 強者ごとの的中率 */
-.fac-box.people .fac-t{color:var(--acc);}
-.fac-box.people .fac-bar>i.up{background:linear-gradient(90deg,rgba(61,220,134,.45),#3ddc86);}
-.fac-box.people .fac-bar>i.flat{background:rgba(255,255,255,.22);}
-.fac-box.people .fac-v.up{color:#3ddc86;}
-.fac-box.people .fac-v.flat{color:var(--t2);}
-.fac-n{display:block;font-size:8.5px;font-weight:700;color:var(--t3);letter-spacing:.02em;margin-top:1px;}
-.fac-sub{font-size:9.5px;color:var(--t3);line-height:1.55;margin-top:8px;}
+/* 「強者の言及が多い」行の直下に添える、最も参考になった1人の内訳 */
+.fac-detail{margin:2px 0 8px;padding:8px 10px;border-radius:9px;background:rgba(74,144,232,.07);border-left:2px solid var(--acc);}
+.fac-detail-hd{font-size:11px;font-weight:800;color:var(--t1);line-height:1.4;}
+.fac-detail-hn{font-size:9.5px;font-weight:700;color:var(--acc);margin-left:5px;}
+.fac-detail-ms{display:flex;gap:14px;margin-top:6px;flex-wrap:wrap;}
+.fac-detail-m{font-size:9.5px;color:var(--t3);font-weight:700;line-height:1.35;}
+.fac-detail-m b{display:block;font-size:13px;font-weight:900;color:#3ddc86;font-variant-numeric:tabular-nums;}
+.fac-detail-m i{display:block;font-style:normal;font-size:8.5px;color:var(--t3);opacity:.75;}
 .sc-dot.sel{stroke:#fff;stroke-width:2.5;r:7;}
 .sc-pop{margin-top:8px;background:var(--card);border:1.5px solid var(--acc);border-radius:10px;padding:9px 10px;animation:scPopIn .15s ease-out;}
 @keyframes scPopIn{from{opacity:0;transform:translateY(-4px);}to{opacity:1;transform:translateY(0);}}
@@ -1838,19 +1838,38 @@ function precisionFactors(){
   }).filter(function(r){return r.diff!==0;});
   rows.sort(function(a,b){return b.diff-a.diff;});
 
-  // ── 強者ごとの的中率 ──
-  // 「その人が○を付けた案件のうち、実際に稼げた割合」。全体の勝率より高い人ほど参考になる。
-  var baseRate=Math.round(win.length/all.length*100);
-  var people=SP.map(function(q,j){
+  // ── 強者ごとの成績から「最も参考になった1人」を選ぶ ──
+  // 的中率だけで並べると1〜2件しか言及していない人が100%で上位に来てしまうため、
+  // ①稼いだ金額の大きさ ②的中の安定性 ③外れ案件を避けられたか、の3点を合成して評価する。
+  var amtByPid={};
+  prec.items.forEach(function(it){amtByPid[it.pid]=it.netUsdEq;});
+  var stats=SP.map(function(q,j){
     var marked=all.filter(function(p){return (p.sm||[])[j]==='g';});
-    if(!marked.length)return null;
+    if(marked.length<2)return null;                 // 言及1件だけでは偶然と区別できないので対象外
     var hit=marked.filter(function(p){return win.indexOf(p)>=0;}).length;
-    return {name:(q.name||q.handle||'?'),handle:(q.handle||''),
-            n:marked.length,hit:hit,rate:Math.round(hit/marked.length*100)};
+    var avgAmt=marked.reduce(function(a,p){return a+(amtByPid[p.id]||0);},0)/marked.length;
+    var avoided=lose.filter(function(p){return (p.sm||[])[j]!=='g';}).length;
+    var nm=(q.name||'').trim(), hd=(q.handle||'').trim();
+    if(!nm&&!hd)return null;                        // 匿名（？表示）の人は名指しできないので対象外
+    return {label:nm||('@'+hd), handle:hd, n:marked.length, hit:hit,
+            hitRate:hit/marked.length, avgAmt:avgAmt,
+            avoided:avoided, loseN:lose.length,
+            avoidRate:lose.length?avoided/lose.length:0};
   }).filter(Boolean);
-  people.sort(function(a,b){return (b.rate-a.rate)||(b.n-a.n);});
+  var topPerson=null;
+  if(stats.length){
+    var maxAmt=Math.max.apply(null,stats.map(function(s){return Math.max(0,s.avgAmt);}).concat([1]));
+    stats.forEach(function(s){
+      var amtN=Math.max(0,s.avgAmt)/maxAmt;                       // 金額は最大の人を1として正規化
+      var conf=Math.min(1,s.n/Math.max(3,Math.round(all.length*0.5))); // 母数が少ない人は割り引く
+      s.score=(s.hitRate*0.40+amtN*0.35+s.avoidRate*0.25)*(0.6+0.4*conf);
+    });
+    stats.sort(function(a,b){return b.score-a.score;});
+    topPerson=stats[0];
+  }
 
-  return {rows:rows,winN:win.length,loseN:lose.length,people:people,baseRate:baseRate,total:all.length};
+  return {rows:rows,winN:win.length,loseN:lose.length,topPerson:topPerson,
+          baseRate:Math.round(win.length/all.length*100),total:all.length};
 }
 // 仕込み期間（日数）。開始〜終了が揃っている案件のみ。要因分析の中央値スプリットに使う
 function projDurDays(p){
@@ -2162,10 +2181,30 @@ function renderScoreCheck(){
       +'</div>';
     // ③ 要因分析（達成した案件と未達の案件で、各項目の○率の差を見る）
     var fac=precisionFactors();
-    if(fac&&fac.rows.length){
+    if(fac&&(fac.rows.length||fac.topPerson)){
       var hit=fac.rows.filter(function(r){return r.diff>0;}).slice(0,5);
       var mis=fac.rows.filter(function(r){return r.diff<0;}).slice(-5).reverse();
       var facMax=Math.max.apply(null,fac.rows.map(function(r){return Math.abs(r.diff);}).concat([1]));
+      // 最も参考になった1人の内訳。原則「強者の言及が多い」の行の直下に添える。
+      // 寄与率0でその行が除外された場合は情報が消えないよう、稼げてた側の末尾に回す。
+      var smKey='強者の言及';
+      var smRowShown=hit.concat(mis).some(function(r){return r.k.indexOf(smKey)===0;});
+      function topPersonHtml(){
+        var tp=fac.topPerson;
+        if(!tp)return '';
+        function amt(v){
+          var s=v<0?'-':'',a=Math.abs(v);
+          if(a>=1000){var k=Math.round(a/100)/10;return s+'$'+(k%1===0?k.toFixed(0):k)+'K';}
+          return s+'$'+Math.round(a);
+        }
+        return '<div class="fac-detail">'
+          +'<div class="fac-detail-hd">'+esc(tp.label)+(tp.handle?'<span class="fac-detail-hn">@'+esc(tp.handle)+'</span>':'')+' が最も参考になりました</div>'
+          +'<div class="fac-detail-ms">'
+          +'<span class="fac-detail-m"><b>'+Math.round(tp.hitRate*100)+'%</b>的中<i>'+tp.hit+'/'+tp.n+'件</i></span>'
+          +'<span class="fac-detail-m"><b>'+amt(tp.avgAmt)+'</b>平均<i>1件あたり</i></span>'
+          +'<span class="fac-detail-m"><b>'+Math.round(tp.avoidRate*100)+'%</b>回避<i>'+tp.avoided+'/'+tp.loseN+'件</i></span>'
+          +'</div></div>';
+      }
       function facBox(title,cls,list){
         if(!list.length)return '';
         return '<div class="fac-box '+cls+'">'
@@ -2176,30 +2215,17 @@ function renderScoreCheck(){
               +'<span class="fac-k">'+r.k+'</span>'
               +'<span class="fac-bar"><i style="width:'+Math.round(mag/facMax*100)+'%;"></i></span>'
               +'<span class="fac-v">'+mag+'<span class="fac-pct">%</span></span>'
-              +'</div>';
+              +'</div>'
+              +(r.k.indexOf(smKey)===0?topPersonHtml():'');
           }).join('')
           +'</div>';
       }
-      // ── 強者ごとの的中率：その人が○を付けた案件のうち、実際に稼げた割合 ──
-      var peopleHtml='';
-      if(fac.people&&fac.people.length){
-        peopleHtml='<div class="fac-box people">'
-          +'<div class="fac-head"><span class="fac-t">誰の言及だと稼げたか</span><span class="fac-unit">的中率</span></div>'
-          +fac.people.map(function(pp){
-            var above=pp.rate>fac.baseRate;   // 全体の勝率を上回っていれば参考になる人
-            return '<div class="fac-row">'
-              +'<span class="fac-k">'+esc(pp.name)+'</span>'
-              +'<span class="fac-bar"><i class="'+(above?'up':'flat')+'" style="width:'+pp.rate+'%;"></i></span>'
-              +'<span class="fac-v '+(above?'up':'flat')+'">'+pp.rate+'<span class="fac-pct">%</span>'
-              +'<span class="fac-n">'+pp.hit+'/'+pp.n+'</span></span>'
-              +'</div>';
-          }).join('')
-          +'<div class="fac-sub">全体の勝率は '+fac.baseRate+'%（'+fac.winN+'/'+fac.total+'件）。これを上回る人ほど参考になります</div>'
-          +'</div>';
-      }
+      // 「強者の言及が多い」の行が寄与率0で除外された場合は、単独の枠として内訳だけを見せる
+      var boxesHtml=facBox('稼げてた案件の特徴','good',hit)+facBox('稼げない案件の特徴','bad',mis);
+      if(!smRowShown&&fac.topPerson)boxesHtml+='<div class="fac-box good">'+topPersonHtml()+'</div>';
       expandHtml+='<div class="fac-wrap">'
         +'<div class="fac-disc">下記はツールが自動算出したもので、ばぶ本人の見解ではありません</div>'
-        +'<div class="fac-grid">'+facBox('稼げてた案件の特徴','good',hit)+facBox('稼げない案件の特徴','bad',mis)+peopleHtml+'</div>'
+        +'<div class="fac-grid">'+boxesHtml+'</div>'
         +'<div class="fac-note">達成'+fac.winN+'件と未達'+fac.loseN+'件で、各項目が○だった割合の差（寄与率）。件数が少ないうちは参考値です</div>'
         +'</div>';
     }
