@@ -1839,31 +1839,71 @@ function precisionFactors(){
   rows.sort(function(a,b){return b.diff-a.diff;});
 
   // ── 強者ごとの成績から「最も参考になった1人」を選ぶ ──
-  // 的中率だけで並べると1〜2件しか言及していない人が100%で上位に来てしまうため、
-  // ①稼いだ金額の大きさ ②的中の安定性 ③外れ案件を避けられたか、の3点を合成して評価する。
-  var amtByPid={};
-  prec.items.forEach(function(it){amtByPid[it.pid]=it.netUsdEq;});
+  // 単純な的中率（○を付けた案件の当たり率）だけだと次の欠陥がある：
+  //   ・○を1件だけ付けて当てた人が100%になり、母数の多い人に勝ってしまう
+  //   ・当たり案件を取りこぼしても減点されない（Citreaを当てた人と外した人が同じ評価になる）
+  //   ・△（弱い言及）が完全に無視され、✕と同じ扱いになる
+  // そこで △を部分点(0.4) として扱ったうえで、次の3軸を合成する。
+  //   ① 精度：言及した案件が実際に当たりだったか
+  //   ② 網羅：当たり案件をどれだけ拾えたか（取りこぼしの少なさ）
+  //   ③ 回避：外れ案件に言及していないか
+  // さらに「当たりの大きさ」は獲得額と年利（目標達成率）の両方で重み付けする。
+  var infoByPid={};
+  prec.items.forEach(function(it){infoByPid[it.pid]=it;});
+  var gMin=num(W.goalMinUsd||400)||400;
+  var maxAmt=Math.max.apply(null,all.map(function(p){
+    var it=infoByPid[p.id];return it?Math.max(0,it.netUsdEq):0;
+  }).concat([gMin]));
+  // 案件ごとの「価値」を0〜1で表す。桁違いの1件に全体が引きずられないよう金額は対数で圧縮する
+  function projValue(p){
+    var it=infoByPid[p.id];
+    if(!it)return 0;
+    var amtN=Math.log(1+Math.max(0,it.netUsdEq)/gMin)/Math.log(1+maxAmt/gMin);
+    // 年利・時給の目標達成率。200%で頭打ち。算出できない案件は緑/赤から控えめに補う
+    var achN=(it.achievePct!=null)?Math.min(1,it.achievePct/200):(precisionIsGreen(it)?0.6:0.15);
+    return Math.max(0,Math.min(1,0.6*amtN+0.4*achN));
+  }
+  var vals={},totalWinV=0;
+  all.forEach(function(p){
+    var v=projValue(p);vals[p.id]=v;
+    if(win.indexOf(p)>=0)totalWinV+=v;
+  });
   var stats=SP.map(function(q,j){
-    var marked=all.filter(function(p){return (p.sm||[])[j]==='g';});
-    if(marked.length<2)return null;                 // 言及1件だけでは偶然と区別できないので対象外
-    var hit=marked.filter(function(p){return win.indexOf(p)>=0;}).length;
-    var avgAmt=marked.reduce(function(a,p){return a+(amtByPid[p.id]||0);},0)/marked.length;
-    var avoided=lose.filter(function(p){return (p.sm||[])[j]!=='g';}).length;
     var nm=(q.name||'').trim(), hd=(q.handle||'').trim();
-    if(!nm&&!hd)return null;                        // 匿名（？表示）の人は名指しできないので対象外
-    return {label:nm||('@'+hd), handle:hd, n:marked.length, hit:hit,
-            hitRate:hit/marked.length, avgAmt:avgAmt,
-            avoided:avoided, loseN:lose.length,
-            avoidRate:lose.length?avoided/lose.length:0};
+    if(!nm&&!hd)return null;                       // 匿名の人は名指しできないので対象外
+    var w={},wsum=0;
+    all.forEach(function(p){
+      var mk=(p.sm||[])[j];
+      var s=(mk==='g')?1:(mk==='m')?0.4:0;         // ○=1.0／△=0.4／✕・未設定=0
+      w[p.id]=s;wsum+=s;
+    });
+    if(wsum<1)return null;                          // ○1件ぶんに満たない言及量では評価できない
+    // ①精度：言及したものが当たりだったか。ここは「当たり/外れ」の二値で測る。
+    //   価値の加重平均にすると、小さい当たりを拾った人が減点され、大型だけつまむ人が有利になってしまうため。
+    var precisionV=all.reduce(function(a,p){
+      return a+w[p.id]*(win.indexOf(p)>=0?1:0);
+    },0)/wsum;
+    // ②網羅：当たりの「価値」をどれだけ拾えたか。金額と年利の大きさはここで効かせる。
+    var recallV=totalWinV>0?win.reduce(function(a,p){return a+w[p.id]*vals[p.id];},0)/totalWinV:0;
+    // ③回避：外れ案件にどれだけ言及せずに済んだか
+    var avoidV=lose.length?(1-lose.reduce(function(a,p){return a+w[p.id];},0)/lose.length):1;
+    // ── 表示用の実数（スコアとは別に、人が読んで分かる形で出す）──
+    var mentioned=all.filter(function(p){return w[p.id]>0;});
+    var mentionedWin=mentioned.filter(function(p){return win.indexOf(p)>=0;});
+    var avoidedLose=lose.filter(function(p){return w[p.id]===0;});
+    var amtList=mentionedWin.map(function(p){return (infoByPid[p.id]||{}).netUsdEq||0;});
+    var achList=mentionedWin.map(function(p){return (infoByPid[p.id]||{}).achievePct;})
+                            .filter(function(v){return v!=null;});
+    function avg(a){return a.length?a.reduce(function(x,y){return x+y;},0)/a.length:null;}
+    return {label:nm||('@'+hd),handle:hd,
+      score:0.35*precisionV+0.45*recallV+0.20*avoidV,
+      coverN:mentionedWin.length,winN:win.length,           // 当たりを何件拾えたか
+      precN:mentionedWin.length,mentionN:mentioned.length,  // 言及のうち何件が当たりか
+      avoidedN:avoidedLose.length,loseN:lose.length,
+      avgAmt:avg(amtList),avgAch:avg(achList)};
   }).filter(Boolean);
   var topPerson=null;
   if(stats.length){
-    var maxAmt=Math.max.apply(null,stats.map(function(s){return Math.max(0,s.avgAmt);}).concat([1]));
-    stats.forEach(function(s){
-      var amtN=Math.max(0,s.avgAmt)/maxAmt;                       // 金額は最大の人を1として正規化
-      var conf=Math.min(1,s.n/Math.max(3,Math.round(all.length*0.5))); // 母数が少ない人は割り引く
-      s.score=(s.hitRate*0.40+amtN*0.35+s.avoidRate*0.25)*(0.6+0.4*conf);
-    });
     stats.sort(function(a,b){return b.score-a.score;});
     topPerson=stats[0];
   }
@@ -2193,16 +2233,20 @@ function renderScoreCheck(){
         var tp=fac.topPerson;
         if(!tp)return '';
         function amt(v){
+          if(v==null)return '—';
           var s=v<0?'-':'',a=Math.abs(v);
           if(a>=1000){var k=Math.round(a/100)/10;return s+'$'+(k%1===0?k.toFixed(0):k)+'K';}
           return s+'$'+Math.round(a);
         }
+        function pct(n,d){return d>0?Math.round(n/d*100)+'%':'—';}
         return '<div class="fac-detail">'
           +'<div class="fac-detail-hd">'+esc(tp.label)+(tp.handle?'<span class="fac-detail-hn">@'+esc(tp.handle)+'</span>':'')+' が最も参考になりました</div>'
           +'<div class="fac-detail-ms">'
-          +'<span class="fac-detail-m"><b>'+Math.round(tp.hitRate*100)+'%</b>的中<i>'+tp.hit+'/'+tp.n+'件</i></span>'
-          +'<span class="fac-detail-m"><b>'+amt(tp.avgAmt)+'</b>平均<i>1件あたり</i></span>'
-          +'<span class="fac-detail-m"><b>'+Math.round(tp.avoidRate*100)+'%</b>回避<i>'+tp.avoided+'/'+tp.loseN+'件</i></span>'
+          +'<span class="fac-detail-m"><b>'+pct(tp.coverN,tp.winN)+'</b>当たりを拾えた<i>'+tp.coverN+'/'+tp.winN+'件</i></span>'
+          +'<span class="fac-detail-m"><b>'+pct(tp.precN,tp.mentionN)+'</b>言及の精度<i>'+tp.precN+'/'+tp.mentionN+'件</i></span>'
+          +'<span class="fac-detail-m"><b>'+amt(tp.avgAmt)+'</b>平均額<i>当てた案件</i></span>'
+          +(tp.avgAch!=null?'<span class="fac-detail-m"><b>'+Math.round(tp.avgAch)+'%</b>目標達成率<i>年利・時給</i></span>':'')
+          +'<span class="fac-detail-m"><b>'+pct(tp.avoidedN,tp.loseN)+'</b>外れを回避<i>'+tp.avoidedN+'/'+tp.loseN+'件</i></span>'
           +'</div></div>';
       }
       function facBox(title,cls,list){
