@@ -1736,6 +1736,23 @@ var scFoldOpen=false;
 // ─────── 期待値スコアの精度検証：実績年利／実績時給から目標達成率を算出 ───────
 // デポジットがあれば投資案件（実績年利で判定）、無ければ無料案件（実績時給で判定）。
 // どちらも計算できない（データ不足）場合は null を返す。
+// 無料案件の実施期間（日数）。手入力があればそれを使い、無ければ仕込み開始〜終了の日数で代用する
+function workDaysOf(p){
+  if(!p)return 0;
+  var d=num(p.workDays);
+  if(d>0)return Math.round(d);
+  if(p.startDate&&p.endDate){
+    var t0=new Date(p.startDate+'T00:00:00').getTime();
+    var t1=new Date(p.endDate+'T00:00:00').getTime();
+    if(isFinite(t0)&&isFinite(t1)&&t1>t0)return Math.max(1,Math.round((t1-t0)/86400000));
+  }
+  return 0;
+}
+// 総作業時間（時間）＝ 実施期間（日） × 1日あたりの作業工数（分） ÷ 60
+function workHours(p){
+  var d=workDaysOf(p), m=num(p&&p.workMin);
+  return (d>0&&m>0)?(m*d)/60:0;
+}
 function actualPerfItem(p){
   if(!p.endDate||!Array.isArray(p.results)||!p.results.length)return null;
   var su=0,sj=0;
@@ -1756,9 +1773,9 @@ function actualPerfItem(p){
       type='invest';actualRate=apr;goalRate=W.goalApr||20;
       achievePct=goalRate>0?(apr/goalRate*100):0;
     }
-  }else if(p.workMin>0&&p.startDate){
-    var days=Math.max(1,Math.round((new Date(p.endDate+'T00:00:00')-new Date(p.startDate+'T00:00:00'))/86400000));
-    var hours=(p.workMin*days)/60;
+  }else{
+    // 実績時給＝手残り(円) ÷ 総作業時間。総作業時間は「実施期間 × 1日あたりの作業工数」で求める
+    var hours=workHours(p);
     if(hours>0){
       var hourly=netJpyEq/hours;
       type='free';actualRate=hourly;goalRate=W.goalHourly||5000;
@@ -2710,6 +2727,7 @@ function sanProj(o,spLen){
     quality:sanMark(o.quality),
     pieShare:sanMark3(o.pieShare!==undefined?o.pieShare:o.pie), // パイ・シェア（○△✕／未判断は空のまま。1項目に統合）
     workMin:Math.max(0,num(o.workMin)), // 無料案件の1日あたり作業工数（分）。期待値スコアの精度検証（実績時給の算出）に使用
+    workDays:Math.max(0,Math.round(num(o.workDays))), // 作業を実施した期間（日）。未入力なら仕込み開始〜終了の日数で代用
     tge:(o.tge==='g'||o.tge==='m'||o.tge==='b')?o.tge:'',
     earlyStart:/^\d{4}-\d{2}-\d{2}$/.test(o.earlyStart)?o.earlyStart:null,
     earlyEnd:/^\d{4}-\d{2}-\d{2}$/.test(o.earlyEnd)?o.earlyEnd:null,
