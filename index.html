@@ -294,6 +294,16 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .fac-box.good .fac-v{color:#3ddc86;}
 .fac-box.bad .fac-v{color:#ff8a3c;}
 .fac-note{font-size:10px;color:var(--t3);margin-top:9px;line-height:1.6;padding-top:9px;border-top:1px solid rgba(255,255,255,.06);}
+/* 自動算出である旨の注釈（本人の見解と混同されないように先頭で明示する） */
+.fac-disc{font-size:10px;color:var(--t3);line-height:1.55;margin-bottom:11px;padding:7px 9px;border-radius:8px;background:rgba(255,255,255,.04);border-left:2px solid rgba(255,255,255,.18);}
+/* 強者ごとの的中率 */
+.fac-box.people .fac-t{color:var(--acc);}
+.fac-box.people .fac-bar>i.up{background:linear-gradient(90deg,rgba(61,220,134,.45),#3ddc86);}
+.fac-box.people .fac-bar>i.flat{background:rgba(255,255,255,.22);}
+.fac-box.people .fac-v.up{color:#3ddc86;}
+.fac-box.people .fac-v.flat{color:var(--t2);}
+.fac-n{display:block;font-size:8.5px;font-weight:700;color:var(--t3);letter-spacing:.02em;margin-top:1px;}
+.fac-sub{font-size:9.5px;color:var(--t3);line-height:1.55;margin-top:8px;}
 .sc-dot.sel{stroke:#fff;stroke-width:2.5;r:7;}
 .sc-pop{margin-top:8px;background:var(--card);border:1.5px solid var(--acc);border-radius:10px;padding:9px 10px;animation:scPopIn .15s ease-out;}
 @keyframes scPopIn{from{opacity:0;transform:translateY(-4px);}to{opacity:1;transform:translateY(0);}}
@@ -1781,14 +1791,29 @@ function precisionItems(){
 function precisionFactors(){
   var prec=precisionSummary();
   if(!prec||prec.total<3)return null;
-  var win=[],lose=[];
+  var win=[],lose=[],all=[];
   prec.items.forEach(function(it){
     var p=(Array.isArray(PROJ)?PROJ:[]).find(function(x){return x.id===it.pid;});
     if(!p)return;
+    all.push(p);
     (precisionIsGreen(it)?win:lose).push(p);
   });
   if(!win.length||!lose.length)return null;
   function ratio(list,fn){ if(!list.length)return 0; return list.filter(fn).length/list.length; }
+  // 数値項目は「解析対象の中央値」で上下に分ける。固定のしきい値だと案件が増えた時に意味を失うため
+  function med(fn){
+    var vs=all.map(fn).filter(function(v){return typeof v==='number'&&isFinite(v)&&v>0;})
+              .sort(function(a,b){return a-b;});
+    if(vs.length<3)return null;              // データが少なすぎる項目は要因として扱わない
+    if(vs[0]===vs[vs.length-1])return null;  // 全部同じ値なら分類の意味がない
+    var m=Math.floor(vs.length/2);
+    return vs.length%2?vs[m]:(vs[m-1]+vs[m])/2;
+  }
+  var mFund=med(function(p){return num(p.fund);});
+  var mUsr =med(function(p){return num(p.usr);});
+  var mTvl =med(function(p){return num(p.tvl);});
+  var mLv  =med(function(p){return num(p.lv);});
+  var mDur =med(function(p){return projDurDays(p);});
   var defs=[
     {k:'リファ無し',f:function(p){return p.refa==='g';}},
     {k:'低資金向き',f:function(p){return p.low==='g';}},
@@ -1800,12 +1825,40 @@ function precisionFactors(){
       return pts>=smFullAuto()*0.6;
     }}
   ];
+  // 数値から導く要因（中央値以上/以下）。中央値が取れた項目だけ追加する
+  if(mFund!=null)defs.push({k:'調達額が大きい(中央値以上)',f:function(p){return num(p.fund)>=mFund;}});
+  if(mUsr !=null)defs.push({k:'参加者が少ない(中央値以下)',f:function(p){var v=num(p.usr);return v>0&&v<=mUsr;}});
+  if(mTvl !=null)defs.push({k:'TVLが大きい(中央値以上)',f:function(p){return num(p.tvl)>=mTvl;}});
+  if(mLv  !=null)defs.push({k:'仕込みLvが高い(中央値以上)',f:function(p){return num(p.lv)>=mLv;}});
+  if(mDur !=null)defs.push({k:'仕込み期間が長い(中央値以上)',f:function(p){var d=projDurDays(p);return d>0&&d>=mDur;}});
+  defs.push({k:'デポジット案件(無料系でない)',f:function(p){return depShowUsd(p)>0;}});
   var rows=defs.map(function(d){
     var w=ratio(win,d.f), l=ratio(lose,d.f);
     return {k:d.k,diff:Math.round((w-l)*100),winPct:Math.round(w*100),losePct:Math.round(l*100)};
   }).filter(function(r){return r.diff!==0;});
   rows.sort(function(a,b){return b.diff-a.diff;});
-  return {rows:rows,winN:win.length,loseN:lose.length};
+
+  // ── 強者ごとの的中率 ──
+  // 「その人が○を付けた案件のうち、実際に稼げた割合」。全体の勝率より高い人ほど参考になる。
+  var baseRate=Math.round(win.length/all.length*100);
+  var people=SP.map(function(q,j){
+    var marked=all.filter(function(p){return (p.sm||[])[j]==='g';});
+    if(!marked.length)return null;
+    var hit=marked.filter(function(p){return win.indexOf(p)>=0;}).length;
+    return {name:(q.name||q.handle||'?'),handle:(q.handle||''),
+            n:marked.length,hit:hit,rate:Math.round(hit/marked.length*100)};
+  }).filter(Boolean);
+  people.sort(function(a,b){return (b.rate-a.rate)||(b.n-a.n);});
+
+  return {rows:rows,winN:win.length,loseN:lose.length,people:people,baseRate:baseRate,total:all.length};
+}
+// 仕込み期間（日数）。開始〜終了が揃っている案件のみ。要因分析の中央値スプリットに使う
+function projDurDays(p){
+  if(!p||!p.startDate||!p.endDate)return 0;
+  var t0=new Date(p.startDate+'T00:00:00').getTime();
+  var t1=new Date(p.endDate+'T00:00:00').getTime();
+  if(!isFinite(t0)||!isFinite(t1)||!(t1>t0))return 0;
+  return Math.round((t1-t0)/86400000);
 }
 // 緑＝獲得額が最低ライン($400)以上 かつ 期待値達成率が80%超（年利・時給が算出できない案件は金額のみで判定）
 // $400未満は問答無用で赤（未達の条件）。$400以上でも達成率が80%以下なら赤
@@ -2110,8 +2163,8 @@ function renderScoreCheck(){
     // ③ 要因分析（達成した案件と未達の案件で、各項目の○率の差を見る）
     var fac=precisionFactors();
     if(fac&&fac.rows.length){
-      var hit=fac.rows.filter(function(r){return r.diff>0;}).slice(0,4);
-      var mis=fac.rows.filter(function(r){return r.diff<0;}).slice(-4).reverse();
+      var hit=fac.rows.filter(function(r){return r.diff>0;}).slice(0,5);
+      var mis=fac.rows.filter(function(r){return r.diff<0;}).slice(-5).reverse();
       var facMax=Math.max.apply(null,fac.rows.map(function(r){return Math.abs(r.diff);}).concat([1]));
       function facBox(title,cls,list){
         if(!list.length)return '';
@@ -2127,8 +2180,26 @@ function renderScoreCheck(){
           }).join('')
           +'</div>';
       }
+      // ── 強者ごとの的中率：その人が○を付けた案件のうち、実際に稼げた割合 ──
+      var peopleHtml='';
+      if(fac.people&&fac.people.length){
+        peopleHtml='<div class="fac-box people">'
+          +'<div class="fac-head"><span class="fac-t">誰の言及だと稼げたか</span><span class="fac-unit">的中率</span></div>'
+          +fac.people.map(function(pp){
+            var above=pp.rate>fac.baseRate;   // 全体の勝率を上回っていれば参考になる人
+            return '<div class="fac-row">'
+              +'<span class="fac-k">'+esc(pp.name)+'</span>'
+              +'<span class="fac-bar"><i class="'+(above?'up':'flat')+'" style="width:'+pp.rate+'%;"></i></span>'
+              +'<span class="fac-v '+(above?'up':'flat')+'">'+pp.rate+'<span class="fac-pct">%</span>'
+              +'<span class="fac-n">'+pp.hit+'/'+pp.n+'</span></span>'
+              +'</div>';
+          }).join('')
+          +'<div class="fac-sub">全体の勝率は '+fac.baseRate+'%（'+fac.winN+'/'+fac.total+'件）。これを上回る人ほど参考になります</div>'
+          +'</div>';
+      }
       expandHtml+='<div class="fac-wrap">'
-        +'<div class="fac-grid">'+facBox('稼げてた案件の特徴','good',hit)+facBox('稼げない案件の特徴','bad',mis)+'</div>'
+        +'<div class="fac-disc">下記はツールが自動算出したもので、ばぶ本人の見解ではありません</div>'
+        +'<div class="fac-grid">'+facBox('稼げてた案件の特徴','good',hit)+facBox('稼げない案件の特徴','bad',mis)+peopleHtml+'</div>'
         +'<div class="fac-note">達成'+fac.winN+'件と未達'+fac.loseN+'件で、各項目が○だった割合の差（寄与率）。件数が少ないうちは参考値です</div>'
         +'</div>';
     }
