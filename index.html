@@ -2283,7 +2283,7 @@ function renderScoreCheck(){
   el.innerHTML='<div class="set-card-title fa-title-row" style="margin-bottom:'+(scFoldOpen?'10px':'0')+';cursor:pointer;" onclick="toggleScFold()"><span class="dh-i2"><svg class="dh-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"></path><path d="M7 14l4-4 3 3 5-6"></path></svg>期待値スコアの精度</span><span class="fa-title-right">'+precRateHtml+'<button class="tl-fold-btn'+(scFoldOpen?' open':'')+'">'+(scFoldOpen?'閉じる':'詳細')+'<span class="dt-arrow">▼</span></button></span></div>'
     +'<div id="sc-fold-body" style="display:'+(scFoldOpen?'block':'none')+';margin-top:8px;">'
     +expandHtml
-    +'<div class="sc-note">※ スコアは終了時点の凍結値。目標値は設定タブで変更できます</div>'
+    +'<div class="sc-note">※ スコアは常に最新の算出ロジックで再計算しています。目標値は設定タブで変更できます</div>'
     +'</div>';
   el.classList.toggle('fold-closed',!scFoldOpen); // 閉時はヘッダー帯だけの見た目に
   el.style.display='block';
@@ -2775,9 +2775,14 @@ function pieShareHtml(p){
   if(!p.pieShare)return '';
   return '<div class="st-pie">パイ・シェア'+msym(p.pieShare)+'</div>';
 }
+// スコア凍結を使うかどうか。
+// 本来の凍結は「結果を知る前の予想」を残すためのものだが、アルゴリズムを調整している間は
+// 古い基準のスコアが混ざって比較にならないため、既定では使わず常に最新ロジックで再計算する。
+// 過去の凍結データ自体は消さずに保存し続けているので、算出方法が固まったら true に戻せば元の挙動になる。
+var USE_FROZEN_SCORE=false;
 function scoreBreakdown(p){
   // 終了時に凍結したスコアがあれば、それをそのまま使う（配点を後から変えても答え合わせが壊れないように）
-  if(p&&p.frozen&&typeof p.frozen.total==='number'){
+  if(USE_FROZEN_SCORE&&p&&p.frozen&&typeof p.frozen.total==='number'){
     var fz=p.frozen;
     return {total:fz.total, sm:fz.sm||0, eff:fz.eff||0, deduct:fz.deduct||0, smPts:fz.smPts||0, effImputed:!!fz.effImputed, frozen:true};
   }
