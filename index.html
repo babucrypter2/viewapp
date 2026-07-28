@@ -815,6 +815,16 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .tip-a-v b{font-size:15px;font-weight:900;letter-spacing:-.01em;}
 .tip.up .tip-a-v b{color:#3ddc86;}
 .tip.dn .tip-a-v b{color:#ff8a3c;}
+/* タスク日課の完了状況（折りたたみを開かなくても分かるように見出しの直下に出す） */
+.tl-status{display:flex;align-items:center;gap:8px;margin-top:9px;padding:9px 11px;border-radius:10px;
+  font-size:11.5px;font-weight:800;letter-spacing:.02em;line-height:1.35;}
+.tl-status-ico{flex-shrink:0;width:17px;height:17px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-size:11px;font-weight:900;}
+.tl-status-n{margin-left:auto;font-size:10px;font-weight:700;opacity:.8;flex-shrink:0;}
+.tl-status.todo{background:rgba(255,90,90,.11);border:1px solid rgba(255,90,90,.3);color:#ff7b7b;}
+.tl-status.todo .tl-status-ico{background:#ff5a5a;color:#1a1010;}
+.tl-status.done{background:rgba(61,220,134,.1);border:1px solid rgba(61,220,134,.28);color:#3ddc86;}
+.tl-status.done .tl-status-ico{background:#3ddc86;color:#0d1a12;}
 .fold-close{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;margin-top:14px;padding:11px;border-radius:10px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.045);color:var(--t2);font-size:12.5px;font-weight:800;cursor:pointer;letter-spacing:.02em;-webkit-tap-highlight-color:transparent;}
 .fold-close:active{background:rgba(255,255,255,.1);}
 .fold-close .dt-arrow{font-size:9px;opacity:.7;}
@@ -1349,12 +1359,36 @@ function loadTaskChecks(){
 function saveTaskChecks(st){
   try{ localStorage.setItem(TASK_CHECK_KEY,JSON.stringify(st)); }catch(e){}
 }
+// 今日のタスクの完了状況（本文中の番号行を母数とする）
+function taskCheckStatus(){
+  var st=loadTaskChecks(),total=0,done=0;
+  String(TASKLIST||'').split(/\r?\n/).forEach(function(line){
+    var m=line.match(/^(\s*)([0-9]\uFE0F?\u20E3|\uD83D\uDD1F)/);
+    if(!m)return;
+    var n=/\uD83D\uDD1F/.test(m[2])?10:parseInt(m[2],10);
+    total++;if(st.done[n])done++;
+  });
+  return {total:total,done:done,left:total-done};
+}
 function toggleTaskCheck(n,el){
   var st=loadTaskChecks();
   if(el.checked)st.done[n]=true; else delete st.done[n];
   saveTaskChecks(st);
   var row=el.closest('.tl-task-row');
   if(row)row.classList.toggle('done',!!el.checked);
+  updateTaskStatusBar();   // 見出し下の完了状況もその場で更新する
+}
+// 折りたたみを閉じずに済むよう、警告行だけを差し替える
+function updateTaskStatusBar(){
+  var bar=document.querySelector('#tasklist-bar .tl-status');
+  if(!bar)return;
+  var s=taskCheckStatus();
+  if(!s.total)return;
+  var todo=s.left>0;
+  bar.className='tl-status '+(todo?'todo':'done');
+  bar.innerHTML='<span class="tl-status-ico">'+(todo?'!':'✓')+'</span>'
+    +(todo?'タスク未完了案件があります':'本日のタスクは完了しています')
+    +'<span class="tl-status-n">'+(todo?'残り'+s.left+'/'+s.total+'件':s.total+'/'+s.total+'件')+'</span>';
 }
 // 行ごとに、番号（1️⃣〜🔟）で始まる行だけチェックボックス付きの行として描画する
 function renderTaskListWithChecks(raw){
@@ -1510,6 +1544,14 @@ function renderTaskList(){
   if(TASK_COUNT)statBits.push(TASK_COUNT+'件');
   if(TASK_MIN)statBits.push(TASK_MIN+'分/D');
   var statHtml=statBits.length?'<span class="tl-stat">'+statBits.join('　')+'</span>':'';
+  // 折りたたみを開かなくても、今日のタスクが残っているか分かるようにする
+  var st=taskCheckStatus();
+  var statusHtml='';
+  if(st.total>0){
+    statusHtml=st.left>0
+      ? '<div class="tl-status todo"><span class="tl-status-ico">!</span>タスク未完了案件があります<span class="tl-status-n">残り'+st.left+'/'+st.total+'件</span></div>'
+      : '<div class="tl-status done"><span class="tl-status-ico">✓</span>本日のタスクは完了しています<span class="tl-status-n">'+st.total+'/'+st.total+'件</span></div>';
+  }
   el.innerHTML='<div class="detail-h tl-head-row" style="cursor:pointer;" onclick="toggleTaskListFold()">'
     +'<span class="tl-head-left">'
     +'<span class="dh-i"><svg class="dh-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a8 8 0 0 1 16 0"></path><path d="M4 11l4.5 7.5"></path><path d="M20 11l-4.5 7.5"></path><path d="M9.5 11l1 7.5"></path><path d="M14.5 11l-1 7.5"></path><rect x="9.5" y="17.5" width="5" height="3" rx="1"></rect></svg>今のエアドロタスク日課</span>'
@@ -1517,6 +1559,7 @@ function renderTaskList(){
     +'</span>'
     +'<button class="tl-fold-btn'+(taskListFoldOpen?' open':'')+'">'+(taskListFoldOpen?'閉じる':'詳細を開く')+'<span class="dt-arrow">▼</span></button>'
     +'</div>'
+    +statusHtml
     +'<div class="tl-body" id="tl-fold-body" style="display:'+(taskListFoldOpen?'block':'none')+';">'+renderTaskListWithChecks(TASKLIST)+'<button class="fold-close" onclick="event.stopPropagation();toggleTaskListFold()">閉じる<span class="dt-arrow">▲</span></button></div>';
   el.classList.toggle('fold-closed',!taskListFoldOpen); // 閉時はヘッダー帯だけの見た目に
   el.style.display='block';
@@ -1992,12 +2035,43 @@ function actualPerfItem(p){
     jpy:sj,usd:su-burnUsd}; // 表示用：エアドロ実績一覧（achvAutoItems）と同じく円とドルは合算せず内訳のまま持たせる
 }
 // 終了済み全案件から実績算出可能なものだけを集め、4象限（正しく高評価／過小評価／過大評価／正しく低評価）に分類する
+// 「開始から2年以上経ってもTGEが来ていない仕込み中案件」を未達として扱うまでの年数
+var STALE_YEARS=2;
+// その案件の「開始日」。アーリー度の開始を優先し、無ければ仕込み開始日を使う
+function projStartDate(p){
+  var d=(p&&p.earlyStart)||(p&&p.startDate)||null;
+  if(!d)return null;
+  var t=new Date(d+'T00:00:00').getTime();
+  return isFinite(t)?t:null;
+}
+// 塩漬け判定：仕込み中のまま2年以上経過し、まだ結果（TGE）が出ていない案件。
+// 資金と時間を拘束したまま何も得られていないので、精度の検証上は「未達」として数える。
+// ※ ここでの判定は精度セクションの集計にだけ使う。カードの表示や終了タブへの移動には一切影響しない。
+function isStaleNoTge(p){
+  if(!p||p.endDate)return false;                                   // 終了済みは通常の集計対象
+  if(Array.isArray(p.results)&&p.results.length)return false;      // 既に結果が出ているなら対象外
+  var t0=projStartDate(p);
+  if(t0==null)return false;
+  return (Date.now()-t0)>=STALE_YEARS*365.25*86400000;
+}
+// 塩漬け案件を、獲得額0の未達アイテムとして組み立てる
+function staleItem(p){
+  var burn=burnAmt(p);
+  var years=Math.floor((Date.now()-projStartDate(p))/(365.25*86400000)*10)/10;
+  return {pid:p.id,name:p.name||'（無題）',sc:Math.round(score(p)),type:null,
+    actualRate:null,goalRate:null,achievePct:0,
+    netUsdEq:Math.round(-burn)||0,netJpyEq:Math.round(-burn*ACHV_FX)||0,
+    belowMin:true,jpy:0,usd:-burn||0,stale:true,staleYears:years};
+}
 function precisionItems(){
   var items=[];
   (Array.isArray(PROJ)?PROJ:[]).forEach(function(p){
-    if(!p.endDate)return;
-    var it=actualPerfItem(p);
-    if(it)items.push(it);
+    if(p.endDate){
+      var it=actualPerfItem(p);
+      if(it)items.push(it);
+    }else if(isStaleNoTge(p)){
+      items.push(staleItem(p));
+    }
   });
   return items;
 }
@@ -2321,8 +2395,11 @@ function showPrecPop(pid){
   if(!it||!pop)return;
   document.getElementById('prec-pop-score').textContent=it.sc;
   document.getElementById('prec-pop-name').textContent=it.name;
-  var rateTxt=it.type==='invest'?('実績年利 '+it.actualRate+'%'):it.type==='free'?('実績時給 '+Math.round(it.actualRate).toLocaleString('en-US')+'円'):'年利・時給は算出不可';
-  document.getElementById('prec-pop-mid').textContent=rateTxt+(it.achievePct!=null?'　→　達成率 '+it.achievePct+'%':'');
+  var rateTxt=it.stale?('開始から'+it.staleYears+'年 TGEなし')
+    :it.type==='invest'?('実績年利 '+it.actualRate+'%')
+    :it.type==='free'?('実績時給 '+Math.round(it.actualRate).toLocaleString('en-US')+'円')
+    :'年利・時給は算出不可';
+  document.getElementById('prec-pop-mid').textContent=rateTxt+(it.stale?'　→　未達として計上':(it.achievePct!=null?'　→　達成率 '+it.achievePct+'%':''));
   document.getElementById('prec-pop-amt').innerHTML=fmtAchvItemAmt(it); // 円とドルは合算せず、上部のエアドロ実績一覧と同じ内訳表示にする
   document.getElementById('prec-pop-btn').onclick=function(){ jumpToProject(pid,true); };
   document.querySelectorAll('.prec-dot').forEach(function(c){ c.classList.remove('sel'); });
