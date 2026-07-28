@@ -1745,9 +1745,93 @@ function projBadge(p){
 
 // ─────────── スコア答え合わせ（期待値 vs 実績）───────────
 var scFoldOpen=false;
-// ─────── 期待値スコアの精度検証：実績年利／実績時給から目標達成率を算出 ───────
+// ─────── 配点の補正提案 ───────
+// 「期待値スコアの予想」と「実際の結果」を突き合わせ、配点をどう動かせば精度が上がるかを提案する。
+// 提案するだけで自動適用はしない（件数が少ないうちは誤った方向へ振れるため、必ず人が判断する）。
+function calibrationProposal(){
+  var fac=precisionFactors();
+  if(!fac||fac.total<5)return null;                 // 5件未満では方向すら定まらない
+  var diff={};fac.rows.forEach(function(r){diff[r.k]=r.diff;});
+  var conf=Math.min(1,fac.total/20);                // 20件で信頼度1。少ないうちは提案幅を抑える
+
+  // ── A) 強者ごとの配点（ptG / ptM）──
+  // 「その人が○を付けた案件の当たり率」と「その案件の価値」を全体平均と比べ、配点を増減する
+  var people=fac.stats.filter(function(s){return s.mentionN>=3;}).map(function(s){
+    var q=SP[s.idx];if(!q)return null;
+    var hitLift=s.hitRate-(fac.baseRate/100);       // 当たり率の差
+    var valLift=s.avgValue-fac.avgValueAll;          // 拾った案件の価値の差
+    var mult=1+(hitLift*0.6+valLift*0.4)*1.8*conf;
+    mult=Math.max(0.5,Math.min(1.8,mult));
+    function r5(v){return Math.max(0,Math.round(v*2)/2);}   // 0.5刻み
+    var ng=Math.min(6,r5(num(q.ptG)*mult)), nm2=Math.min(6,r5(num(q.ptM)*mult));
+    return {label:(q.name||q.handle||'?'),handle:(q.handle||''),
+            n:s.mentionN,hit:s.precN,hitRate:Math.round(s.hitRate*100),
+            curG:num(q.ptG),curM:num(q.ptM),newG:ng,newM:nm2,
+            mult:Math.round(mult*100)/100,
+            changed:(ng!==num(q.ptG)||nm2!==num(q.ptM))};
+  }).filter(Boolean);
+  people.sort(function(a,b){return b.mult-a.mult;});
+
+  // ── B) 大分類の配点（w_sm / w_ef / w_deduct）──
+  // 各ブロックに属する要因の実測寄与率の平均を「効き目」とし、合計100点を配分し直す
+  var blocks=[
+    {key:'w_sm',    label:'強者の言及',            cur:num(W.w_sm),
+     keys:['強者の言及が多い(平均以上)']},
+    {key:'w_ef',    label:'調達効率・パイシェア',    cur:num(W.w_ef),
+     keys:['調達額が大きい(中央値以上)','パイ・シェアが大きい','TVLが大きい(中央値以上)','参加者が少ない(中央値以下)']},
+    {key:'w_deduct',label:'減点（リファ無・低資金・運営の質）',cur:num(W.w_deduct),
+     keys:['リファ無し','低資金向き','運営の質が高い']}
+  ];
+  blocks.forEach(function(b){
+    var vs=b.keys.map(function(k){return diff[k];}).filter(function(v){return v!=null;});
+    b.measured=vs.length?Math.round(vs.reduce(function(a,c){return a+c;},0)/vs.length):null;
+    b.raw=Math.max(0,b.measured==null?0:b.measured);   // マイナスの効き目は0として扱う
+  });
+  var rawSum=blocks.reduce(function(a,b){return a+b.raw;},0);
+  if(rawSum>0){
+    var curSum=blocks.reduce(function(a,b){return a+b.cur;},0)||100;
+    blocks.forEach(function(b){
+      var ideal=curSum*(b.raw/rawSum);
+      var blended=b.cur*(1-0.6*conf)+ideal*(0.6*conf);   // 件数が少ないうちは現状寄りに寄せる
+      b.next=Math.max(10,Math.min(60,Math.round(blended/5)*5));
+    });
+    // 合計が元の配点合計に一致するよう最大の枠で調整する
+    var d=curSum-blocks.reduce(function(a,b){return a+b.next;},0);
+    if(d!==0){
+      var big=blocks.slice().sort(function(a,b){return b.next-a.next;})[0];
+      big.next=Math.max(10,Math.min(60,big.next+d));
+    }
+  }else{
+    blocks.forEach(function(b){b.next=b.cur;});
+  }
+
+  // ── C) 構造的な気づき ──
+  var notes=[];
+  // スコアに反映されていないのに効いている要因
+  [['TGE予定あり','TGE予定'],
+   ['仕込みLvが高い(中央値以上)','仕込みLv'],
+   ['仕込み期間が長い(中央値以上)','仕込み期間'],
+   ['デポジット案件(無料系でない)','デポジットの有無']].forEach(function(x){
+    var d=diff[x[0]];
+    if(d!=null&&Math.abs(d)>=30){
+      notes.push({t:'未使用の要因',
+        b:x[1]+'（寄与率 '+(d>0?'+':'')+d+'%）',
+        d:'この項目は現在スコアに一切反映されていません。'+(d>0?'加点項目として追加する価値があります。':'逆方向の指標として使える可能性があります。')});
+    }
+  });
+  // 減点3項目のうち、マイナスに効いているもの
+  var minus=['リファ無し','低資金向き','運営の質が高い'].filter(function(k){return diff[k]!=null&&diff[k]<=-30;});
+  if(minus.length){
+    notes.push({t:'逆効果の疑い',
+      b:minus.join('・')+' が稼げない案件の特徴として出ています',
+      d:'現在これらは「○なら減点なし」として加点方向に働いています。3項目は同じ減点幅（d_m/d_b）を共有しているため個別に弱められません。分離するには項目ごとの減点値が必要です。'});
+  }
+  return {people:people,blocks:blocks,notes:notes,total:fac.total,conf:conf,
+          baseRate:fac.baseRate};
+}
 // デポジットがあれば投資案件（実績年利で判定）、無ければ無料案件（実績時給で判定）。
 // どちらも計算できない（データ不足）場合は null を返す。
+// ─────── 期待値スコアの精度検証：実績年利／実績時給から目標達成率を算出 ───────
 // 無料案件の実施期間（日数）。手入力があればそれを使い、無ければ仕込み開始〜終了の日数で代用する
 function workDaysOf(p){
   if(!p)return 0;
@@ -1936,8 +2020,9 @@ function precisionFactors(){
     var achList=mentionedWin.map(function(p){return (infoByPid[p.id]||{}).achievePct;})
                             .filter(function(v){return v!=null;});
     function avg(a){return a.length?a.reduce(function(x,y){return x+y;},0)/a.length:null;}
-    return {label:nm||('@'+hd),handle:hd,
+    return {label:nm||('@'+hd),handle:hd,idx:j,
       score:0.35*precisionV+0.45*recallV+0.20*avoidV,
+      hitRate:precisionV,avgValue:(mentioned.length?mentioned.reduce(function(a,p){return a+vals[p.id];},0)/mentioned.length:0),
       coverN:mentionedWin.length,winN:win.length,           // 当たりを何件拾えたか
       precN:mentionedWin.length,mentionN:mentioned.length,  // 言及のうち何件が当たりか
       avoidedN:avoidedLose.length,loseN:lose.length,
@@ -1950,6 +2035,7 @@ function precisionFactors(){
   }
 
   return {rows:rows,winN:win.length,loseN:lose.length,topPerson:topPerson,
+          stats:stats,avgValueAll:(all.length?all.reduce(function(a,p){return a+vals[p.id];},0)/all.length:0),
           baseRate:Math.round(win.length/all.length*100),total:all.length};
 }
 // 仕込み期間（日数）。開始〜終了が揃っている案件のみ。要因分析の中央値スプリットに使う
@@ -1960,12 +2046,13 @@ function projDurDays(p){
   if(!isFinite(t0)||!isFinite(t1)||!(t1>t0))return 0;
   return Math.round((t1-t0)/86400000);
 }
-// 緑＝獲得額が最低ライン($400)以上 かつ 期待値達成率が80%超（年利・時給が算出できない案件は金額のみで判定）
-// $400未満は問答無用で赤（未達の条件）。$400以上でも達成率が80%以下なら赤
+// 緑＝「獲得額が最低ライン以上」かつ「期待値（年利/時給の目標）を達成している」の両方を満たす場合のみ。
+// 金額を超えていても目標年利に届いていなければ赤（例：目標年利20%に対し実績16.2%＝達成率81%は未達）。
+// 年利・時給が算出できない案件だけは、判断材料が金額しかないため金額のみで判定する。
 function precisionIsGreen(it){
   if(it.netUsdEq<(W.goalMinUsd||400))return false;
   if(it.achievePct==null)return true;
-  return it.achievePct>80;
+  return it.achievePct>=100;
 }
 function precisionSummary(){
   var items=precisionItems();
