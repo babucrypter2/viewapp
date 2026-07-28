@@ -265,12 +265,24 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .pp-amt{font-size:12.5px;font-weight:700;color:var(--t2);}
 .pp-btn{background:transparent;color:#3ddc86;border:1.3px solid rgba(61,220,134,.55);border-radius:20px;padding:6px 12px;font-size:12.5px;font-weight:800;cursor:pointer;white-space:nowrap;}
 .pp-btn:active{background:rgba(61,220,134,.15);}
-.prec-def{background:rgba(255,255,255,.028);border:1px solid rgba(255,255,255,.075);border-radius:14px;padding:12px 13px;margin-bottom:12px;}
-.prec-def-t{font-size:9.5px;font-weight:800;color:var(--t3);letter-spacing:.12em;margin-bottom:9px;text-transform:uppercase;}
-.prec-def-row{display:flex;gap:10px;align-items:baseline;margin-bottom:6px;}
-.prec-def-k{flex-shrink:0;min-width:74px;font-size:12px;font-weight:800;color:var(--acc);letter-spacing:.02em;}
-.prec-def-v{font-size:12.5px;color:var(--t1);font-weight:600;}
-.prec-def-note{font-size:10.5px;color:var(--t3);margin-top:9px;padding-top:8px;border-top:1px solid rgba(255,255,255,.06);}
+.prec-def{background:linear-gradient(160deg,rgba(255,255,255,.055),rgba(255,255,255,.018));border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:13px 14px;margin-bottom:12px;}
+.prec-def-t{display:flex;align-items:baseline;justify-content:space-between;gap:10px;font-size:10px;font-weight:800;color:var(--t2);letter-spacing:.14em;margin-bottom:11px;padding-bottom:9px;border-bottom:1px solid rgba(255,255,255,.08);}
+.prec-def-th{font-size:9px;font-weight:700;color:var(--t3);letter-spacing:.06em;flex-shrink:0;}
+.prec-def-row{display:flex;gap:11px;align-items:center;margin-bottom:7px;}
+/* 種別はチップにして視線の起点を作る */
+.prec-def-k{flex-shrink:0;width:78px;font-size:10.5px;font-weight:800;color:#8bbcf4;background:rgba(74,144,232,.14);border:1px solid rgba(74,144,232,.28);border-radius:6px;padding:4px 0;text-align:center;letter-spacing:.02em;}
+/* 数値を主役にし、前後の「年利」「以上」は小さく落とす */
+.prec-def-v{font-size:10.5px;color:var(--t3);font-weight:700;display:flex;align-items:baseline;gap:5px;min-width:0;}
+.prec-def-v b{font-size:15.5px;font-weight:900;color:var(--t1);font-variant-numeric:tabular-nums;letter-spacing:-.01em;}
+.prec-def-v i{font-style:normal;}
+.prec-def-note{font-size:10.5px;color:var(--t3);font-weight:600;margin-top:10px;padding-top:9px;border-top:1px solid rgba(255,255,255,.07);}
+.prec-def-note b{color:var(--t2);font-weight:800;font-variant-numeric:tabular-nums;}
+/* 予測精度率：80%超=緑 / 70%超=黄 / それ以下=赤 */
+.prec-rate{font-variant-numeric:tabular-nums;font-weight:900;font-size:13px;}
+.prec-rate.ok{color:#3ddc86;}
+.prec-rate.warn{color:#f0c04a;}
+.prec-rate.bad{color:#ff5a5a;}
+.prec-rate-n{font-size:10.5px;font-weight:700;color:var(--t3);margin-left:6px;}
 .amt-sub{font-size:9.5px;color:var(--t3);margin-left:4px;font-weight:600;}
 .fac-wrap{margin-top:14px;}
 .fac-hdr{font-size:12.5px;font-weight:800;color:var(--t1);margin-bottom:8px;}
@@ -2233,15 +2245,19 @@ function renderScoreCheck(){
   // ── 見出し：予測精度率（エアドロ実績カードの「勝率」と同じ、控えめな1行インライン表示）──
   var precRateHtml='';
   if(prec){
-    precRateHtml='<span class="fa-total-inline">'+prec.matchRate+'%（'+prec.q.green.length+'/'+prec.total+'件）</span>';
+    var rCls=prec.matchRate>80?'ok':prec.matchRate>70?'warn':'bad';
+    precRateHtml='<span class="fa-total-inline"><span class="prec-rate '+rCls+'">'+prec.matchRate+'%</span>'
+      +'<span class="prec-rate-n">'+prec.q.green.length+'/'+prec.total+'件</span></span>';
   }
   var expandHtml='';
   if(prec){
     expandHtml+='<div class="prec-def">'
-      +'<div class="prec-def-t">期待値の定義</div>'
-      +'<div class="prec-def-row"><span class="prec-def-k">デポジット</span><span class="prec-def-v">年利 '+(W.goalApr||20)+'% 以上取れる確度</span></div>'
-      +'<div class="prec-def-row"><span class="prec-def-k">無料系</span><span class="prec-def-v">時給 '+num(W.goalHourly||5000).toLocaleString('en-US')+'円 以上取れる確度</span></div>'
-      +'<div class="prec-def-note">※ 獲得額 $'+num(W.goalMinUsd||400).toLocaleString('en-US')+' 以下は未達とする</div>'
+      +'<div class="prec-def-t">期待値の定義<span class="prec-def-th">達成ライン</span></div>'
+      +'<div class="prec-def-row"><span class="prec-def-k">デポジット</span>'
+      +'<span class="prec-def-v"><i>年利</i><b>'+(W.goalApr||20)+'%</b><i>以上</i></span></div>'
+      +'<div class="prec-def-row"><span class="prec-def-k">無料系</span>'
+      +'<span class="prec-def-v"><i>時給</i><b>'+num(W.goalHourly||5000).toLocaleString('en-US')+'円</b><i>以上</i></span></div>'
+      +'<div class="prec-def-note">獲得額 <b>$'+num(W.goalMinUsd||400).toLocaleString('en-US')+'</b> 以下は、率に関わらず未達とする</div>'
       +'</div>'
       +buildPrecisionScatterSvg(prec)
       +'<div class="prec-legend">'
