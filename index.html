@@ -791,6 +791,33 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .tl-task-row .tl-num{background:rgba(255,255,255,.1);color:var(--t2);box-shadow:none;font-weight:700;transform:none;}
 /* チェックしても右側の本文は暗くしない（チェックボックスの緑だけで状態を示す） */
 .tl-head-row{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+/* 精度を上げるための提案 */
+.tip-wrap{margin-top:15px;padding-top:13px;border-top:1px solid rgba(255,255,255,.09);}
+.tip-hd{display:flex;align-items:center;gap:9px;margin-bottom:7px;}
+.tip-hd-t{font-size:11.5px;font-weight:800;color:var(--t1);letter-spacing:.03em;display:flex;align-items:center;gap:7px;}
+.tip-hd-t::before{content:'';width:3px;height:12px;border-radius:2px;background:#f0c04a;}
+.tip-hd-n{font-size:9px;font-weight:800;color:var(--t3);background:rgba(255,255,255,.07);border-radius:20px;padding:2px 8px;flex-shrink:0;}
+.tip-lead{font-size:9.5px;color:var(--t3);line-height:1.6;margin-bottom:10px;}
+.tip-none{font-size:10.5px;color:var(--t3);line-height:1.6;padding:9px 11px;border-radius:10px;background:rgba(255,255,255,.035);}
+.tip{border-radius:11px;padding:11px 12px;margin-bottom:8px;background:rgba(255,255,255,.035);border-left:2.5px solid var(--bb);}
+.tip.up{border-left-color:#3ddc86;background:rgba(61,220,134,.06);}
+.tip.dn{border-left-color:#ff8a3c;background:rgba(255,138,60,.06);}
+.tip.note{border-left-color:#f0c04a;background:rgba(240,192,74,.06);}
+.tip-t{font-size:11.5px;font-weight:800;color:var(--t1);line-height:1.45;margin-bottom:4px;}
+.tip-b{font-size:10.5px;color:var(--t3);line-height:1.65;}
+/* 変更前→後を一目で読めるようにする */
+.tip-a{display:flex;align-items:center;justify-content:space-between;gap:10px;
+  margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.08);}
+.tip-a-k{font-size:10px;font-weight:700;color:var(--t3);flex-shrink:0;}
+.tip-a-v{display:flex;align-items:baseline;gap:7px;font-variant-numeric:tabular-nums;}
+.tip-a-v s{font-size:11.5px;font-weight:700;color:var(--t3);text-decoration-color:rgba(255,255,255,.3);}
+.tip-a-v em{font-style:normal;font-size:10px;color:var(--t3);}
+.tip-a-v b{font-size:15px;font-weight:900;letter-spacing:-.01em;}
+.tip.up .tip-a-v b{color:#3ddc86;}
+.tip.dn .tip-a-v b{color:#ff8a3c;}
+.fold-close{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;margin-top:14px;padding:11px;border-radius:10px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.045);color:var(--t2);font-size:12.5px;font-weight:800;cursor:pointer;letter-spacing:.02em;-webkit-tap-highlight-color:transparent;}
+.fold-close:active{background:rgba(255,255,255,.1);}
+.fold-close .dt-arrow{font-size:9px;opacity:.7;}
 .tl-fold-btn{flex-shrink:0;background:rgba(255,255,255,.09);border:1.5px solid rgba(255,255,255,.28);border-radius:8px;padding:5px 10px;font-size:12px;font-weight:800;color:#fff;cursor:pointer;display:flex;align-items:center;gap:4px;white-space:nowrap;}
 .tl-stat{flex-shrink:0;font-size:11.5px;font-weight:700;color:var(--t2);white-space:nowrap;}
 .tl-head-left{display:flex;align-items:center;gap:8px;min-width:0;overflow:hidden;}
@@ -1050,6 +1077,7 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
         </div>
         <div id="scoreguide-fold-body" style="display:none;">
           <div class="info-body" id="info-score"></div>
+                  <button class="fold-close" onclick="event.stopPropagation();toggleScoreGuideFold()">閉じる<span class="dt-arrow">▲</span></button>
         </div>
       </div>
 
@@ -1062,6 +1090,7 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
           <div class="info-body" id="info-safety"></div>
           <div class="info-body" id="info-seccheck" style="margin-top:10px;"></div>
           <div id="sec-proof-imgs"></div>
+                  <button class="fold-close" onclick="event.stopPropagation();toggleSafeFold()">閉じる<span class="dt-arrow">▲</span></button>
         </div>
       </div>
 
@@ -1072,6 +1101,7 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
         </div>
         <div id="caution-fold-body" style="display:none;">
           <div class="info-body" id="info-caution"></div>
+                  <button class="fold-close" onclick="event.stopPropagation();toggleCautionFold()">閉じる<span class="dt-arrow">▲</span></button>
         </div>
       </div>
 
@@ -1487,7 +1517,7 @@ function renderTaskList(){
     +'</span>'
     +'<button class="tl-fold-btn'+(taskListFoldOpen?' open':'')+'">'+(taskListFoldOpen?'閉じる':'詳細を開く')+'<span class="dt-arrow">▼</span></button>'
     +'</div>'
-    +'<div class="tl-body" id="tl-fold-body" style="display:'+(taskListFoldOpen?'block':'none')+';">'+renderTaskListWithChecks(TASKLIST)+'</div>';
+    +'<div class="tl-body" id="tl-fold-body" style="display:'+(taskListFoldOpen?'block':'none')+';">'+renderTaskListWithChecks(TASKLIST)+'<button class="fold-close" onclick="event.stopPropagation();toggleTaskListFold()">閉じる<span class="dt-arrow">▲</span></button></div>';
   el.classList.toggle('fold-closed',!taskListFoldOpen); // 閉時はヘッダー帯だけの見た目に
   el.style.display='block';
 }
@@ -1655,7 +1685,7 @@ function renderAchv(){
     :'';
   el.innerHTML='<div class="set-card-title fa-title-row"'+(rankItems.length?' style="cursor:pointer;" onclick="toggleAchvFold()"':'')+'><span class="dh-i2">🪂 エアドロ実績</span><span class="fa-title-right">'+winRateHtml+foldBtnHtml+'</span></div>'
     +'<div class="achv-line">'+summaryHtml+'</div>'
-    +'<div class="achv-rank-list" id="achv-rank-list" style="display:'+(achvFoldOpen?'block':'none')+';margin-top:8px;">'+rankHtml+pagerHtml+'</div>';
+    +'<div class="achv-rank-list" id="achv-rank-list" style="display:'+(achvFoldOpen?'block':'none')+';margin-top:8px;">'+rankHtml+pagerHtml+'<button class="fold-close" onclick="event.stopPropagation();toggleAchvFold()">閉じる<span class="dt-arrow">▲</span></button></div>';
   el.style.display='block';
 }
 function toggleAchvFold(){
@@ -1831,6 +1861,66 @@ function calibrationProposal(){
 }
 // デポジットがあれば投資案件（実績年利で判定）、無ければ無料案件（実績時給で判定）。
 // どちらも計算できない（データ不足）場合は null を返す。
+// 補正提案を「何をどう変えると良いか」の具体的な提案にして返す。
+// showNegativePeople=false のとき、特定の人物を下げる提案は出さない（公開画面で個人の評価を晒さないため）。
+function calibrationTips(showNegativePeople){
+  var c=calibrationProposal();
+  if(!c)return null;
+  var tips=[];
+  // 1) 強者の配点
+  c.people.forEach(function(x){
+    if(x.newG>x.curG){
+      tips.push({lv:'up',rank:1,impact:x.newG-x.curG,
+        hd:esc(x.label)+' の言及が効いています',
+        body:'○を付けた'+x.n+'件のうち'+x.hit+'件が達成（的中'+x.hitRate+'%）。全体の達成率'+c.baseRate+'%を上回っています。',
+        k:'○の配点',from:x.curG,to:x.newG});
+    }else if(x.newG<x.curG&&showNegativePeople){
+      tips.push({lv:'dn',rank:2,impact:x.curG-x.newG,
+        hd:esc(x.label)+' の言及は当たりにくい傾向',
+        body:'○を付けた'+x.n+'件のうち'+x.hit+'件のみ達成（的中'+x.hitRate+'%）。全体の達成率'+c.baseRate+'%を下回っています。',
+        k:'○の配点',from:x.curG,to:x.newG});
+    }
+  });
+  // 2) 大分類の配点
+  c.blocks.forEach(function(b){
+    if(b.next===b.cur)return;
+    var m=(b.measured==null)?'':'この分類に属する項目の実測寄与率は'+(b.measured>0?'+':'')+b.measured+'%です。';
+    tips.push({lv:b.next>b.cur?'up':'dn',rank:3,impact:Math.abs(b.next-b.cur),
+      hd:b.label+'の比重を'+(b.next>b.cur?'上げる':'下げる')+'余地があります',
+      body:m+(b.next>b.cur?'予想に活かしきれていない可能性があります。':'予想の精度に結びついていない可能性があります。'),
+      k:'配点',from:b.cur+'点',to:b.next+'点'});
+  });
+  // 3) 構造的な気づき
+  c.notes.forEach(function(n){
+    tips.push({lv:'note',rank:4,impact:0,hd:n.b,body:n.d,k:'',from:'',to:''});
+  });
+  // 種別ごとにまとめ、同種の中では影響の大きい順に並べる
+  tips.sort(function(a,b){return (a.rank-b.rank)||(b.impact-a.impact);});
+  return {tips:tips,total:c.total,conf:c.conf};
+}
+function calibrationTipsHtml(showNegativePeople){
+  var c=calibrationTips(showNegativePeople);
+  if(!c)return '';
+  if(!c.tips.length){
+    return '<div class="tip-wrap"><div class="tip-hd"><span class="tip-hd-t">精度を上げるための提案</span></div>'
+      +'<div class="tip-none">今の配点で大きな偏りは見つかりませんでした。件数が増えると新しい提案が出ることがあります。</div></div>';
+  }
+  return '<div class="tip-wrap">'
+    +'<div class="tip-hd"><span class="tip-hd-t">精度を上げるための提案</span>'
+    +'<span class="tip-hd-n">'+c.tips.length+'件</span></div>'
+    +'<div class="tip-lead">終了'+c.total+'件の予想と結果を突き合わせて自動算出しています。'
+    +(c.conf<1?'件数が少ないうちは振れやすいため、提案幅は控えめに抑えています。':'')
+    +'</div>'
+    +c.tips.map(function(t){
+      return '<div class="tip '+t.lv+'">'
+        +'<div class="tip-t">'+t.hd+'</div>'
+        +'<div class="tip-b">'+t.body+'</div>'
+        +(t.k?'<div class="tip-a"><span class="tip-a-k">'+t.k+'</span>'
+          +'<span class="tip-a-v"><s>'+t.from+'</s><em>→</em><b>'+t.to+'</b></span></div>':'')
+        +'</div>';
+    }).join('')
+    +'</div>';
+}
 // ─────── 期待値スコアの精度検証：実績年利／実績時給から目標達成率を算出 ───────
 // 無料案件の実施期間（日数）。手入力があればそれを使い、無ければ仕込み開始〜終了の日数で代用する
 function workDaysOf(p){
@@ -2320,15 +2410,6 @@ function renderScoreCheck(){
   var items=scoreCheckItems();
   var prec=precisionSummary();
   if(!items.length&&!prec){el.style.display='none';return;}
-  var rowsHtml=items.map(function(it){
-    var pc=it.sc>=80?'hi':it.sc>=60?'mid':'';
-    return '<div class="achv-rank-row achv-rank-clk" onclick="jumpToProject('+it.pid+',true)">'
-      +'<span class="sc-score-pill '+pc+'">'+it.sc+'</span>'
-      +'<span class="achv-rank-name">'+esc(it.name)+'</span>'
-      +'<span class="achv-rank-amt'+(it._eq<0?' neg':'')+'">'+fmtAchvItemAmt(it)+'</span>'
-      +'<span class="achv-rank-go">詳細へ ›</span>'
-      +'</div>';
-  }).join('');
   // ── 見出し：予測精度率（エアドロ実績カードの「勝率」と同じ、控えめな1行インライン表示）──
   var precRateHtml='';
   if(prec){
@@ -2406,16 +2487,15 @@ function renderScoreCheck(){
         +'</div>';
     }
   }
-  if(items.length){
-    // ここでは案件ごとの実績を一覧で見せるだけにする（円とドルの合算・帯平均など、通貨をまたいだ集計は行わない）
-    expandHtml+=(INFO.scorecheck?'<div class="sc-desc" style="margin-top:10px;">'+esc(INFO.scorecheck).replace(/\n/g,'<br>')+'</div>':'')
-      +'<div class="sc-list-hdr">案件ごとの実績（スコア順）</div>'
-      +'<div style="display:flex;flex-direction:column;gap:6px;">'+rowsHtml+'</div>';
+  expandHtml+=calibrationTipsHtml(false); // 公開画面なので、特定の人を下げる提案は出さない
+  if(items.length&&INFO.scorecheck){
+    expandHtml+='<div class="sc-desc" style="margin-top:10px;">'+esc(INFO.scorecheck).replace(/\n/g,'<br>')+'</div>';
   }
   el.innerHTML='<div class="set-card-title fa-title-row" style="margin-bottom:'+(scFoldOpen?'10px':'0')+';cursor:pointer;" onclick="toggleScFold()"><span class="dh-i2"><svg class="dh-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"></path><path d="M7 14l4-4 3 3 5-6"></path></svg>期待値スコアの精度</span><span class="fa-title-right">'+precRateHtml+'<button class="tl-fold-btn'+(scFoldOpen?' open':'')+'">'+(scFoldOpen?'閉じる':'詳細')+'<span class="dt-arrow">▼</span></button></span></div>'
     +'<div id="sc-fold-body" style="display:'+(scFoldOpen?'block':'none')+';margin-top:8px;">'
     +expandHtml
     +'<div class="sc-note">※ スコアは常に最新の算出ロジックで再計算しています。目標値は設定タブで変更できます</div>'
+    +'<button class="fold-close" onclick="event.stopPropagation();toggleScFold()">閉じる<span class="dt-arrow">▲</span></button>'
     +'</div>';
   el.classList.toggle('fold-closed',!scFoldOpen); // 閉時はヘッダー帯だけの見た目に
   el.style.display='block';
@@ -2488,6 +2568,7 @@ function renderFundAlloc(){
     +warn
     +'<div id="fa-fold-body" style="display:'+(faFoldOpen?'block':'none')+';margin-top:'+(warn?'10px':'0')+';">'
     +'<div class="fa-list">'+barsHtml+'</div>'
+    +'<button class="fold-close" onclick="event.stopPropagation();toggleFaFold()">閉じる<span class="dt-arrow">▲</span></button>'
     +'</div>';
   el.classList.toggle('fold-closed',!faFoldOpen&&!warn); // 閉時はヘッダー帯だけに（警告表示がある時は通常余白を維持）
   el.style.display='block';
