@@ -405,6 +405,8 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .pj-stars{display:inline-flex;}
 .pj-star{font-size:11px;color:var(--t3);}
 .pj-star.on{color:var(--ylw);}
+/* 優先度は仕込みLvと役割が違うので、星の色を分けて見分けられるようにする */
+.pj-stars-prio .pj-star.on{color:#ff8a3c;}
 .pj-dv{color:var(--t1);font-weight:700;white-space:nowrap;}
 
 /* Score — fixed right block */
@@ -1032,6 +1034,7 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
         <option value="score">期待値順</option>
         <option value="new">新着順</option>
         <option value="lv">仕込みLv順</option>
+        <option value="prio">優先度順</option>
       </select>
     </div>
   </div>
@@ -1985,6 +1988,7 @@ function calibrationProposal(){
   // スコアに反映されていないのに効いている要因
   [['TGE予定あり','TGE予定'],
    ['仕込みLvが高い(中央値以上)','仕込みLv'],
+   ['自分の優先度が高い(中央値以上)','自分がつけた優先度'],
    ['仕込み期間が長い(中央値以上)','仕込み期間'],
    ['デポジット案件(無料系でない)','デポジットの有無']].forEach(function(x){
     var d=diff[x[0]];
@@ -2204,6 +2208,7 @@ function precisionFactors(){
   var mUsr =med(function(p){return num(p.usr);});
   var mTvl =med(function(p){return num(p.tvl);});
   var mLv  =med(function(p){return num(p.lv);});
+  var mPrio=med(function(p){return num(p.prio);});
   var mDur =med(function(p){return projDurDays(p);});
   var defs=[
     {k:'リファ無し',f:function(p){return p.refa==='g';}},
@@ -2221,6 +2226,7 @@ function precisionFactors(){
   if(mUsr !=null)defs.push({k:'参加者が少ない(中央値以下)',f:function(p){var v=num(p.usr);return v>0&&v<=mUsr;}});
   if(mTvl !=null)defs.push({k:'TVLが大きい(中央値以上)',f:function(p){return num(p.tvl)>=mTvl;}});
   if(mLv  !=null)defs.push({k:'仕込みLvが高い(中央値以上)',f:function(p){return num(p.lv)>=mLv;}});
+  if(mPrio!=null)defs.push({k:'自分の優先度が高い(中央値以上)',f:function(p){return num(p.prio)>=mPrio;}});
   if(mDur !=null)defs.push({k:'仕込み期間が長い(中央値以上)',f:function(p){var d=projDurDays(p);return d>0&&d>=mDur;}});
   defs.push({k:'デポジット案件(無料系でない)',f:function(p){return depShowUsd(p)>0;}});
   var rows=defs.map(function(d){
@@ -2875,7 +2881,7 @@ var PROJ=[
    sm:['g','m','g','m','g'],deps:[],totalUsd:0,startDate:null,endDate:null,active:false,result:''},
 ];
 var curF='all',editIdx=-1,pid=10,isNewProj=false;
-var sortBy='score';  // score | new | lv
+var sortBy='score';  // score | new | lv | prio
 var sortDir=-1; // -1=降順(高い順・デフォルト), 1=昇順(低い順)
 var editImg=null,newPImg=null,curSM=[];
 
@@ -3088,6 +3094,7 @@ function sanProj(o,spLen){
     fund:num(o.fund),tvl:num(o.tvl),usr:num(o.usr),
     refa:sanMark(o.refa),low:sanMark(o.low),
     lv:Math.max(0,Math.min(5,Math.round(num(o.lv)))),
+    prio:Math.max(0,Math.min(5,Math.round(num(o.prio)))), // 優先度（★1〜5）。ばぶ本人がどれだけ優先しているかの表明
     memo:clampStr(o.memo,1000),
     task:clampStr(o.task,1000),
     taskImg:(Array.isArray(o.taskImg)?o.taskImg.filter(function(d){return typeof d==='string'&&safeImg(d);}).slice(0,5):[]),
@@ -3588,6 +3595,7 @@ function smAvHtml(per,v,sz){
 // LIST
 function sortVal(p){
   if(sortBy==='lv')return p.lv||0;
+  if(sortBy==='prio')return p.prio||0;
   if(sortBy==='new')return p.createdAt||p.id||0; // 新しい順（createdAtが無い古いデータはidで代用）
   return score(p); // default 期待値
 }
@@ -3664,6 +3672,7 @@ function renderList(id,mode){
       +'<div class="pj-inf">'
       +'<div class="pj-nmr"><span class="pj-name">'+esc(p.name)+'</span>'+catTag(p.cat)+(p.endDate?'<span class="ended-badge">🏁仕込み終了</span>':'')+projBadge(p)+'</div>'
       +'<div class="pj-meta1"><span class="pj-lbl-row">仕込みLv：</span><span class="pj-stars">'+starsHtml(p.lv||0)+'</span></div>'
+      +(p.prio?'<div class="pj-meta1"><span class="pj-lbl-row">優先度：</span><span class="pj-stars pj-stars-prio">'+starsHtml(p.prio)+'</span></div>':'')
       +'<div class="pj-meta2"><span class="pj-lbl-row">'+stakeLbl_+'</span> '+stakeHtml+'</div>'
       +(burn_>0?'<div class="pj-meta3"><span class="pj-lbl-row">削り額：</span> <span class="pj-dv pj-burn">'+fmtU(burn_)+'</span></div>':'')
       +(p.tge&&!p.earlyStart?'<div class="pj-meta3"><span class="pj-lbl-row">TGE予定：</span> <span class="pj-dv">'+tgeSym(p.tge)+'</span></div>':'')
