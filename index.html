@@ -3671,8 +3671,8 @@ function renderList(id,mode){
       +'<div class="pj-av-wrap">'+projAvHtml(p,60)+'<span class="rank-badge '+rankCls+'">'+rankNum+'</span></div>'
       +'<div class="pj-inf">'
       +'<div class="pj-nmr"><span class="pj-name">'+esc(p.name)+'</span>'+catTag(p.cat)+(p.endDate?'<span class="ended-badge">🏁仕込み終了</span>':'')+projBadge(p)+'</div>'
-      +'<div class="pj-meta1"><span class="pj-lbl-row">仕込みLv：</span><span class="pj-stars">'+starsHtml(p.lv||0)+'</span></div>'
       +(p.prio?'<div class="pj-meta1"><span class="pj-lbl-row">優先度：</span><span class="pj-stars pj-stars-prio">'+starsHtml(p.prio)+'</span></div>':'')
+      +'<div class="pj-meta1"><span class="pj-lbl-row">仕込みLv：</span><span class="pj-stars">'+starsHtml(p.lv||0)+'</span></div>'
       +'<div class="pj-meta2"><span class="pj-lbl-row">'+stakeLbl_+'</span> '+stakeHtml+'</div>'
       +(burn_>0?'<div class="pj-meta3"><span class="pj-lbl-row">削り額：</span> <span class="pj-dv pj-burn">'+fmtU(burn_)+'</span></div>':'')
       +(p.tge&&!p.earlyStart?'<div class="pj-meta3"><span class="pj-lbl-row">TGE予定：</span> <span class="pj-dv">'+tgeSym(p.tge)+'</span></div>':'')
