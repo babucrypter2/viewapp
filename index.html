@@ -702,12 +702,10 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .cal-cell.out{background:transparent;border-color:rgba(255,255,255,.05);}
 .cal-cell.out .cal-cell-num{color:var(--t3);opacity:.55;font-weight:600;}
 .cal-cell.out .cal-cell-line{opacity:.4;}
-/* 週末はうっすら色味を乗せて週の区切りを掴みやすくする */
-.cal-cell.sat:not(.out){background:linear-gradient(var(--card2),var(--card2)) padding-box,rgba(74,144,232,.05);}
-.cal-cell.sun:not(.out){background:rgba(255,92,92,.045);}
+/* 週末は背景を塗らず、日付の文字色だけで区別する（塗ると当月セルより暗く見えてしまう） */
 .cal-cell-num{font-size:11px;font-weight:700;color:var(--t1);text-align:center;flex-shrink:0;}
 .cal-cell.sat:not(.out) .cal-cell-num{color:#8ec0f5;}
-.cal-cell.sun:not(.out) .cal-cell-num{color:#ff8f8f;}
+.cal-cell.sun:not(.out) .cal-cell-num{color:#ff7b7b;}
 /* 今日は数字そのものを塗りつぶしの丸にする（枠だけより一目で分かる） */
 .cal-cell.today .cal-cell-num{display:block;width:20px;height:20px;line-height:20px;margin:0 auto;
   border-radius:50%;background:var(--acc);color:#0b1220;font-weight:900;}
