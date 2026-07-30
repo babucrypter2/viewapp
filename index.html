@@ -142,7 +142,7 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .ended-card{opacity:1;}
 /* アーリー度が「終了」の案件は薄くして、仕込み終了タブでまだ終わっていない案件を目立たせる。
    文字が読める程度の減光に留め、詳細を開いた時は通常表示に戻す（sticky閉じるバーの動作も保つため） */
-.early-over{opacity:.52;filter:saturate(.5);transition:opacity .18s ease,filter .18s ease;}
+.early-over{opacity:.68;filter:saturate(.5);transition:opacity .18s ease,filter .18s ease;}
 .early-over:active{opacity:.8;filter:saturate(.8);}
 .early-over.dt-open{opacity:1;filter:none;}
 .ended-badge{font-size:9px;font-weight:800;color:#fff;background:var(--red);border:none;border-radius:6px;padding:3px 6px;white-space:nowrap;flex-shrink:0;box-shadow:0 0 6px rgba(220,60,60,.5);letter-spacing:.02em;}
@@ -402,11 +402,20 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .early-pct-mid{text-align:center;font-weight:700;color:var(--t1);white-space:nowrap;}
 .pj-lbl{color:var(--t1);font-weight:600;}
 .pj-lbl-row{display:inline-block;width:64px;text-align:right;color:var(--t1);font-weight:600;flex-shrink:0;}
-.pj-stars{display:inline-flex;}
-.pj-star{font-size:11px;color:var(--t3);}
+.pj-stars{display:inline-flex;align-items:center;gap:.5px;}
+.pj-star{font-size:12px;line-height:1;}
+/* 空きは輪郭だけの薄い☆。埋まっている★と形でも色でも区別できるようにする */
+.pj-star:not(.on){color:rgba(255,255,255,.2);}
 .pj-star.on{color:var(--ylw);}
-/* 優先度は仕込みLvと役割が違うので、星の色を分けて見分けられるようにする */
-.pj-stars-prio .pj-star.on{color:#ff8a3c;}
+/* 数字を添える。星を数えずに個数を読み取れるようにするための主役 */
+.pj-star-n{margin-left:5px;font-size:13px;font-weight:900;font-variant-numeric:tabular-nums;color:var(--ylw);}
+/* 優先度は仕込みLvと役割が違うので、色を分けて見分けられるようにする */
+.pj-stars-prio .pj-star.on,.pj-stars-prio .pj-star-n{color:#ff8a3c;}
+/* 終了案件はカード全体が減光されるため、星と数字だけ明るい色に振って潰れを防ぐ */
+.early-over .pj-star.on{color:#ffd97a;}
+.early-over .pj-star-n{color:#ffd97a;}
+.early-over .pj-stars-prio .pj-star.on,.early-over .pj-stars-prio .pj-star-n{color:#ffb98a;}
+.early-over .pj-star:not(.on){color:rgba(255,255,255,.3);}
 .pj-dv{color:var(--t1);font-weight:700;white-space:nowrap;}
 
 /* Score — fixed right block */
@@ -3557,9 +3566,12 @@ function fdvTableHtml(p){
 
 // 年・月・日の3プルダウン（type=dateの誤確定を回避）
 function starsHtml(n){
+  // 空きは輪郭だけの☆にして埋まっている星と形で区別し、末尾に数字を添える。
+  // 5個の同じ形を数えるのは一目では終わらないため、数字が実質的な読み取り手段になる。
+  n=Math.max(0,Math.min(5,Math.round(num(n))));
   var h='';
-  for(var i=1;i<=5;i++)h+='<span class="pj-star'+(i<=n?' on':'')+'">★</span>';
-  return h;
+  for(var i=1;i<=5;i++)h+='<span class="pj-star'+(i<=n?' on':'')+'">'+(i<=n?'★':'☆')+'</span>';
+  return h+'<span class="pj-star-n">'+n+'</span>';
 }
 
 function projAvHtml(p,sz){
