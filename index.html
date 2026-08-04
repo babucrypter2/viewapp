@@ -1394,6 +1394,17 @@ function saveTaskChecks(st){
   try{ localStorage.setItem(TASK_CHECK_KEY,JSON.stringify(st)); }catch(e){}
 }
 // 今日のタスクの完了状況（本文中の番号行を母数とする）
+// ─────── 自分用モードの判定 ───────
+// URLの末尾に #me を付けたときだけ、タスクのチェック機能と完了状況を出す。
+// 配布しているURL（#なし）では一切表示されないので、閲覧者には見えない。
+// 一度 #me で開いた端末は記憶するので、ホーム画面に追加すれば毎回付ける必要はない。
+var IS_OWNER=(function(){
+  try{
+    if(location.hash==='#me'){ localStorage.setItem('babuOwnerMode','1'); return true; }
+    if(location.hash==='#guest'){ localStorage.removeItem('babuOwnerMode'); return false; }
+    return localStorage.getItem('babuOwnerMode')==='1';
+  }catch(e){ return location.hash==='#me'; }
+})();
 function taskCheckStatus(){
   var st=loadTaskChecks(),total=0,done=0;
   String(TASKLIST||'').split(/\r?\n/).forEach(function(line){
@@ -1660,7 +1671,7 @@ function renderTaskList(){
   // 折りたたみを開かなくても、今日のタスクが残っているか分かるようにする
   var st=taskCheckStatus();
   var statusHtml='';
-  if(st.total>0){
+  if(IS_OWNER&&st.total>0){
     statusHtml=st.left>0
       ? '<div class="tl-status todo"><span class="tl-status-ico">!</span>タスク未完了案件があります<span class="tl-status-n">残り'+st.left+'/'+st.total+'件</span></div>'
       : '<div class="tl-status done"><span class="tl-status-ico">✓</span>本日のタスクは完了しています<span class="tl-status-n">'+st.total+'/'+st.total+'件</span></div>';
@@ -1673,7 +1684,7 @@ function renderTaskList(){
     +'<button class="tl-fold-btn'+(taskListFoldOpen?' open':'')+'">'+(taskListFoldOpen?'閉じる':'詳細を開く')+'<span class="dt-arrow">▼</span></button>'
     +'</div>'
     +statusHtml
-    +'<div class="tl-body" id="tl-fold-body" style="display:'+(taskListFoldOpen?'block':'none')+';">'+renderTaskListWithChecks(TASKLIST)+'<button class="fold-close" onclick="event.stopPropagation();toggleTaskListFold()">閉じる<span class="dt-arrow">▲</span></button></div>';
+    +'<div class="tl-body" id="tl-fold-body" style="display:'+(taskListFoldOpen?'block':'none')+';">'+(IS_OWNER?renderTaskListWithChecks(TASKLIST):renderTaskListHtml(TASKLIST))+'<button class="fold-close" onclick="event.stopPropagation();toggleTaskListFold()">閉じる<span class="dt-arrow">▲</span></button></div>';
   el.classList.toggle('fold-closed',!taskListFoldOpen); // 閉時はヘッダー帯だけの見た目に
   el.classList.toggle('has-status',!!statusHtml);       // 完了状況の行があるときは下の余白を戻す
   el.style.display='block';
