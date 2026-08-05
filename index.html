@@ -445,11 +445,11 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
   padding-top:6px;
 }
 .st-col{
-  flex:1;display:flex;flex-direction:column;justify-content:center;min-width:0;
+  flex:1;display:flex;flex-direction:column;justify-content:flex-start;min-width:0;
   padding:0 10px;
   border-right:1px solid rgba(255,255,255,.14);
 }
-.st-col-sc{flex:0 0 52px;width:52px;padding:0 0 0 8px;align-items:center;}
+.st-col-sc{flex:0 0 52px;width:52px;padding:0 0 0 8px;align-items:center;justify-content:center;}
 .st-col:first-child{padding-left:0;}
 .st-col:last-child{border-right:none;}
 .st-ico{width:12px;height:12px;vertical-align:-1px;margin-right:1px;display:inline-block;}
@@ -1006,6 +1006,23 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
   .cal-detail-date{font-size:17px;}
   .cal-entry-title{font-size:17px;}
 }
+/* DefiLlamaの自動取得値の表示（書込アプリと同じ見た目に揃える） */
+.st-col-usr{flex:0 0 62px;padding:0 6px;}
+.st-col-tvl{flex:1.6;}
+.ld-row{display:flex;gap:3px;justify-content:center;align-items:baseline;margin-top:2px;
+  flex-wrap:nowrap;white-space:nowrap;}
+.ld-item{font-size:8.5px;font-weight:800;letter-spacing:-.03em;white-space:nowrap;
+  font-variant-numeric:tabular-nums;}
+.ld-item.up{color:#3ddc86;}
+.ld-item.dn{color:#ff7b7b;}
+.ld-item.flat{color:var(--t3);}
+.ld-sep{font-size:8px;color:var(--t3);opacity:.5;}
+.lv-box{margin-top:3px;display:flex;flex-direction:column;gap:1px;}
+.lv-line{display:flex;align-items:baseline;justify-content:center;gap:4px;white-space:nowrap;}
+.lv-lbl{font-size:8px;font-weight:800;color:var(--t3);}
+.lv-val{font-size:10.5px;font-weight:800;color:var(--t1);font-variant-numeric:tabular-nums;}
+.lv-pct{font-size:8.5px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.03em;}
+.lv-pct.up{color:#3ddc86;} .lv-pct.dn{color:#ff7b7b;} .lv-pct.flat{color:var(--t3);}
 </style>
 </head>
 <body>
@@ -3097,6 +3114,72 @@ function sanFrozen(f){
     at:(typeof f.at==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(f.at))?f.at:''
   };
 }
+// ─────── DefiLlamaの自動取得値（書込アプリが保存したものを表示するだけ）───────
+// slugは英数字とハイフンのみ許可（URLに埋め込むため、これ以外は受け付けない）
+function sanSlug(v){
+  if(typeof v!=='string')return '';
+  var t=v.trim().toLowerCase().slice(0,60);
+  return /^[a-z0-9-]*$/.test(t)?t:'';
+}
+// 取得値の器。数値でなければ捨てる
+function sanLlama(o){
+  if(!o||typeof o!=='object')return null;
+  function n(v){ var x=Number(v); return (typeof v!=='object'&&isFinite(x))?x:null; }
+  var cur=n(o.cur);
+  if(cur===null)return null;
+  return {cur:cur, d7:n(o.d7), d30:n(o.d30), vol7:n(o.vol7), vol30:n(o.vol30),
+          at:(typeof o.at==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(o.at))?o.at:''};
+}
+// 変化率（%）。分母が0や欠損なら null
+function llamaPct(cur,past){
+  if(past===null||past===undefined||!isFinite(past)||past<=0)return null;
+  return (cur-past)/past*100;
+}
+function llamaFmt(v){
+  if(!isFinite(v))return '—';
+  if(v>=1e9)return '$'+(v/1e9).toFixed(2)+'B';
+  if(v>=1e6)return '$'+(v/1e6).toFixed(1)+'M';
+  if(v>=1e3)return '$'+(v/1e3).toFixed(1)+'K';
+  return '$'+Math.round(v);
+}
+function llamaSign(p){
+  if(p===null||!isFinite(p))return '—';
+  var a=Math.abs(p);
+  // 表記は必ず%で統一する。桁が大きいときは小数を落として短くする
+  // 極端な値は桁を出しても読めないので上限で頭打ちにする
+  if(a>=99999)return (p>=0?'+':'-')+'99999%↑';
+  if(a>=10000)return (p>=0?'+':'-')+Math.round(a/1000)+'k%';
+  if(a>=100) return (p>=0?'+':'-')+Math.round(a)+'%';
+  if(a>=10)  return (p>=0?'+':'-')+a.toFixed(0)+'%';
+  return (p>=0?'+':'-')+a.toFixed(1)+'%';
+}
+// カードに出す増減表示。数値が無ければ何も出さない
+function llamaDeltaHtml(p){
+  var d=p&&p.llama;
+  if(!d)return '';
+  var p7=llamaPct(d.cur,d.d7), p30=llamaPct(d.cur,d.d30);
+  function cls(v){ return v>0.5?'up':(v<-0.5?'dn':'flat'); }
+  function arrow(v){ return v>0.5?'\u2197':(v<-0.5?'\u2198':'\u2192'); }
+  // Perpは期間ごとの出来高そのものも見たいので、実額と増減率を並べて出す
+  if(p.llamaKind==='perp'&&(d.vol7!==null&&d.vol7!==undefined||d.vol30!==null&&d.vol30!==undefined)){
+    function volLine(lbl,vol,pct){
+      if(vol===null||vol===undefined)return '';
+      var pc=(pct===null)?'':'<span class="lv-pct '+cls(pct)+'">'+arrow(pct)+llamaSign(pct)+'</span>';
+      return '<div class="lv-line"><span class="lv-lbl">'+lbl+'</span>'
+        +'<span class="lv-val">'+llamaFmt(vol)+'</span>'+pc+'</div>';
+    }
+    var h=volLine('7d',d.vol7,p7)+volLine('30d',d.vol30,p30);
+    return h?'<div class="lv-box">'+h+'</div>':'';
+  }
+  if(p7===null&&p30===null)return '';
+  function one(lbl,v){
+    if(v===null)return '';
+    return '<span class="ld-item '+cls(v)+'">'+arrow(v)+lbl+llamaSign(v)+'</span>';
+  }
+  var a=one('7d',p7),b=one('30d',p30);
+  return '<div class="ld-row">'+a+(a&&b?'<span class="ld-sep">·</span>':'')+b+'</div>';
+}
+
 function sanProj(o,spLen){
   o=o||{};
   var sm=Array.isArray(o.sm)?o.sm.slice(0,spLen).map(sanMark):[];
@@ -3130,6 +3213,9 @@ function sanProj(o,spLen){
     pieShare:sanMark3(o.pieShare!==undefined?o.pieShare:o.pie), // パイ・シェア（○△✕／未判断は空のまま。1項目に統合）
     workMin:Math.max(0,num(o.workMin)), // 無料案件の1日あたり作業工数（分）。期待値スコアの精度検証（実績時給の算出）に使用
     workDays:Math.max(0,Math.round(num(o.workDays))), // 作業を実施した期間（日）。未入力なら仕込み開始〜終了の日数で代用
+    llamaSlug:sanSlug(o.llamaSlug),   // DefiLlamaの識別子
+    llamaKind:(o.llamaKind==='perp'?'perp':(o.llamaKind==='chain'?'chain':'protocol')),
+    llama:sanLlama(o.llama),          // 書込アプリが取得した数値（表示専用）
     tge:(o.tge==='g'||o.tge==='m'||o.tge==='b')?o.tge:'',
     earlyStart:/^\d{4}-\d{2}-\d{2}$/.test(o.earlyStart)?o.earlyStart:null,
     earlyEnd:/^\d{4}-\d{2}-\d{2}$/.test(o.earlyEnd)?o.earlyEnd:null,
@@ -3200,6 +3286,12 @@ function pieShareHtml(p){
 // 古い基準のスコアが混ざって比較にならないため、既定では使わず常に最新ロジックで再計算する。
 // 過去の凍結データ自体は消さずに保存し続けているので、算出方法が固まったら true に戻せば元の挙動になる。
 var USE_FROZEN_SCORE=false;
+// スコア計算に使うTVL（M$）。自動取得した値があればそれを優先する。
+// 取得値はドル単位なので M$ に直してから使う。
+function effTvl(p){
+  if(p&&p.llama&&isFinite(p.llama.cur)&&p.llama.cur>0)return p.llama.cur/1e6;
+  return num(p&&p.tvl);
+}
 function scoreBreakdown(p){
   // 終了時に凍結したスコアがあれば、それをそのまま使う（配点を後から変えても答え合わせが壊れないように）
   if(USE_FROZEN_SCORE&&p&&p.frozen&&typeof p.frozen.total==='number'){
@@ -3223,7 +3315,8 @@ function scoreBreakdown(p){
   if(p.fund){
     var parts=[];
     if(p.usr)parts.push(Math.min((p.fund/p.usr)/(W.ef_full||25),1));
-    if(p.tvl)parts.push(Math.min((p.fund/p.tvl)/(W.et_full||3),1));
+    var tvlEff=effTvl(p);   // 自動取得した最新TVLがあればそちらで計算する
+    if(tvlEff)parts.push(Math.min((p.fund/tvlEff)/(W.et_full||3),1));
     if(parts.length)calcEff=(parts.reduce(function(a,b){return a+b;},0)/parts.length)*wEf;
   }
   // パイ・シェア（○△✕、1項目）
@@ -3707,8 +3800,10 @@ function renderList(id,mode){
       // ── Row 2: stats (調達額 TVL 参加者) + eff number (no label) ──
       +'<div class="card-r2">'
       +'<div class="st-col"><div class="st-lbl">'+ICO.fund+' 調達額</div><div class="st-val">'+(p.fund?'$'+num(p.fund)+'M':'—')+'</div></div>'
-      +'<div class="st-col"><div class="st-lbl">'+ICO.usr+' 参加者</div><div class="st-val">'+(p.usr?num(p.usr)+'万':'—')+'</div></div>'
-      +'<div class="st-col"><div class="st-lbl">'+ICO.tvl+' TVL/Vol</div><div class="st-val">'+(p.tvl?'$'+num(p.tvl)+'M':'—')+'</div></div>'
+      +'<div class="st-col st-col-usr"><div class="st-lbl">'+ICO.usr+' 参加者</div><div class="st-val">'+(p.usr?num(p.usr)+'万':'—')+'</div></div>'
+      +'<div class="st-col st-col-tvl"><div class="st-lbl">'+ICO.tvl+' '+(p.llamaKind==='perp'?'Vol':'TVL/Vol')+'</div>'
+        +'<div class="st-val">'+(p.llama?llamaFmt(p.llama.cur):(p.tvl?'$'+num(p.tvl)+'M':'—'))+'</div>'
+        +llamaDeltaHtml(p)+'</div>'
       +'<div class="st-col st-col-sc"><div class="st-val eff">'+(eff_disp!=='—'?eff_disp:'—')+'</div>'+(bd.effImputed?'<div class="st-prov">暫定値</div>':'')+pieShareHtml(p)+'</div>'
       +'</div>'
 
