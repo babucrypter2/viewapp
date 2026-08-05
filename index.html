@@ -440,18 +440,31 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
   display:flex;
   align-items:stretch;
   justify-content:space-between;
-  gap:0;
+  /* 列の間に余白を確保し、その中央に区切り線を引く。
+     余白が無いまま線を引くと、桁数が伸びたとき文字が線に触れてしまうため。 */
+  gap:13px;
   border-top:1px solid rgba(255,255,255,.16);
   padding-top:6px;
 }
 .st-col{
-  flex:1;display:flex;flex-direction:column;justify-content:flex-start;min-width:0;
-  padding:0 10px;
-  border-right:1px solid rgba(255,255,255,.14);
+  /* 上揃えにして、増減行があってもラベルと数値の高さが全列で一致するようにする。
+     min-width:min-content で「内容より狭くならない」ことを保証し、
+     余ったぶんだけ均等に広がる。桁数が変わっても破綻しない。 */
+  flex:1 1 auto;
+  min-width:min-content;
+  display:flex;flex-direction:column;justify-content:flex-start;
+  padding:0;
+  position:relative;
 }
-.st-col-sc{flex:0 0 52px;width:52px;padding:0 0 0 8px;align-items:center;justify-content:center;}
-.st-col:first-child{padding-left:0;}
-.st-col:last-child{border-right:none;}
+/* 区切り線は列と列の余白の中央に置く。列の高さや内容に影響されない */
+.st-col:not(:last-child)::after{
+  content:'';position:absolute;right:-7px;top:1px;bottom:1px;
+  width:1px;background:rgba(255,255,255,.14);
+}
+/* スコア列は伸ばさず、内容ぶんだけ確保する */
+.st-col-sc{flex:0 0 auto;padding:0;align-items:center;justify-content:center;}
+
+
 .st-ico{width:12px;height:12px;vertical-align:-1px;margin-right:1px;display:inline-block;}
 .st-lbl{display:inline-flex;align-items:center;gap:4px;font-size:10px;color:var(--t1);font-weight:600;margin-bottom:6px;white-space:nowrap;line-height:1;}
 .st-lbl{margin-bottom:6px;display:flex;align-items:center;justify-content:center;}
@@ -1007,12 +1020,20 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
   .cal-entry-title{font-size:17px;}
 }
 /* DefiLlamaの自動取得値の表示（書込アプリと同じ見た目に揃える） */
-.st-col-usr{flex:0 0 62px;padding:0 6px;}
-.st-col-tvl{flex:1.6;}
-.ld-row{display:flex;gap:3px;justify-content:center;align-items:baseline;margin-top:2px;
-  flex-wrap:nowrap;white-space:nowrap;}
+/* 幅は内容から自動で決まるので個別指定はしない。
+   ただしTVLは増減2行を抱えるぶん、余りを多めに受け取れるようにする */
+.st-col-tvl{flex-grow:1.4;}
+.ld-col{display:flex;flex-direction:column;align-items:center;gap:1px;margin-top:3px;}
 .ld-item{font-size:8.5px;font-weight:800;letter-spacing:-.03em;white-space:nowrap;
-  font-variant-numeric:tabular-nums;}
+  font-variant-numeric:tabular-nums;line-height:1.25;}
+.st-lbl-sub{font-size:7.5px;font-weight:700;opacity:.6;margin-left:2px;}
+/* 収益列があるカードは項目が5つに増えるので、文字と余白を詰めて全体を収める */
+.card-r2:has(.st-col-fee){gap:11px;}
+.card-r2:has(.st-col-fee) .st-val{font-size:14.5px;letter-spacing:-.02em;}
+.card-r2:has(.st-col-fee) .st-lbl{font-size:8.5px;gap:2px;margin-bottom:4px;}
+.card-r2:has(.st-col-fee) .st-ico{width:10px;height:10px;}
+.card-r2:has(.st-col-fee) .st-pie{font-size:7.5px;}
+.card-r2:has(.st-col-fee) .st-col:not(:last-child)::after{right:-6px;}
 .ld-item.up{color:#3ddc86;}
 .ld-item.dn{color:#ff7b7b;}
 .ld-item.flat{color:var(--t3);}
@@ -3114,6 +3135,55 @@ function sanFrozen(f){
     at:(typeof f.at==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(f.at))?f.at:''
   };
 }
+// ─────── 収益（Revenue / Fees）の表示 ───────
+// 取得は書込アプリ側で行い、ここでは保存された値を表示するだけ。
+function sanLlamaFee(o){
+  if(!o||typeof o!=='object')return null;
+  function n(v){ var x=Number(v); return (typeof v!=='object'&&isFinite(x))?x:null; }
+  var cur=n(o.cur30);
+  if(cur===null)return null;
+  return {cur30:cur, prev30:n(o.prev30), feeCur30:n(o.feeCur30),
+          kind:(o.kind==='revenue'?'revenue':'fees'),
+          at:(typeof o.at==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(o.at))?o.at:''};
+}
+// 日次履歴 [[unixtime, 値], ...] から、直近N日とその前のN日の合計を出す
+function llamaSumWindows(chart,days){
+  if(!Array.isArray(chart)||!chart.length)return null;
+  var rows=[];
+  for(var i=0;i<chart.length;i++){
+    var r=chart[i];
+    if(!Array.isArray(r))continue;
+    var t=Number(r[0]), v=Number(r[1]);
+    if(!isFinite(t)||!isFinite(v))continue;
+    rows.push([t,v]);
+  }
+  if(rows.length<2)return null;
+  rows.sort(function(a,b){return a[0]-b[0];});
+  var last=rows[rows.length-1][0];
+  var cutA=last-days*86400, cutB=last-days*2*86400;
+  var cur=0,prev=0,nCur=0,nPrev=0;
+  for(var k=0;k<rows.length;k++){
+    var t2=rows[k][0], v2=rows[k][1];
+    if(t2>cutA){cur+=v2;nCur++;}
+    else if(t2>cutB){prev+=v2;nPrev++;}
+  }
+  return {cur:cur, prev:(nPrev>=Math.floor(days*0.6)?prev:null)};  // 前期間のデータが足りなければ比較しない
+}
+// カードの統計行に差し込む収益の列。データが無ければ列そのものを出さない
+function llamaFeeCol(p){
+  var f=p&&p.llamaFee;
+  if(!f||!isFinite(f.cur30))return '';
+  var pct=llamaPct(f.cur30,f.prev30);
+  var lbl=(f.kind==='revenue')?'収益':'手数料';
+  var cls=(pct===null)?'flat':(pct>0.5?'up':(pct<-0.5?'dn':'flat'));
+  var ar=(pct===null)?'':(pct>0.5?'\u2197':(pct<-0.5?'\u2198':'\u2192'));
+  return '<div class="st-col st-col-fee">'
+    +'<div class="st-lbl">'+lbl+'<span class="st-lbl-sub">30d</span></div>'
+    +'<div class="st-val">'+llamaFmt(f.cur30)+'</div>'
+    +(pct===null?'':'<div class="ld-col"><span class="ld-item '+cls+'">'+ar+llamaSign(pct)+'</span></div>')
+    +'</div>';
+}
+
 // ─────── DefiLlamaの自動取得値（書込アプリが保存したものを表示するだけ）───────
 // slugは英数字とハイフンのみ許可（URLに埋め込むため、これ以外は受け付けない）
 function sanSlug(v){
@@ -3146,14 +3216,89 @@ function llamaSign(p){
   if(p===null||!isFinite(p))return '—';
   var a=Math.abs(p);
   // 表記は必ず%で統一する。桁が大きいときは小数を落として短くする
-  // 極端な値は桁を出しても読めないので上限で頭打ちにする
-  if(a>=99999)return (p>=0?'+':'-')+'99999%↑';
-  if(a>=10000)return (p>=0?'+':'-')+Math.round(a/1000)+'k%';
+  // 桁が大きすぎると%では読み取れないので、そこだけ倍率で示す
+  if(a>=9900)return (p>=0?'×':'÷')+Math.round(1+a/100);
+  if(a>=900) return (p>=0?'+':'-')+Math.round(a)+'%';
   if(a>=100) return (p>=0?'+':'-')+Math.round(a)+'%';
   if(a>=10)  return (p>=0?'+':'-')+a.toFixed(0)+'%';
   return (p>=0?'+':'-')+a.toFixed(1)+'%';
 }
-// カードに出す増減表示。数値が無ければ何も出さない
+
+// ─────── 収益（Revenue / Fees）の取得 ───────
+// DefiLlamaの fees エンドポイントは無料で使える。
+// 収益（Revenue）が取れればそれを、無ければ手数料（Fees）を代わりに使う。
+// 増減は日次履歴から「直近30日の合計」と「その前の30日の合計」を比べて出す。
+function sanLlamaFee(o){
+  if(!o||typeof o!=='object')return null;
+  function n(v){ var x=Number(v); return (typeof v!=='object'&&isFinite(x))?x:null; }
+  var cur=n(o.cur30);
+  if(cur===null)return null;
+  return {cur30:cur, prev30:n(o.prev30), feeCur30:n(o.feeCur30),
+          kind:(o.kind==='revenue'?'revenue':'fees'),
+          at:(typeof o.at==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(o.at))?o.at:''};
+}
+// 日次履歴 [[unixtime, 値], ...] から、直近N日とその前のN日の合計を出す
+function llamaSumWindows(chart,days){
+  if(!Array.isArray(chart)||!chart.length)return null;
+  var rows=[];
+  for(var i=0;i<chart.length;i++){
+    var r=chart[i];
+    if(!Array.isArray(r))continue;
+    var t=Number(r[0]), v=Number(r[1]);
+    if(!isFinite(t)||!isFinite(v))continue;
+    rows.push([t,v]);
+  }
+  if(rows.length<2)return null;
+  rows.sort(function(a,b){return a[0]-b[0];});
+  var last=rows[rows.length-1][0];
+  var cutA=last-days*86400, cutB=last-days*2*86400;
+  var cur=0,prev=0,nCur=0,nPrev=0;
+  for(var k=0;k<rows.length;k++){
+    var t2=rows[k][0], v2=rows[k][1];
+    if(t2>cutA){cur+=v2;nCur++;}
+    else if(t2>cutB){prev+=v2;nPrev++;}
+  }
+  return {cur:cur, prev:(nPrev>=Math.floor(days*0.6)?prev:null)};  // 前期間のデータが足りなければ比較しない
+}
+async function llamaFetchFee(slug){
+  slug=sanSlug(slug);
+  if(!slug)return null;
+  var sl=encodeURIComponent(slug);
+  // 収益と手数料の両方を取り、値が違うかどうかで「本当に収益が返っているか」を判定する。
+  // DefiLlamaが dataType を無視して手数料を返してくる場合があるため、
+  // 同じ値なら収益とは名乗らせず「手数料」として表示する。
+  var rev=await llamaFeeOne('https://api.llama.fi/summary/fees/'+sl+'?dataType=dailyRevenue');
+  var fee=await llamaFeeOne('https://api.llama.fi/summary/fees/'+sl);
+  var today=new Date();
+  var at=today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0')+'-'+String(today.getDate()).padStart(2,'0');
+  if(rev&&fee){
+    // 差があれば収益が正しく返っている。ほぼ同額なら dataType が効いていない
+    var same=Math.abs(rev.cur-fee.cur)<Math.max(1,fee.cur*0.001);
+    if(same)return sanLlamaFee({cur30:fee.cur,prev30:fee.prev,kind:'fees',feeCur30:fee.cur,at:at});
+    return sanLlamaFee({cur30:rev.cur,prev30:rev.prev,kind:'revenue',feeCur30:fee.cur,at:at});
+  }
+  if(fee)return sanLlamaFee({cur30:fee.cur,prev30:fee.prev,kind:'fees',feeCur30:fee.cur,at:at});
+  if(rev)return sanLlamaFee({cur30:rev.cur,prev30:rev.prev,kind:'fees',feeCur30:null,at:at});
+  return null;
+}
+// 1本ぶん取得して、直近30日と前30日の合計を返す
+async function llamaFeeOne(url){
+  var res;
+  try{
+    res=await fetch(url,{method:'GET',cache:'no-store',
+      credentials:'omit',referrerPolicy:'no-referrer'});
+  }catch(e){ return null; }
+  if(!res.ok)return null;
+  var txt=await res.text();
+  if(txt.length>4000000)return null;
+  var j;
+  try{ j=JSON.parse(txt); }catch(e){ return null; }
+  if(!j||typeof j!=='object'||Array.isArray(j))return null;
+  var w=llamaSumWindows(j.totalDataChart,30);
+  var cur=w?w.cur:Number(j.total30d);
+  if(!isFinite(cur)||cur<0)return null;
+  return {cur:cur, prev:w?w.prev:null};
+}// カードに出す増減表示。数値が無ければ何も出さない
 function llamaDeltaHtml(p){
   var d=p&&p.llama;
   if(!d)return '';
@@ -3174,12 +3319,11 @@ function llamaDeltaHtml(p){
   if(p7===null&&p30===null)return '';
   function one(lbl,v){
     if(v===null)return '';
-    return '<span class="ld-item '+cls(v)+'">'+arrow(v)+lbl+llamaSign(v)+'</span>';
+    return '<span class="ld-item '+cls(v)+'">'+arrow(v)+lbl+' '+llamaSign(v)+'</span>';
   }
   var a=one('7d',p7),b=one('30d',p30);
-  return '<div class="ld-row">'+a+(a&&b?'<span class="ld-sep">·</span>':'')+b+'</div>';
+  return (a||b)?('<div class="ld-col">'+a+b+'</div>'):'';
 }
-
 function sanProj(o,spLen){
   o=o||{};
   var sm=Array.isArray(o.sm)?o.sm.slice(0,spLen).map(sanMark):[];
@@ -3216,6 +3360,7 @@ function sanProj(o,spLen){
     llamaSlug:sanSlug(o.llamaSlug),   // DefiLlamaの識別子
     llamaKind:(o.llamaKind==='perp'?'perp':(o.llamaKind==='chain'?'chain':'protocol')),
     llama:sanLlama(o.llama),          // 書込アプリが取得した数値（表示専用）
+    llamaFee:sanLlamaFee(o.llamaFee),  // 書込アプリが取得した収益（表示専用）
     tge:(o.tge==='g'||o.tge==='m'||o.tge==='b')?o.tge:'',
     earlyStart:/^\d{4}-\d{2}-\d{2}$/.test(o.earlyStart)?o.earlyStart:null,
     earlyEnd:/^\d{4}-\d{2}-\d{2}$/.test(o.earlyEnd)?o.earlyEnd:null,
@@ -3804,6 +3949,7 @@ function renderList(id,mode){
       +'<div class="st-col st-col-tvl"><div class="st-lbl">'+ICO.tvl+' '+(p.llamaKind==='perp'?'Vol':'TVL/Vol')+'</div>'
         +'<div class="st-val">'+(p.llama?llamaFmt(p.llama.cur):(p.tvl?'$'+num(p.tvl)+'M':'—'))+'</div>'
         +llamaDeltaHtml(p)+'</div>'
+      +llamaFeeCol(p)
       +'<div class="st-col st-col-sc"><div class="st-val eff">'+(eff_disp!=='—'?eff_disp:'—')+'</div>'+(bd.effImputed?'<div class="st-prov">暫定値</div>':'')+pieShareHtml(p)+'</div>'
       +'</div>'
 
