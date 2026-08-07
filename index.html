@@ -574,8 +574,11 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .card-r2:has(.st-col-fee) .st-col:not(:last-child)::after{right:-6px;}
 /* スコア列。パイ・シェアの文字が入る幅を必ず確保する。
    overflow:hidden で隠すと文字が切れてしまうため、min-content で幅を守る */
-.st-col-sc{flex:0 0 auto;padding:0 2px 0 5px;align-items:center;justify-content:center;
-  min-width:min-content;box-sizing:content-box;}
+/* content-box + flex:0 0 auto だとパディング分が幅に上乗せされ、
+   TVL列が広がったときに行からはみ出していた。border-box にして
+   指定幅の中にパディングを収める */
+.st-col-sc{flex:0 0 auto;padding:0 4px 0 5px;align-items:center;justify-content:center;
+  min-width:min-content;box-sizing:border-box;}
 /* 参加者は「0.5万」「100万」程度で幅が要らないので詰め、余った分をTVL列へ回す */
 /* 幅は内容から自動で決まるので個別指定はしない。
    ただしTVLは増減2行を抱えるぶん、余りを多めに受け取れるようにする */
@@ -1310,6 +1313,14 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .llama-out.ok{color:#3ddc86;font-weight:700;}
 .llama-out.err{color:#ff8a8a;font-weight:700;}
 .ld-col{display:flex;flex-direction:column;align-items:center;gap:2px;margin-top:5px;}
+/* 収益列が無いカードは横幅に余裕があるので、7d/30d を1行に並べて縦をコンパクトにする。
+   収益列がある（5列になる）場合は横幅が足りないため、従来通り2行のまま。
+   横並びにするとTVL列が広がるので、他の列を圧迫しないよう伸び幅を抑える */
+.card-r2:not(:has(.st-col-fee)) .ld-col{flex-direction:row;gap:10px;}
+/* 横並びにすると増減の行が長くなり、min-content でTVL列が広がって行があふれる。
+   TVL列は縮むことを許し、増減は折り返さずに列幅へ収める */
+.card-r2:not(:has(.st-col-fee)) .st-col-tvl{flex:1 1 auto;min-width:0;}
+.card-r2:not(:has(.st-col-fee)) .ld-col{flex-wrap:nowrap;}
 /* 増減は数字が主役。矢印は控えめにし、字間を詰めすぎず読める余裕を持たせる */
 .ld-item{font-size:var(--fs-xs);font-weight:800;white-space:nowrap;font-variant-numeric:tabular-nums;line-height:1.35;letter-spacing:.01em;display:inline-flex;align-items:center;gap:3px;}
 /* 矢印はフォントの三角形ではなく border で描く。上向き・下向きが完全に同じ大きさになる
