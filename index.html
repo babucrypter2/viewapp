@@ -528,8 +528,10 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 /* .ms が別用途の定義で display:flex になっているため、ここでは横並びのflex行にして   ラベルと記号が縦にバラけないようにする */
 /* パイ・シェアはスコア列の幅を決める要素。折り返さず、列がこの幅を確保するようにする */
 .st-pie{font-size:var(--fs-xs);color:var(--t3);white-space:nowrap;margin-top:2px;display:flex;align-items:center;justify-content:center;gap:2px;}
-.st-pie 
-.st-prov{font-size:var(--fs-xs);color:var(--ylw);font-weight:700;text-align:center;margin-top:1px;line-height:1.2;white-space:nowrap;}
+
+/* パイ・シェア(.st-pie)と同じトーンに揃える。暫定値は補足情報であり、
+   目立たせるべき数値（期待値スコアなど）ではないため */
+.st-prov{font-size:var(--fs-xs);color:var(--t3);font-weight:600;text-align:center;margin-top:2px;line-height:1.2;white-space:nowrap;}
 .sc-val.sc-sm .sc-max{font-size:var(--fs-xs);}
 .c-g{color:var(--grn);}
 .c-a{color:var(--acc);}
