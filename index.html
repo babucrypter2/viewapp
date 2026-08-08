@@ -497,7 +497,10 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .tl-fold-btn.open{background:var(--acc);border-color:var(--acc);}
 .tl-fold-btn:active{filter:brightness(.85);}
 .live-prev-lbl{font-size:11px;color:var(--t3);font-weight:700;margin:8px 0 4px;}
+/* 情報タブ本文の太字（**見出し**）は、地の文と見分けやすいよう色を付けて
+   お題（小見出し）だとひと目で分かるようにする */
 .info-card{line-height:1.7;}
+.info-card b,.info-body b{color:#5aa0ff;font-weight:800;}
 .info-p{font-size:13px;color:var(--t1);margin:0 0 9px;line-height:1.8;}
 .info-note{font-size:11px;color:var(--t3);line-height:1.7;margin-top:12px;padding-top:10px;border-top:1px solid var(--b);}
 .live-prev-frame{background:var(--bg);border:1px dashed var(--bb);border-radius:10px;pointer-events:none;overflow:hidden;padding:9px 0;}
@@ -624,7 +627,8 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
   align-items:center;text-align:center;position:relative;}
 .q-col:not(:last-child)::after{content:'';position:absolute;right:-7.5px;top:1px;bottom:1px;
   width:1px;background:rgba(255,255,255,.12);}
-.q-lbl{font-size:var(--fs-xs);color:var(--t3);font-weight:600;margin-bottom:2px;white-space:nowrap;}
+/* 調達額・参加者などの見出し(.st-lbl)と同じサイズに統一する */
+.q-lbl{font-size:var(--fs-sm);color:var(--t3);font-weight:600;margin-bottom:6px;white-space:nowrap;}
 .q-lbl-w{color:var(--t1);font-weight:700;margin-left:2px;}
 .q-val{font-size:var(--fs-lg);font-weight:900;color:var(--t1);font-variant-numeric:tabular-nums;white-space:nowrap;}
 .q-val-max{font-size:var(--fs-xs);color:var(--t3);font-weight:700;margin-left:1px;}
