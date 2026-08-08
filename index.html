@@ -3912,6 +3912,9 @@ function scoreConfidence(p,bd){
   if(rate>=0.5)return 'm';
   return 'b';
 }
+// ○=満点・△=満点の50%・✕=0点 の達成率。scoreBreakdown()とカード表示側の
+// 両方から同じ関数を呼ぶことで、採点結果と画面表示が食い違わないようにする
+function achieveRate(v){ return v==='g'?1:(v==='m'?0.5:0); }
 function scoreBreakdown(p){
   if(USE_FROZEN_SCORE&&p&&p.frozen&&typeof p.frozen.total==='number'){
     var fz=p.frozen;
@@ -3944,7 +3947,6 @@ function scoreBreakdown(p){
   else { var med=_effMedianCache(); effScore=(med===null)?wEf/2:med; effImputed=true; }
   // 運営の質は評価軸から廃止した。減点はリファ無・低資金の2項目のみで判定する。
   // 各項目満点(w_deduct/2)に対して○=100%・△=50%・✕=0%の達成率で加点する
-  function achieveRate(v){ return v==='g'?1:(v==='m'?0.5:0); }
   var perDeduct=(W.w_deduct||0)/2;
   var deductScore=perDeduct*achieveRate(p.refa)+perDeduct*achieveRate(p.low);
   var total=smScore+effScore+deductScore;
@@ -4635,10 +4637,13 @@ function renderList(id,mode){
     var smS=(p.sm||[]).reduce(function(a,v,j){var q=SP[j];if(!q)return a;return a+(v==='g'?q.ptG:v==='m'?q.ptM:(q.ptB||0));},0);
     var perT_=depPeriodTxt(p);
     var bd=scoreBreakdown(p);
-    var _per=(W.w_deduct||0)/3;
-    var rPt=_per-((p.refa==='g')?0:(p.refa==='m'?(W.d_m||0):(W.d_b||0)));
-    var lPt=_per-((p.low==='g')?0:(p.low==='m'?(W.d_m||0):(W.d_b||0)));
-    var qPt=_per-(((p.quality||'b')==='g')?0:((p.quality||'b')==='m'?(W.d_m||0):(W.d_b||0)));
+    // 各項目満点(_per)に対して、○=満点・△=満点の50%・✕=0点で計算する。
+    // scoreBreakdown()と全く同じ achieveRate() を呼ぶことで、カード表示と
+    // 採点結果が食い違うことがないようにする。以前は3項目(運営の質込み)で割る
+    // 古いコードがこの箇所だけ移植されずに残っており、実際の点数と表示がズレていた
+    var _per=(W.w_deduct||0)/2;
+    var rPt=_per*achieveRate(p.refa);
+    var lPt=_per*achieveRate(p.low);
     var eff_disp=Math.round(bd.eff).toString();
 
     // Rank medal
