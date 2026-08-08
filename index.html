@@ -440,7 +440,8 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
   background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.2);}
 .early-top{font-size:var(--fs-sm);color:var(--t1);display:flex;align-items:center;gap:9px;flex-wrap:nowrap;line-height:1.3;white-space:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;}
 .early-top::-webkit-scrollbar{display:none;}
-.early-lbl{color:var(--t1);font-weight:800;font-size:var(--fs-md);flex-shrink:0;display:flex;align-items:center;gap:6px;}
+/* アーリー度・プロジェクトの質・報酬の競争率の見出しは、お題として少し目立たせるため一段大きく */
+.early-lbl{color:var(--t1);font-weight:800;font-size:14px;flex-shrink:0;display:flex;align-items:center;gap:6px;}
 .early-pct{color:var(--t1);font-weight:700;flex-shrink:0;}
 .early-wk{color:var(--t1);font-weight:500;flex-shrink:0;}
 /* 「アーリー度」ラベルと状態マーク（○序盤 等）の間に余白を作る */
@@ -601,22 +602,22 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .q-icon-pie{background:rgba(90,160,255,.16);color:#5aa0ff;}
 .q-icon-early{background:rgba(61,220,134,.16);color:#3ddc86;width:19px;height:19px;}
 .q-icon-early svg{width:13px;height:13px;}
-.q-title{font-size:var(--fs-md);font-weight:800;color:var(--t1);flex-shrink:0;white-space:nowrap;line-height:15px;height:15px;}
+.q-title{font-size:14px;font-weight:800;color:var(--t1);flex-shrink:0;white-space:nowrap;line-height:16px;height:16px;}
 .q-badge{flex:1 1 auto;min-width:0;font-size:9px;color:var(--t3);font-weight:700;line-height:1;
-  display:flex;align-items:center;justify-content:flex-end;gap:2px;white-space:nowrap;height:15px;
+  display:flex;align-items:center;justify-content:flex-end;gap:2px;white-space:nowrap;height:16px;
   overflow-x:hidden;overflow-y:visible;text-overflow:ellipsis;letter-spacing:-.01em;padding:1px 0;}
 /* バッジ内の○△✕。親(.q-badge)はflex+align-items:centerなので、
    記号側もflexの子として中央に置かれるよう高さを親に合わせる */
 /* バッジ本体は9px。隣のスコア(13px)と行の中心を揃えるため、記号も同じ行高にする */
-.q-badge .ms{font-size:11px;line-height:15px;height:15px;
+.q-badge .ms{font-size:11px;line-height:16px;height:16px;
   display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;}
 /* q-badge(9px)とq-score(13px)はフォントサイズが違うため、line-height:1のままだと
    外枠の高さ自体が変わってズレて見える。両方を同じ高さの箱にしてflexで中央揃えする */
 /* flexにすると中の分母(.q-score-max 9px)が「箱の中央」に置かれ、本体13pxの数字と
    ベースラインを共有できずに約2px浮いて見えていた。通常の行(inline-block)に戻して
    同じベースライン上に並べる。行の高さは他の要素と合わせて15pxで固定する */
-.q-score{flex-shrink:0;font-size:var(--fs-md);font-weight:900;color:#3ddc86;
-  display:inline-block;line-height:15px;height:15px;
+.q-score{flex-shrink:0;font-size:14px;font-weight:900;color:#3ddc86;
+  display:inline-block;line-height:16px;height:16px;
   font-variant-numeric:tabular-nums;white-space:nowrap;}
 /* 分母(/50)は本体(13px)より小さい9px。inline-blockだと箱の中央基準になって
    本体の数字とベースラインがズレるため、通常の文字と同じ流れ(inline)に戻す */
@@ -627,10 +628,12 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
   align-items:center;text-align:center;position:relative;}
 .q-col:not(:last-child)::after{content:'';position:absolute;right:-7.5px;top:1px;bottom:1px;
   width:1px;background:rgba(255,255,255,.12);}
-/* 調達額・参加者などの見出し(.st-lbl)と同じサイズに統一する */
-.q-lbl{font-size:var(--fs-sm);color:var(--t3);font-weight:600;margin-bottom:6px;white-space:nowrap;}
+/* 調達額・参加者などの見出し(.st-lbl)と隙間を揃える。6pxだと少し広く見えたため5pxに詰める */
+.q-lbl{font-size:var(--fs-sm);color:var(--t3);font-weight:600;margin-bottom:5px;white-space:nowrap;
+  line-height:1;display:flex;align-items:center;justify-content:center;}
 .q-lbl-w{color:var(--t1);font-weight:700;margin-left:2px;}
-.q-val{font-size:var(--fs-lg);font-weight:900;color:var(--t1);font-variant-numeric:tabular-nums;white-space:nowrap;}
+/* line-height未指定だとブラウザのデフォルト行間ぶん上に余白ができ、.st-valとの隙間がズレていた */
+.q-val{font-size:var(--fs-lg);font-weight:900;color:var(--t1);font-variant-numeric:tabular-nums;white-space:nowrap;line-height:1;}
 .q-val-max{font-size:var(--fs-xs);color:var(--t3);font-weight:700;margin-left:1px;}
 .q-avs{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;}
 /* 中の要素はフォントサイズがバラバラ(9px/11px/13px)なので、baseline基準だと
@@ -649,7 +652,8 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 /* 収益列があるカードは項目が5つに増えるので、文字と余白を詰めて全体を収める */
 .card-r2:has(.st-col-fee){gap:13px;}
 .card-r2:has(.st-col-fee) .st-val{font-size:var(--fs-lg);letter-spacing:-.02em;}
-.card-r2:has(.st-col-fee) .st-lbl{font-size:var(--fs-sm);gap:2px;margin-bottom:4px;}
+/* 収益列がある時だけ余白が縮んで「プロジェクトの質」欄と隙間が揃わなくなっていたため統一する */
+.card-r2:has(.st-col-fee) .st-lbl{font-size:var(--fs-sm);gap:2px;margin-bottom:5px;}
 .card-r2:has(.st-col-fee) .st-ico{width:10px;height:10px;}
 .card-r2:has(.st-col-fee) .st-pie{font-size:var(--fs-xs);}
 .card-r2:has(.st-col-fee) .st-col:not(:last-child)::after{right:-6px;}
@@ -667,8 +671,8 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 
 .st-col:last-child{border-right:none;}
 .st-ico{width:12px;height:12px;vertical-align:-1px;margin-right:1px;display:inline-block;}
-/* プロジェクトの質(.q-lbl)と同じグレートーン・太さに統一する */
-.st-lbl{display:inline-flex;align-items:center;gap:4px;font-size:var(--fs-sm);color:var(--t3);font-weight:600;margin-bottom:6px;white-space:nowrap;line-height:1;}
+/* プロジェクトの質(.q-lbl)と同じグレートーン・太さ・隙間(5px)に統一する */
+.st-lbl{display:inline-flex;align-items:center;gap:4px;font-size:var(--fs-sm);color:var(--t3);font-weight:600;margin-bottom:5px;white-space:nowrap;line-height:1;}
 .st-lbl{margin-bottom:6px;display:flex;align-items:center;justify-content:center;}
 .st-col:first-child .st-lbl{border-radius:10px 0 0 0;}
 .st-val{font-size:var(--fs-lg);font-weight:700;color:var(--t1);line-height:1;white-space:nowrap;text-align:center;
