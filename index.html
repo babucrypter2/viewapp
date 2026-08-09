@@ -657,7 +657,8 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
    合わせるとカード幅からあふれることがあるため、この行だけ少し小さく・詰めて収める */
 .q-deduct-row .pl-txt{font-size:10px;gap:2px;}
 .q-deduct-row .pl-txt .ms{font-size:12px;line-height:12px;height:12px;}
-.q-deduct-row .pl-txt .pv{font-size:12px;}
+/* Xスコアの配点表示(.q-lbl-w)と同じ細字に。右端の合計(.q-deduct-total)は太字のまま維持 */
+.q-deduct-row .pl-txt .pv{font-size:12px;font-weight:500;}
 /* q-scoreと同じ理由（flexだと分母が箱の中央に来て本体とベースラインがズレる）で
    ここも display:inline-block に統一する。以前はflexのまま修正が漏れていた */
 .q-deduct-total{flex-shrink:0;font-size:var(--fs-md);color:#3ddc86;font-weight:900;white-space:nowrap;
