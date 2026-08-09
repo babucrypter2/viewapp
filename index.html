@@ -1831,10 +1831,56 @@ function renderStrategy(){
 var TASKLIST='';
 var TASK_COUNT=0;  // 今のエアドロタスク日課：件数
 var TASK_MIN=0;    // 今のエアドロタスク日課：1日あたりの工数（分）
+var TASK_FREQ={};  // 今のエアドロタスク日課：番号→頻度（日数）。例 {1:1,2:2,3:7}
 var CALENDAR={}; // {'2026-07-21':'その日のイベント本文（複数行・URL可）'}
 var taskListFoldOpen=false;
 function sanTaskList(v){ return typeof v==='string'?clampStr(v,3000):''; }
 function sanTaskNum(v){ var n=Math.round(num(v)); return (n>0&&n<100000)?n:0; }
+function sanTaskFreq(o){
+  var out={};
+  if(o&&typeof o==='object'){
+    Object.keys(o).forEach(function(k){
+      var n=parseInt(k,10), v=Math.round(num(o[k]));
+      if(n>=1&&n<=10&&v>=1&&v<=10)out[n]=v;
+    });
+  }
+  return out;
+}
+// タスクブロックの一番下に「頻度：1/○D」の行を自動挿入する（書込アプリと同じロジック）
+function injectTaskFreqLines(raw,freqMap){
+  if(!raw)return raw;
+  var lines=String(raw).split(/\r?\n/);
+  var out=[],curNum=null,curLines=[];
+  function flush(){
+    if(curNum!=null){
+      // 末尾の空行は頻度行より後ろに回す（頻度はタスクブロックの実質最後の行にしたい）
+      var trailingBlanks=[];
+      while(curLines.length&&curLines[curLines.length-1].trim()==='')trailingBlanks.unshift(curLines.pop());
+      out=out.concat(curLines);
+      var d=freqMap&&freqMap[curNum];
+      if(d&&d>1)out.push('頻度：1/'+d+'D');
+      else if(d===1)out.push('頻度：1/D');
+      out=out.concat(trailingBlanks);
+    }else{
+      out=out.concat(curLines);
+    }
+    curLines=[];
+  }
+  lines.forEach(function(line){
+    var m=line.match(/^(\s*)([0-9]\uFE0F?\u20E3|\uD83D\uDD1F)/);
+    if(m){
+      flush();
+      curNum=/\uD83D\uDD1F/.test(m[2])?10:parseInt(m[2],10);
+      curLines=[line];
+    }else if(/^\s*頻度[：:]/.test(line)){
+      // 過去に手書きした「頻度：」行は、自動生成のものと重複するので読み飛ばす
+    }else{
+      curLines.push(line);
+    }
+  });
+  flush();
+  return out.join('\n');
+}
 // カレンダー：{'YYYY-MM-DD':'本文'} 形式のみ許可。日付キーの形式チェックと件数・文字数の上限で防御
 function sanCalendar(o){
   var out={};
@@ -1886,22 +1932,41 @@ function renderTaskListHtml(raw){
   out+=linkifyMemo(raw.slice(last));
   return out;
 }
-// ── タスク日課のチェックボックス（毎日0時に自動リセット。閲覧者本人の「やったか」記録用、端末内保存） ──
+// ── タスク日課のチェックボックス（頻度(TASK_FREQ)に応じて自動リセット。閲覧者本人の「やったか」記録用、端末内保存） ──
 var TASK_CHECK_KEY='babuTaskCheckV1';
 function taskCheckToday(){
   var d=new Date();
   return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 }
+// 'YYYY-MM-DD'形式の日付同士の日数差（d2 - d1）
+function daysBetween(d1,d2){
+  var t1=new Date(d1+'T00:00:00').getTime();
+  var t2=new Date(d2+'T00:00:00').getTime();
+  if(!isFinite(t1)||!isFinite(t2))return 99999;
+  return Math.round((t2-t1)/86400000);
+}
 function loadTaskChecks(){
   try{
     var raw=localStorage.getItem(TASK_CHECK_KEY);
     var obj=raw?JSON.parse(raw):null;
-    if(!obj||obj.date!==taskCheckToday())return {date:taskCheckToday(),done:{}}; // 日付が変わっていれば自動リセット
+    if(!obj||typeof obj.done!=='object')return {done:{}};
     return obj;
-  }catch(e){ return {date:taskCheckToday(),done:{}}; }
+  }catch(e){ return {done:{}}; }
 }
 function saveTaskChecks(st){
   try{ localStorage.setItem(TASK_CHECK_KEY,JSON.stringify(st)); }catch(e){}
+}
+// そのタスク番号が「今日時点でまだチェック済み扱いか」を頻度から判定する。
+// 例えば2日に1回のタスクなら、チェックした翌日はまだ済み扱いのまま、2日後の朝に未チェックへ戻る。
+// 以前の保存データ(done[n]===true の旧形式)は「今日チェックした」とみなして扱う後方互換
+function isTaskCheckedNow(n){
+  var st=loadTaskChecks();
+  var d=st.done[n];
+  if(!d)return false;
+  if(d===true)d=taskCheckToday();
+  var freq=(TASK_FREQ&&TASK_FREQ[n])||1;
+  var diff=daysBetween(d,taskCheckToday());
+  return diff>=0&&diff<freq;
 }
 // 今日のタスクの完了状況（本文中の番号行を母数とする）
 // ─────── 自分用モードの判定 ───────
@@ -1916,18 +1981,18 @@ var IS_OWNER=(function(){
   }catch(e){ return location.hash==='#me'; }
 })();
 function taskCheckStatus(){
-  var st=loadTaskChecks(),total=0,done=0;
+  var total=0,done=0;
   String(TASKLIST||'').split(/\r?\n/).forEach(function(line){
     var m=line.match(/^(\s*)([0-9]\uFE0F?\u20E3|\uD83D\uDD1F)/);
     if(!m)return;
     var n=/\uD83D\uDD1F/.test(m[2])?10:parseInt(m[2],10);
-    total++;if(st.done[n])done++;
+    total++;if(isTaskCheckedNow(n))done++;
   });
   return {total:total,done:done,left:total-done};
 }
 function toggleTaskCheck(n,el){
   var st=loadTaskChecks();
-  if(el.checked)st.done[n]=true; else delete st.done[n];
+  if(el.checked)st.done[n]=taskCheckToday(); else delete st.done[n];
   saveTaskChecks(st);
   var row=el.closest('.tl-task-row');
   if(row)row.classList.toggle('done',!!el.checked);
@@ -1948,13 +2013,12 @@ function updateTaskStatusBar(){
 // 行ごとに、番号（1️⃣〜🔟）で始まる行だけチェックボックス付きの行として描画する
 function renderTaskListWithChecks(raw){
   if(!raw)return '';
-  var st=loadTaskChecks();
   var lines=String(raw).split(/\r?\n/);
   return lines.map(function(line){
     var m=line.match(/^(\s*)([0-9]\uFE0F?\u20E3|\uD83D\uDD1F)/);
     if(m){
       var n=/\uD83D\uDD1F/.test(m[2])?10:parseInt(m[2],10);
-      var checked=!!st.done[n];
+      var checked=isTaskCheckedNow(n);
       return '<label class="tl-task-row'+(checked?' done':'')+'">'
         +'<input type="checkbox" class="tl-check" '+(checked?'checked':'')+' onclick="event.stopPropagation();" onchange="toggleTaskCheck('+n+',this)">'
         +'<span class="tl-task-txt">'+renderTaskListHtml(line)+'</span>'
@@ -2194,7 +2258,7 @@ function renderTaskList(){
     +'<button class="tl-fold-btn'+(taskListFoldOpen?' open':'')+'">'+(taskListFoldOpen?'閉じる':'詳細を開く')+'<span class="dt-arrow">▼</span></button>'
     +'</div>'
     +statusHtml
-    +'<div class="tl-body" id="tl-fold-body" style="display:'+(taskListFoldOpen?'block':'none')+';">'+(IS_OWNER?renderTaskListWithChecks(TASKLIST):renderTaskListHtml(TASKLIST))+'<button class="fold-close" onclick="event.stopPropagation();toggleTaskListFold()">閉じる<span class="dt-arrow">▲</span></button></div>';
+    +'<div class="tl-body" id="tl-fold-body" style="display:'+(taskListFoldOpen?'block':'none')+';">'+(function(){var t=injectTaskFreqLines(TASKLIST,TASK_FREQ);return IS_OWNER?renderTaskListWithChecks(t):renderTaskListHtml(t);})()+'<button class="fold-close" onclick="event.stopPropagation();toggleTaskListFold()">閉じる<span class="dt-arrow">▲</span></button></div>';
   el.classList.toggle('fold-closed',!taskListFoldOpen); // 閉時はヘッダー帯だけの見た目に
   el.classList.toggle('has-status',!!statusHtml);       // 完了状況の行があるときは下の余白を戻す
   el.style.display='block';
@@ -3553,6 +3617,7 @@ function applyLoadedData(d,opts){
   TASKLIST=sanTaskList(d.tasklist);
   TASK_COUNT=sanTaskNum(d.taskCount);
   TASK_MIN=sanTaskNum(d.taskMin);
+  TASK_FREQ=sanTaskFreq(d.taskFreq);
   CALENDAR=sanCalendar(d.calendar);
   // 更新バッジの判定は「完全なデータ」の時だけ行う。
   // 画像を省いた軽量キャッシュで判定すると、画像の有無の差で毎回「更新」扱いになってしまう
