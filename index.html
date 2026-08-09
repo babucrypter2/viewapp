@@ -2463,8 +2463,8 @@ function calibrationProposal(){
   var blocks=[
     {key:'w_sm',    label:'強者の言及',            cur:num(W.w_sm),
      keys:['強者の言及が多い(平均以上)']},
-    {key:'w_ef',    label:'調達効率・パイシェア',    cur:num(W.w_ef),
-     keys:['調達額が大きい(中央値以上)','パイ・シェアが大きい','TVLが大きい(中央値以上)','参加者が少ない(中央値以下)']},
+    {key:'w_ef',    label:'報酬の競争率',          cur:num(W.w_ef),
+     keys:['調達額が大きい(中央値以上)','明確な自分の報酬シェア','TVLが大きい(中央値以上)','参加者が少ない(中央値以下)']},
     {key:'w_deduct',label:'減点（リファ無・低資金）',cur:num(W.w_deduct),
      keys:['リファ無し','低資金向き']}
   ];
@@ -2507,7 +2507,7 @@ function calibrationProposal(){
     }
   });
   // 減点3項目のうち、マイナスに効いているもの
-  var minus=['リファ無し','低資金向き','運営の質が高い'].filter(function(k){return diff[k]!=null&&diff[k]<=-30;});
+  var minus=['リファ無し','低資金向き'].filter(function(k){return diff[k]!=null&&diff[k]<=-30;});
   if(minus.length){
     notes.push({t:'逆効果の疑い',
       b:minus.join('・')+' が稼げない案件の特徴として出ています',
@@ -2718,11 +2718,12 @@ function precisionFactors(){
   var mLv  =med(function(p){return num(p.lv);});
   var mPrio=med(function(p){return num(p.prio);});
   var mDur =med(function(p){return projDurDays(p);});
+  var mXScore=med(function(p){return num(p.xScore);});
+  var mSmartFollowers=med(function(p){return num(p.smartFollowers);});
   var defs=[
     {k:'リファ無し',f:function(p){return p.refa==='g';}},
     {k:'低資金向き',f:function(p){return p.low==='g';}},
-    {k:'運営の質が高い',f:function(p){return p.quality==='g';}},
-    {k:'パイ・シェアが大きい',f:function(p){return p.pieShare==='g';}},
+    {k:'明確な自分の報酬シェア',f:function(p){return p.pieShare==='g';}},
     {k:'TGE予定あり',f:function(p){return p.tge==='g';}},
     {k:'強者の言及が多い(平均以上)',f:function(p){
       var pts=(p.sm||[]).reduce(function(a,v,j){var q=SP[j];if(!q)return a;return a+(v==='g'?q.ptG:v==='m'?q.ptM:(q.ptB||0));},0);
@@ -2736,6 +2737,8 @@ function precisionFactors(){
   if(mLv  !=null)defs.push({k:'仕込みLvが高い(中央値以上)',f:function(p){return num(p.lv)>=mLv;}});
   if(mPrio!=null)defs.push({k:'自分の優先度が高い(中央値以上)',f:function(p){return num(p.prio)>=mPrio;}});
   if(mDur !=null)defs.push({k:'仕込み期間が長い(中央値以上)',f:function(p){var d=projDurDays(p);return d>0&&d>=mDur;}});
+  if(mXScore!=null)defs.push({k:'Xスコアが高い(中央値以上)',f:function(p){return num(p.xScore)>=mXScore;}});
+  if(mSmartFollowers!=null)defs.push({k:'スマートフォロワーが多い(中央値以上)',f:function(p){return num(p.smartFollowers)>=mSmartFollowers;}});
   defs.push({k:'デポジット案件(無料系でない)',f:function(p){return depShowUsd(p)>0;}});
   var rows=defs.map(function(d){
     var w=ratio(win,d.f), l=ratio(lose,d.f);
@@ -3171,7 +3174,7 @@ function renderScoreCheck(){
           +'</div>';
       }
       // 「強者の言及が多い」の行が寄与率0で除外された場合は、単独の枠として内訳だけを見せる
-      var boxesHtml=facBox('稼げてた案件の特徴','good',hit)+facBox('稼げない案件の特徴','bad',mis);
+      var boxesHtml=facBox('稼げた案件の特徴','good',hit)+facBox('稼げない案件の特徴','bad',mis);
       if(!smRowShown&&fac.topPerson)boxesHtml+='<div class="fac-box good">'+topPersonHtml()+'</div>';
       expandHtml+='<div class="fac-wrap">'
         +'<div class="fac-disc">下記はツールが自動算出したもので、ばぶ本人の見解ではありません</div>'
