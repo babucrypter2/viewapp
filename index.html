@@ -501,7 +501,17 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 /* 情報タブ本文の太字（**見出し**）は、地の文と見分けやすいよう色を付けて
    お題（小見出し）だとひと目で分かるようにする */
 .info-card{line-height:1.7;}
-.info-card b,.info-body b{color:#5aa0ff;font-weight:800;}
+/* 情報タブの **見出し** を単なる色付き太字から、左アクセントバー＋グラデーション背景の
+   バッジ風デザインに変更。本文中でも一目でサブ見出しだと分かるようにする */
+.info-card b,.info-body b{
+  display:inline-block;color:#a9cdff;font-weight:800;font-size:1.03em;
+  letter-spacing:.01em;padding:3px 12px 3px 10px;margin:3px 0 2px;
+  background:linear-gradient(90deg,rgba(90,160,255,.22),rgba(90,160,255,.03) 88%);
+  border-left:2.5px solid #5aa0ff;border-radius:0 8px 8px 0;
+}
+/* 情報タブ本文に貼った画像。横幅いっぱいに広げつつ、大きくなりすぎないよう上限を設ける */
+.info-inline-img{display:block;max-width:100%;width:100%;max-height:360px;object-fit:cover;
+  border-radius:10px;margin:8px 0;border:1px solid rgba(255,255,255,.12);}
 .info-p{font-size:13px;color:var(--t1);margin:0 0 9px;line-height:1.8;}
 .info-note{font-size:11px;color:var(--t3);line-height:1.7;margin-top:12px;padding-top:10px;border-top:1px solid var(--b);}
 .live-prev-frame{background:var(--bg);border:1px dashed var(--bb);border-radius:10px;pointer-events:none;overflow:hidden;padding:9px 0;}
@@ -1159,6 +1169,7 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 
   /* 本文中に貼った画像（[写真N]）は、横幅いっぱいに広がるとPCでは巨大になりすぎるので上限を設ける */
   .task-img{max-width:480px;width:100%;}
+  .info-inline-img{max-width:480px;width:100%;}
 
   /* 「🔗コピー」ボタンはPCでは不要（右クリック等でコピーできるため） */
   .memo-copy{display:none;}
@@ -1718,6 +1729,16 @@ var INFO_DEFAULTS={
 };
 var INFO=Object.assign({},INFO_DEFAULTS);
 var INFO_KEYS=['about','caution','safety','seccheck','score','scorecheck'];
+var INFO_IMG={about:[],caution:[],safety:[],seccheck:[],score:[],scorecheck:[]};
+function sanInfoImg(o){
+  var out={about:[],caution:[],safety:[],seccheck:[],score:[],scorecheck:[]};
+  if(o&&typeof o==='object'){
+    INFO_KEYS.forEach(function(k){
+      if(Array.isArray(o[k]))out[k]=o[k].filter(function(v){return safeImg(v);}).slice(0,5);
+    });
+  }
+  return out;
+}
 function sanInfo(o){
   var out=Object.assign({},INFO_DEFAULTS);
   if(o&&typeof o==='object'){
@@ -3285,9 +3306,16 @@ function emojiToIcon(line){
   if(!ico)return line;
   return ico+line.slice(m[0].length);
 }
-// 1行を安全にHTML化：リンク自動化（linkifyMemo）→ **太字**→ 先頭絵文字→アイコン
-function infoLineHtml(line){
-  return emojiToIcon(linkifyMemo(line).replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>'));
+// 1行を安全にHTML化：[写真N]トークンを画像に置換 → リンク自動化（linkifyMemo）→ **太字**→ 先頭絵文字→アイコン
+function infoLineHtml(line,imgs){
+  // 先に linkifyMemo で全体をエスケープしてから、最後に[写真N]を<img>に置換する。
+  // 逆順だとlinkifyMemo内部のesc()で<img>タグごとエスケープされてしまう
+  var html=emojiToIcon(linkifyMemo(line).replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>'));
+  html=html.replace(/\[写真(\d+)\]/g,function(m,n){
+    var d=imgs&&imgs[parseInt(n,10)-1];
+    return d?'<img class="info-inline-img" src="'+esc(d)+'">':'';
+  });
+  return html;
 }
 // 情報パネル各カードへINFOを反映（1行=1段落／空行は無視／※始まりは注釈）
 var safeFoldOpen=false;
@@ -3364,11 +3392,12 @@ function renderInfoText(){
   INFO_KEYS.forEach(function(k){
     var el=document.getElementById('info-'+k);
     if(!el)return;
+    var imgs=(INFO_IMG&&INFO_IMG[k])||[];
     el.innerHTML=String(effective[k]||'').split(/\r?\n/).map(function(line){
       var t=line.trim();
       if(!t)return '';
       var cls=(t.charAt(0)==='※')?'info-p info-note':'info-p';
-      return '<p class="'+cls+'">'+infoLineHtml(t)+'</p>';
+      return '<p class="'+cls+'">'+infoLineHtml(t,imgs)+'</p>';
     }).filter(Boolean).join('');
   });
   var cautionCard=document.getElementById('caution-card');
@@ -3516,6 +3545,7 @@ function applyLoadedData(d,opts){
   if(Array.isArray(d.PROJ))PROJ=d.PROJ.slice(0,2000).map(function(o){return sanProj(o,SP.length);});
   if(typeof d.pid==='number'&&isFinite(d.pid))pid=d.pid;
   INFO=sanInfo(d.info);
+  INFO_IMG=sanInfoImg(d.infoImg);
   SEC_PROOF=sanSecProof(d.secProof);
   ACHV=sanAchv(d.achv);
   STRATEGY=sanStrategy(d.strategy);
