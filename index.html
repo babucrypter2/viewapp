@@ -509,8 +509,9 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
   background:linear-gradient(90deg,rgba(90,160,255,.22),rgba(90,160,255,.03) 88%);
   border-left:2.5px solid #5aa0ff;border-radius:0 8px 8px 0;
 }
-/* 情報タブ本文に貼った画像。横幅いっぱいに広げつつ、大きくなりすぎないよう上限を設ける */
-.info-inline-img{display:block;max-width:100%;width:100%;max-height:360px;object-fit:cover;
+/* 情報タブ本文に貼った画像。object-fit:coverだと枠からはみ出た部分が切り抜かれて
+   見切れてしまうため、高さ制限を外して画像全体が収まるようにする */
+.info-inline-img{display:block;max-width:100%;width:100%;height:auto;
   border-radius:10px;margin:8px 0;border:1px solid rgba(255,255,255,.12);}
 .info-p{font-size:13px;color:var(--t1);margin:0 0 9px;line-height:1.8;}
 .info-note{font-size:11px;color:var(--t3);line-height:1.7;margin-top:12px;padding-top:10px;border-top:1px solid var(--b);}
