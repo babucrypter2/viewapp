@@ -637,7 +637,8 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 /* line-height未指定だとブラウザのデフォルト行間ぶん上に余白ができ、.st-valとの隙間がズレていた */
 .q-val{font-size:var(--fs-lg);font-weight:900;color:var(--t1);font-variant-numeric:tabular-nums;white-space:nowrap;line-height:1;}
 .q-val-max{font-size:var(--fs-xs);color:var(--t3);font-weight:700;margin-left:1px;}
-.q-avs{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;}
+/* スコア実測値とアバターリングの間が窮屈だったので広げる */
+.q-avs{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;}
 /* 中の要素はフォントサイズがバラバラ(9px/11px/13px)なので、baseline基準だと
    行の高さの取り方の違いで上下にズレる。中央揃えに統一して見た目の高さを合わせる */
 .q-deduct-row{display:flex;justify-content:space-between;align-items:center;gap:7px;margin-top:2px;}
