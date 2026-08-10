@@ -150,7 +150,7 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
   background:var(--card);
   border:1.5px solid var(--b);
   border-radius:13px;
-  padding:9px 10px;
+  padding:18px 16px 12px;
   cursor:pointer;
   box-shadow:var(--shadow);
   transition:border-color .15s;
@@ -440,17 +440,20 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
   font-size:24px;font-weight:600;color:var(--t1);letter-spacing:.015em;
   white-space:nowrap;flex-shrink:0;
 }
-.pj-meta1{display:flex;align-items:center;gap:5px;font-size:var(--fs-sm);line-height:1.3;white-space:nowrap;}
-.pj-meta2{font-size:var(--fs-sm);line-height:1.3;white-space:nowrap;}
-.pj-meta3{font-size:var(--fs-sm);line-height:1.3;white-space:nowrap;display:flex;align-items:center;gap:6px;}
+/* フォントサイズを少し上げて視認性を高める */
+.pj-meta1{display:flex;align-items:center;gap:5px;font-size:13px;line-height:1.3;white-space:nowrap;}
+.pj-meta2{font-size:13px;line-height:1.3;white-space:nowrap;}
+.pj-meta3{font-size:13px;line-height:1.3;white-space:nowrap;display:flex;align-items:center;gap:6px;}
 .tge-g{color:#34D17B;font-weight:600;}
 .tge-m{color:#f5c542;font-weight:600;}
 .tge-b{color:#ff5c5c;font-weight:600;}
 /* 同上の理由でTGE予定アイコンも縁取りを廃止 */
 
 /* プロジェクトの質・報酬パイと同じ枠のトーンに統一する（背景・枠線・角丸を揃える） */
-.early-wrap{margin:0 0 0;padding:9px 11px 10px;border-radius:13px;
-  background:rgba(255,255,255,.022);border:1px solid rgba(255,255,255,.16);}
+/* 同上の理由で、アーリー度も枠をやめて区切り線＋余白にする */
+/* 同上の理由で上のpaddingを詰める */
+.early-wrap{margin:0;padding:10px 2px 6px;border-radius:0;
+  background:transparent;border:none;border-top:1px solid rgba(255,255,255,.09);}
 /* line-heightが.early-lbl(指定なし=デフォルト)と食い違っていて、フォントメトリクスの差で
    視覚的に上下がズレて見えていた。両方line-height:1に統一する */
 .early-top{font-size:12.5px;color:var(--t1);display:flex;align-items:center;gap:9px;flex-wrap:nowrap;line-height:1;white-space:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;}
@@ -458,14 +461,17 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 /* アーリー度・プロジェクトの質・報酬の競争率の見出しは、お題として少し目立たせるため一段大きく */
 .early-lbl{color:var(--t1);font-weight:600;font-size:15px;letter-spacing:.02em;flex-shrink:0;display:flex;align-items:center;gap:9px;line-height:1;}
 .early-pct{color:var(--t1);font-weight:700;flex-shrink:0;}
-.early-wk{color:var(--t1);font-weight:500;flex-shrink:0;}
+/* TGE予定：のラベルをグレーへ */
+.early-wk{color:var(--t3);font-weight:500;flex-shrink:0;}
+/* 開始・経過・終了のラベル語だけグレーにし、日付や期間の値は白のまま保つ */
+.early-lbl-w{color:var(--t3);}
 /* 「アーリー度」ラベルと状態マーク（○序盤 等）の間に余白を作る */
 .early-gap{width:8px;flex-shrink:0;}
 .early-sep{width:1.5px;height:12px;background:rgba(255,255,255,.45);flex-shrink:0;align-self:center;}
 .early-arrow{color:var(--t1);flex-shrink:0;font-size:var(--fs-xs);}
 .early-track{height:6px;background:rgba(255,255,255,.14);border-radius:3px;overflow:hidden;margin-top:6px;}
 .early-fill{height:100%;background:linear-gradient(90deg,#a8f5cd,#22c176);border-radius:3px;}
-.early-dates{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;font-size:var(--fs-xs);color:var(--t1);margin-top:4px;}
+.early-dates{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;font-size:11px;color:var(--t1);margin-top:4px;}
 .early-dates .early-date-w:last-child{text-align:right;}
 .early-dates .early-date-w{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .early-pct-mid{text-align:center;font-weight:500;color:var(--t1);white-space:nowrap;}
@@ -548,14 +554,16 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .pj-lbl{color:var(--t1);font-weight:600;}
 /* お題（ラベル）は細字・グレーに統一。値の太字と対比させて視認性を上げる */
 /* ラベルは白字に。太さは細字のまま維持してメリハリをつける */
-.pj-lbl-row{display:inline-block;width:64px;text-align:right;color:var(--t1);font-weight:500;flex-shrink:0;}
+/* 右揃え固定幅だと文字数の違いでラベルの左端がバラバラになっていた。
+   左揃えにして、案件名の左端と揃うようにする */
+.pj-lbl-row{display:inline-block;text-align:left;color:var(--t1);font-weight:500;flex-shrink:0;}
 .pj-stars{display:inline-flex;align-items:center;gap:.5px;}
 .pj-star{font-size:var(--fs-md);line-height:1;}
 /* 空きは輪郭だけの薄い☆。埋まっている★と形でも色でも区別できるようにする */
 .pj-star:not(.on){color:rgba(255,255,255,.2);}
 .pj-star.on{color:var(--ylw);}
 /* 数字を添える。星を数えずに個数を読み取れるようにするための主役 */
-.pj-star-n{margin-left:5px;font-size:var(--fs-sm);font-weight:700;font-variant-numeric:tabular-nums;color:var(--t1);}
+.pj-star-n{margin-left:5px;font-size:14px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--t1);}
 /* 優先度は仕込みLvと役割が違うので、色を分けて見分けられるようにする */
 .pj-stars-prio .pj-star.on{color:#ff8a3c;}
 .pj-stars-prio .pj-star-n{color:var(--t2);}
@@ -618,8 +626,12 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
    見出しの右に添えるだけ。 */
 /* 背景を明るくすると白文字とのコントラストが落ちるため、背景は暗めに抑えて
    輪郭(border)で区切りを見せる。これで見出しの白文字が最も読みやすくなる */
-.q-card{margin-top:0px;padding:9px 11px 10px;border-radius:13px;
-  background:rgba(255,255,255,.022);border:1px solid rgba(255,255,255,.16);}
+/* 枠で囲むのをやめ、上端の区切り線＋余白だけでセクションを分ける。
+   枠の入れ子が無くなることで視線が細切れにならず、全体がスッキリ見える */
+/* 上の区切り線から見出しまでの余白(旧11px)と、見出しから下のq-hrまでの余白(旧5px)が
+   非対称で見出しが下寄りに見えていたため、上下ともに8pxで揃える */
+.q-card{margin-top:0;padding:8px 2px 4px;border-radius:0;
+  background:transparent;border:none;border-top:1px solid rgba(255,255,255,.09);}
 /* 見出し行は「アイコン＋見出し＋右端スコア」だけにする。
    補足バッジ(明確な自分の報酬シェア)は下の専用行(.q-badge-row)に置くので、
    見出しを大きくしても重なったり折り返したりしない */
@@ -627,13 +639,13 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .q-badge-row{display:flex;justify-content:flex-end;margin-top:3px;}
 /* セクション見出しのアイコン。添付イメージに合わせて丸く大きくし、存在感を出す */
 /* カード・案件アイコン等、他の主要要素が角丸四角なので、見出しアイコンも揃えて統一感を出す */
-.q-icon{flex-shrink:0;width:30px;height:30px;border-radius:9px;
+.q-icon{flex-shrink:0;width:24px;height:24px;border-radius:7px;
   display:flex;align-items:center;justify-content:center;}
-.q-icon svg{width:17px;height:17px;}
+.q-icon svg{width:14px;height:14px;}
 .q-icon-quality{background:rgba(168,124,255,.2);color:#c4a4ff;box-shadow:inset 0 0 0 1.5px rgba(168,124,255,.45);}
 .q-icon-pie{background:rgba(90,160,255,.2);color:#7fb8ff;box-shadow:inset 0 0 0 1.5px rgba(90,160,255,.45);}
-.q-icon-early{background:rgba(61,220,134,.2);color:#5ce89b;width:30px;height:30px;box-shadow:inset 0 0 0 1.5px rgba(61,220,134,.45);}
-.q-icon-early svg{width:17px;height:17px;}
+.q-icon-early{background:rgba(61,220,134,.2);color:#5ce89b;width:24px;height:24px;box-shadow:inset 0 0 0 1.5px rgba(61,220,134,.45);}
+.q-icon-early svg{width:14px;height:14px;}
 /* 見出しは案件名(21px)より少し小さいサイズに揃える */
 .q-title{font-size:15px;font-weight:600;color:var(--t1);flex-shrink:0;white-space:nowrap;line-height:18px;height:18px;letter-spacing:.02em;}
 /* 見出しを19pxに大きくしたので、バッジが小さすぎて窮屈に見えないよう少し上げる */
@@ -659,7 +671,8 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 /* 分母(/50)は本体(13px)より小さい9px。inline-blockだと箱の中央基準になって
    本体の数字とベースラインがズレるため、通常の文字と同じ流れ(inline)に戻す */
 .q-score-max{color:var(--t3);font-weight:700;font-size:var(--fs-xs);display:inline;vertical-align:baseline;line-height:inherit;}
-.q-hr{height:1px;background:rgba(255,255,255,.12);margin:5px 0;}
+/* 見出し行との間隔を上のpaddingと揃えて8pxにする（下側の本文との間隔は5pxのまま維持） */
+.q-hr{height:1px;background:rgba(255,255,255,.12);margin:8px 0 5px;}
 .q-row{display:flex;justify-content:space-between;gap:15px;}
 .q-col{flex:1 1 auto;min-width:min-content;display:flex;flex-direction:column;
   align-items:center;text-align:center;position:relative;}
@@ -667,12 +680,12 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
   width:1px;background:rgba(255,255,255,.2);}
 /* 優先度・仕込みLvなどのラベル(.pj-lbl-row)と同じ白字・細字に統一する。
    隙間は前回5pxに詰めすぎたので7pxに戻す */
-.q-lbl{font-size:var(--fs-sm);color:var(--t1);font-weight:500;margin-bottom:7px;white-space:nowrap;
+.q-lbl{font-size:var(--fs-sm);color:var(--t3);font-weight:500;margin-bottom:7px;white-space:nowrap;
   line-height:1;display:flex;align-items:center;justify-content:center;}
 /* Xスコア・スマートフォロワーの右の配点表示。ラベルと隣接しすぎていたので間隔を広げ、太さも細字に */
-.q-lbl-w{color:var(--t1);font-weight:500;margin-left:6px;}
+.q-lbl-w{color:var(--t3);font-weight:500;margin-left:6px;}
 /* 実測値は見出しの次に目立たせたい要素。添付に合わせて一段大きくする */
-.q-val{font-size:25px;font-weight:600;color:var(--t1);font-variant-numeric:tabular-nums;white-space:nowrap;line-height:1;letter-spacing:-.01em;}
+.q-val{font-size:21px;font-weight:600;color:var(--t1);font-variant-numeric:tabular-nums;white-space:nowrap;line-height:1;letter-spacing:-.01em;}
 .q-val-max{font-size:var(--fs-xs);color:var(--t3);font-weight:700;margin-left:1px;}
 /* スコア実測値とアバターリングの間が窮屈だったので広げる */
 .q-avs{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;}
@@ -698,7 +711,7 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .card-r2:has(.st-col-fee){gap:13px;}
 /* 「プロジェクトの質」欄の実測値(25px)とサイズを揃える。以前は収益列(5列)で横幅が
    厳しいという理由で19pxに縮めていたが、見た目のサイズ差の方が気になるため統一する */
-.card-r2:has(.st-col-fee) .st-val{font-size:25px;letter-spacing:-.03em;}
+.card-r2:has(.st-col-fee) .st-val{font-size:18px;letter-spacing:-.03em;}
 .card-r2:has(.st-col-fee) .st-col:not(:last-child)::after{right:-6px;}
 /* 収益列がある時だけ余白が縮んで「プロジェクトの質」欄と隙間が揃わなくなっていたため統一する */
 .card-r2:has(.st-col-fee) .st-lbl{font-size:var(--fs-sm);gap:2px;margin-bottom:7px;}
@@ -719,10 +732,10 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .st-col:last-child{border-right:none;}
 .st-ico{width:12px;height:12px;vertical-align:-1px;margin-right:1px;display:inline-block;}
 /* 優先度・仕込みLvなどのラベルと同じ白字・細字に統一する。隙間は7pxに戻す */
-.st-lbl{display:inline-flex;align-items:center;gap:4px;font-size:var(--fs-sm);color:var(--t1);font-weight:500;margin-bottom:7px;white-space:nowrap;line-height:1;}
+.st-lbl{display:inline-flex;align-items:center;gap:4px;font-size:var(--fs-sm);color:var(--t3);font-weight:500;margin-bottom:7px;white-space:nowrap;line-height:1;}
 .st-lbl{margin-bottom:6px;display:flex;align-items:center;justify-content:center;}
 .st-col:first-child .st-lbl{border-radius:10px 0 0 0;}
-.st-val{font-size:25px;font-weight:600;color:var(--t1);line-height:1;white-space:nowrap;text-align:center;letter-spacing:-.01em;
+.st-val{font-size:21px;font-weight:600;color:var(--t1);line-height:1;white-space:nowrap;text-align:center;letter-spacing:-.01em;
   overflow:hidden;text-overflow:clip;}
 .st-val.eff{color:#5fb98d;font-weight:600;}
 
@@ -730,7 +743,7 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .card-r3{border-top:1px solid rgba(255,255,255,.16);padding-top:6px;}
 .sm-head{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px 12px;margin-bottom:6px;}
 .pl-txt{
-  font-size:11px;font-weight:400;color:var(--t1);white-space:nowrap;line-height:1;
+  font-size:11px;font-weight:400;color:var(--t3);white-space:nowrap;line-height:1;
   display:inline-flex;align-items:center;gap:3px;
 }
 /* gapを詰めた影響で区切り線がラベルにくっついて見えたため、線自体に左右の余白を持たせる */
@@ -747,7 +760,7 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .pl-txt .pv.pv-g{color:#34D17B;}
 /* リファ無・低資金の数字は、記号(○△✕)側で状態が分かるため白で統一する。
    記号と数字の両方を色付けると情報が重複して読みにくくなるため */
-.pl-txt .pv.pv-white{color:var(--t1);}
+.pl-txt .pv.pv-white{color:var(--t3);}
 /* スマートフォロワー数：Kaito等から手入力した表示専用の値。採点には使わないので、
    スコアに関わる .pv とは色を分けて「参考情報」であることを示す */
 /* 「強者の言及」のすぐ右に小さな余白を空けて続ける。行末に飛ばさないよう、
@@ -765,7 +778,8 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .pl-txt .pv.pv-b{color:#ff5c5c;}
 
 /* ○△✕ の記号1文字ぶん。安全マージンを確保して、実機フォントでの幅の揺れを吸収する */
-.ms{display:inline-block;font-size:var(--fs-xs);font-weight:700;line-height:1;vertical-align:-1px;min-width:1.15em;text-align:center;}
+/* 9pxだと△✕が○より小さく・薄く見えるとの指摘があったため、記号全体を一段大きくする */
+.ms{display:inline-block;font-size:12px;font-weight:700;line-height:1;vertical-align:-1px;min-width:1.15em;text-align:center;}
 .ms-none{color:var(--t3);font-weight:600;}
 /* 太字(weight)と縁取り(text-stroke)を重ねると滲んで見えたため、縁取りは廃止しweightのみで表現する */
 .ms-g{color:#34D17B;}
@@ -853,7 +867,8 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .sm-av.av-b{border-color:var(--bb);opacity:.4;filter:grayscale(.85);box-shadow:none;}
 /* 言及マーク（アイコンの下に表示） */
 .sm-item{display:flex;flex-direction:column;align-items:center;gap:3px;flex-shrink:0;}
-.sm-item .sm-badge{font-size:var(--fs-md);font-weight:600;line-height:1;}
+/* △✕が○より小さく・薄く見えるとの指摘があったため、サイズ・太さを上げて視認性を統一する */
+.sm-item .sm-badge{font-size:15px;font-weight:700;line-height:1;}
 /* 同上の理由で強者バッジのアイコンも縁取りを廃止 */
 .sm-item.av-g .sm-badge{color:var(--grn);}
 .sm-item.av-m .sm-badge{color:var(--ylw);}
@@ -1346,7 +1361,8 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .sm-av.av-g{border-color:var(--grn);box-shadow:0 0 0 1px var(--grn),0 0 6px rgba(46,200,122,.6);}
 .sm-av.av-m{border-color:var(--ylw);box-shadow:0 0 0 1px var(--ylw),0 0 5px rgba(230,180,40,.5);}
 .sm-av.av-b{border-color:var(--bb);opacity:.4;filter:grayscale(.85);box-shadow:none;}
-.sm-item .sm-badge{font-size:var(--fs-md);font-weight:600;line-height:1;}
+/* △✕が○より小さく・薄く見えるとの指摘があったため、サイズ・太さを上げて視認性を統一する */
+.sm-item .sm-badge{font-size:15px;font-weight:700;line-height:1;}
 .sm-item.av-g .sm-badge{color:var(--grn);}
 .sm-item.av-m .sm-badge{color:var(--ylw);}
 .sm-item.av-b .sm-badge{color:var(--red);}
@@ -1539,7 +1555,7 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .sc-lbl{opacity:.7;letter-spacing:.06em;font-weight:600;}
 .pj-name{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text',sans-serif;font-weight:600;letter-spacing:.015em;line-height:1.15;}
 /* 優先度・仕込みLvなどのラベルと同じ白字・細字に統一する */
-.st-lbl{color:var(--t1);font-weight:500;}
+.st-lbl{color:var(--t3);font-weight:500;}
 </style>
 </head>
 <body>
@@ -5033,7 +5049,7 @@ function earlyHtml(p){
     return '<div class="early-wrap">'
       +'<div class="early-top"><span class="early-lbl"><span class="q-icon q-icon-early"><svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8z"></path></svg></span>アーリー度</span><span class="early-gap"></span>'+emk+tgeTail+'</div>'
       +'<div class="early-track"><div class="early-fill" style="width:'+fixedPct+'%;background:'+earlyFillGrad(stage)+';"></div></div>'
-      +'<div class="early-dates"><span class="early-date-w">開始 '+fmtD(d0)+'</span><span class="early-pct-mid">'+elapsedTxt+' 経過</span><span class="early-date-w">終了 不明</span></div>'
+      +'<div class="early-dates"><span class="early-date-w"><span class="early-lbl-w">開始</span> '+fmtD(d0)+'</span><span class="early-pct-mid">'+elapsedTxt+' <span class="early-lbl-w">経過</span></span><span class="early-date-w"><span class="early-lbl-w">終了</span> 不明</span></div>'
       +'</div>';
   }
   var d1=new Date(p.earlyEnd+'T00:00:00');
@@ -5066,7 +5082,7 @@ function earlyHtml(p){
   return '<div class="early-wrap">'
     +'<div class="early-top"><span class="early-lbl"><span class="q-icon q-icon-early"><svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8z"></path></svg></span>アーリー度</span><span class="early-gap"></span>'+mark+(topInner?'<span class="early-sep"></span>'+topInner:'')+tgeTail+'</div>'
     +'<div class="early-track"><div class="early-fill" style="width:'+pct+'%;background:'+earlyFillGrad(stage2)+';"></div></div>'
-    +'<div class="early-dates"><span class="early-date-w">開始 '+fmtD(d0)+'</span><span class="early-pct-mid">'+pctMid+'</span><span class="early-date-w">終了 '+fmtD(d1)+'</span></div>'
+    +'<div class="early-dates"><span class="early-date-w"><span class="early-lbl-w">開始</span> '+fmtD(d0)+'</span><span class="early-pct-mid">'+pctMid+'</span><span class="early-date-w"><span class="early-lbl-w">終了</span> '+fmtD(d1)+'</span></div>'
     +'</div>';
 }
 function copyRefFromModal(){ if(_refURL)copyToClip(_refURL); cm('m-ref'); }
