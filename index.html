@@ -626,7 +626,8 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .q-head{display:flex;align-items:center;gap:6px;flex-wrap:nowrap;}
 .q-badge-row{display:flex;justify-content:flex-end;margin-top:3px;}
 /* セクション見出しのアイコン。添付イメージに合わせて丸く大きくし、存在感を出す */
-.q-icon{flex-shrink:0;width:30px;height:30px;border-radius:50%;
+/* カード・案件アイコン等、他の主要要素が角丸四角なので、見出しアイコンも揃えて統一感を出す */
+.q-icon{flex-shrink:0;width:30px;height:30px;border-radius:9px;
   display:flex;align-items:center;justify-content:center;}
 .q-icon svg{width:17px;height:17px;}
 .q-icon-quality{background:rgba(168,124,255,.2);color:#c4a4ff;box-shadow:inset 0 0 0 1.5px rgba(168,124,255,.45);}
@@ -839,10 +840,11 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .ta{resize:vertical;min-height:160px;font-family:inherit;line-height:1.7;font-size:16px;}
 .ta-auto{resize:none;overflow-y:auto;max-height:70vh;}
 .sm-av{
+  /* 匿名者(?マーク)のリング(1.5px)と太さを合わせる。以前は3pxで他より太く見えていた */
   width:26px;height:26px;border-radius:50%;
   display:flex;align-items:center;justify-content:center;
   font-size:var(--fs-sm);font-weight:700;color:#fff;
-  flex-shrink:0;overflow:hidden;border:3px solid transparent;
+  flex-shrink:0;overflow:hidden;border:1.5px solid transparent;
   position:relative;transition:all .15s;
 }
 .sm-av img{width:100%;height:100%;object-fit:cover;}
