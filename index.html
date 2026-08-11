@@ -444,9 +444,11 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .pj-meta1{display:flex;align-items:center;gap:5px;font-size:13px;line-height:1.3;white-space:nowrap;}
 .pj-meta2{font-size:13px;line-height:1.3;white-space:nowrap;}
 .pj-meta3{font-size:13px;line-height:1.3;white-space:nowrap;display:flex;align-items:center;gap:6px;}
+/* TGE予定の記号(○△✕)も他と同じサイズ・太さに統一する */
 .tge-g{color:#34D17B;font-weight:600;}
 .tge-m{color:#f5c542;font-weight:600;}
 .tge-b{color:#ff5c5c;font-weight:600;}
+.tge-ico{font-size:12px;font-weight:500;}
 /* 同上の理由でTGE予定アイコンも縁取りを廃止 */
 
 /* プロジェクトの質・報酬パイと同じ枠のトーンに統一する（背景・枠線・角丸を揃える） */
@@ -470,19 +472,27 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .early-sep{width:1.5px;height:12px;background:rgba(255,255,255,.45);flex-shrink:0;align-self:center;}
 .early-arrow{color:var(--t1);flex-shrink:0;font-size:var(--fs-xs);}
 .early-track{height:6px;background:rgba(255,255,255,.14);border-radius:3px;overflow:hidden;margin-top:6px;}
+/* タスク日課の「頻度：」行に添えるミニ進捗バー。アーリー度の帯(.early-track/.early-fill)と
+   同じ考え方だが、行内に収まる小型サイズにする */
+.tl-freq-line{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;}
+.tl-freq-bar-wrap{display:flex;align-items:center;gap:6px;flex-shrink:0;}
+.tl-freq-track{width:54px;height:5px;background:rgba(255,255,255,.14);border-radius:3px;overflow:hidden;flex-shrink:0;}
+.tl-freq-fill{display:block;height:100%;background:linear-gradient(90deg,#a8f5cd,#22c176);border-radius:3px;}
+.tl-freq-left{font-size:10px;color:var(--t3);white-space:nowrap;}
 .early-fill{height:100%;background:linear-gradient(90deg,#a8f5cd,#22c176);border-radius:3px;}
-.early-dates{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;font-size:11px;color:var(--t1);margin-top:4px;}
+/* 開始・経過・終了は、ラベルだけでなく日付や期間の値も含めて全部グレーにする */
+.early-dates{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;font-size:11px;color:var(--t3);margin-top:4px;}
 .early-dates .early-date-w:last-child{text-align:right;}
 .early-dates .early-date-w{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.early-pct-mid{text-align:center;font-weight:500;color:var(--t1);white-space:nowrap;}
+.early-pct-mid{text-align:center;font-weight:500;color:var(--t3);white-space:nowrap;}
 .strategy-bar{background:var(--card2);border:1px solid var(--bb);border-radius:13px;padding:8px 10px 9px;margin:0 0 8px;box-shadow:0 2px 6px rgba(0,0,0,.22);}
-.strategy-bar .detail-h{margin:-8px -10px 6px;padding:7px 10px 5px;font-size:13px;}
+.strategy-bar .detail-h{margin:-8px -10px 6px;padding:7px 10px 5px;font-size:14px;}
 .strategy-bar.fold-closed{padding-bottom:0;}
 .strategy-bar.fold-closed>.detail-h{margin-bottom:0;border-bottom:none;border-radius:13px;}
 /* カードの文字スケールとは切り離す。ここは横幅いっぱいの本文欄なので、
    カード用の基準(--fs-md)を巻き込むと意図せず変わってしまうため専用の値を持つ */
 .strategy-txt{font-size:12px;color:var(--t1);line-height:1.6;white-space:pre-wrap;word-break:break-word;}
-.tl-body{font-size:var(--fs-md);color:var(--t1);line-height:1.8;white-space:pre-wrap;word-break:break-word;margin-top:10px;}
+.tl-body{font-size:15px;color:var(--t1);line-height:1.8;white-space:pre-wrap;word-break:break-word;margin-top:10px;}
 .tl-head-row{display:flex;align-items:center;justify-content:space-between;gap:8px;}
 /* 精度を上げるための提案 */
 .tip-wrap{margin-top:15px;padding-top:13px;border-top:1px solid rgba(255,255,255,.09);}
@@ -554,9 +564,11 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .pj-lbl{color:var(--t1);font-weight:600;}
 /* お題（ラベル）は細字・グレーに統一。値の太字と対比させて視認性を上げる */
 /* ラベルは白字に。太さは細字のまま維持してメリハリをつける */
-/* 右揃え固定幅だと文字数の違いでラベルの左端がバラバラになっていた。
-   左揃えにして、案件名の左端と揃うようにする */
-.pj-lbl-row{display:inline-block;text-align:left;color:var(--t1);font-weight:500;flex-shrink:0;}
+/* 左揃えのまま、幅を「仕込みLv：」基準の固定幅にする。これで:の位置と、
+   その後ろの★や値の開始位置が全ラベルで揃う */
+.pj-lbl-row{display:inline-block;width:67px;text-align:left;color:var(--t1);font-weight:500;flex-shrink:0;}
+/* 仕込み額・コストのラベルだけグレーへ（優先度・仕込みLvは白のまま維持） */
+.pj-meta2 .pj-lbl-row,.pj-meta3 .pj-lbl-row{color:var(--t3);}
 .pj-stars{display:inline-flex;align-items:center;gap:.5px;}
 .pj-star{font-size:var(--fs-md);line-height:1;}
 /* 空きは輪郭だけの薄い☆。埋まっている★と形でも色でも区別できるようにする */
@@ -584,7 +596,7 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .sc-val.sc-sm{font-size:calc(var(--fs-hero) * .8);}
 /* 算出確度：主要な入力項目がどれだけ埋まっているかを○△✕で示す（採点には影響しない参考表示） */
 .sc-conf{margin-top:5px;display:flex;align-items:center;gap:3px;font-size:10.5px;color:var(--t3);font-weight:700;white-space:nowrap;}
-.sc-conf .ms{font-size:10px;}
+.sc-conf .ms{font-size:12px;font-weight:500;}
 .sc-max{font-size:var(--fs-sm);font-weight:700;color:var(--t3);opacity:.55;margin-left:1px;letter-spacing:0;}
 .sc-prov{font-size:var(--fs-xs);color:var(--ylw);font-weight:700;text-align:center;margin-top:2px;line-height:1.25;max-width:78px;}
 /* .ms が別用途の定義で display:flex になっているため、ここでは横並びのflex行にして   ラベルと記号が縦にバラけないようにする */
@@ -658,7 +670,7 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 /* バッジ内の○△✕。親(.q-badge)はflex+align-items:centerなので、
    記号側もflexの子として中央に置かれるよう高さを親に合わせる */
 /* バッジ本体は9px。隣のスコア(13px)と行の中心を揃えるため、記号も同じ行高にする */
-.q-badge .ms{font-size:11px;line-height:20px;height:20px;
+.q-badge .ms{font-size:12px;font-weight:500;line-height:20px;height:20px;
   display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;}
 /* q-badge(9px)とq-score(13px)はフォントサイズが違うため、line-height:1のままだと
    外枠の高さ自体が変わってズレて見える。両方を同じ高さの箱にしてflexで中央揃えする */
@@ -697,7 +709,7 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
    合わせるとカード幅からあふれることがあるため、この行だけ少し小さく・詰めて収める */
 /* 細字・少し小さめにして左に寄せ、右端の合計スコア(20/20)との間隔を空ける */
 .q-deduct-row .pl-txt{font-size:11px;font-weight:400;gap:1px;}
-.q-deduct-row .pl-txt .ms{font-size:12px;line-height:12px;height:12px;}
+.q-deduct-row .pl-txt .ms{font-size:12px;font-weight:500;line-height:12px;height:12px;}
 /* Xスコアの配点表示(.q-lbl-w)と同じ細字に。右端の合計(.q-deduct-total)は太字のまま維持 */
 .q-deduct-row .pl-txt .pv{font-size:11px;font-weight:400;}
 /* q-scoreと同じ理由（flexだと分母が箱の中央に来て本体とベースラインがズレる）で
@@ -755,7 +767,7 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
    基準がバラバラだったため高さがズレて見えていた。数字と同じmiddle基準に揃える */
 /* ○△✕は数字(13px)より小さい9pxだと字形の重心が合わず、中央揃えにしても浮いて見える。
    数字と同じサイズ・同じ行高にして、字形そのものの中心を一致させる */
-.pl-txt .ms{font-size:var(--fs-md);line-height:var(--fs-md);height:var(--fs-md);
+.pl-txt .ms{font-size:12px;font-weight:500;line-height:12px;height:12px;
   vertical-align:middle;display:inline-flex;align-items:center;justify-content:center;}
 .pl-txt .pv.pv-g{color:#34D17B;}
 /* リファ無・低資金の数字は、記号(○△✕)側で状態が分かるため白で統一する。
@@ -779,7 +791,7 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 
 /* ○△✕ の記号1文字ぶん。安全マージンを確保して、実機フォントでの幅の揺れを吸収する */
 /* 9pxだと△✕が○より小さく・薄く見えるとの指摘があったため、記号全体を一段大きくする */
-.ms{display:inline-block;font-size:12px;font-weight:700;line-height:1;vertical-align:-1px;min-width:1.15em;text-align:center;}
+.ms{display:inline-block;font-size:12px;font-weight:500;line-height:1;vertical-align:-1px;min-width:1.15em;text-align:center;}
 .ms-none{color:var(--t3);font-weight:600;}
 /* 太字(weight)と縁取り(text-stroke)を重ねると滲んで見えたため、縁取りは廃止しweightのみで表現する */
 .ms-g{color:#34D17B;}
@@ -821,7 +833,7 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .detail-grid{display:flex;flex-direction:column;}
 .detail-sec{background:var(--card2);border:1px solid var(--bb);border-radius:13px;padding:15px 16px 16px;margin-bottom:16px;box-shadow:0 2px 6px rgba(0,0,0,.22);}
 .detail-h{font-size:15px;font-weight:600;color:var(--t1);letter-spacing:.01em;margin:-15px -16px 12px;padding:12px 16px 10px;border-bottom:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.085);border-radius:13px 13px 0 0;}
-.detail-txt{font-size:var(--fs-md);line-height:1.8;color:var(--t1);white-space:normal;word-break:break-word;}
+.detail-txt{font-size:15px;line-height:1.8;color:var(--t1);white-space:normal;word-break:break-word;}
 .task-img{display:block;width:100%;border-radius:10px;border:1.5px solid rgba(255,255,255,.22);margin:10px 0;}
 .memo-link{color:var(--acc);text-decoration:underline;text-underline-offset:2px;cursor:pointer;word-break:break-all;}
 .memo-copy{display:block;width:fit-content;margin:3px 0 6px;padding:3px 10px;border:1px solid var(--bb);border-radius:7px;background:var(--card2);color:var(--t1);font-size:11px;font-weight:700;cursor:pointer;}
@@ -868,7 +880,8 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 /* 言及マーク（アイコンの下に表示） */
 .sm-item{display:flex;flex-direction:column;align-items:center;gap:3px;flex-shrink:0;}
 /* △✕が○より小さく・薄く見えるとの指摘があったため、サイズ・太さを上げて視認性を統一する */
-.sm-item .sm-badge{font-size:15px;font-weight:700;line-height:1;}
+/* ○△✕は全箇所で同じサイズ・太さに統一する（細字） */
+.sm-item .sm-badge{font-size:12px;font-weight:500;line-height:1;}
 /* 同上の理由で強者バッジのアイコンも縁取りを廃止 */
 .sm-item.av-g .sm-badge{color:var(--grn);}
 .sm-item.av-m .sm-badge{color:var(--ylw);}
@@ -1362,7 +1375,8 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .sm-av.av-m{border-color:var(--ylw);box-shadow:0 0 0 1px var(--ylw),0 0 5px rgba(230,180,40,.5);}
 .sm-av.av-b{border-color:var(--bb);opacity:.4;filter:grayscale(.85);box-shadow:none;}
 /* △✕が○より小さく・薄く見えるとの指摘があったため、サイズ・太さを上げて視認性を統一する */
-.sm-item .sm-badge{font-size:15px;font-weight:700;line-height:1;}
+/* ○△✕は全箇所で同じサイズ・太さに統一する（細字） */
+.sm-item .sm-badge{font-size:12px;font-weight:500;line-height:1;}
 .sm-item.av-g .sm-badge{color:var(--grn);}
 .sm-item.av-m .sm-badge{color:var(--ylw);}
 .sm-item.av-b .sm-badge{color:var(--red);}
@@ -1499,11 +1513,13 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .ld-item{font-size:var(--fs-xs);font-weight:600;white-space:nowrap;font-variant-numeric:tabular-nums;line-height:1.35;letter-spacing:.01em;display:inline-flex;align-items:center;gap:3px;}
 /* 矢印はフォントの三角形ではなく border で描く。上向き・下向きが完全に同じ大きさになる
    （フォント依存の "▴▾" は書体によって上下の見た目の大きさが揃わないため） */
-.ld-arrow{display:inline-block;width:0;height:0;opacity:.9;}
+/* 矢印・ラベル・数値の濃さがバラバラだったため、全て同じ薄さに統一する */
+.ld-arrow{display:inline-block;width:0;height:0;opacity:.6;}
 .ld-tri-up{border-left:3.5px solid transparent;border-right:3.5px solid transparent;border-bottom:5px solid currentColor;}
 .ld-tri-dn{border-left:3.5px solid transparent;border-right:3.5px solid transparent;border-top:5px solid currentColor;}
 .ld-tri-flat{width:6px;height:1.5px;background:currentColor;border-radius:1px;}
 .ld-lbl{opacity:.6;font-weight:700;}
+.ld-val{opacity:.6;}
 .st-lbl-sub{font-size:var(--fs-xs);font-weight:700;opacity:.6;margin-left:2px;}
 .ld-sep{font-size:var(--fs-xs);color:var(--t3);opacity:.5;}
 .ld-item.up{color:#3ddc86;}
@@ -2025,6 +2041,25 @@ function isTaskCheckedNow(n){
   var diff=daysBetween(d,taskCheckToday());
   return diff>=0&&diff<freq;
 }
+// タスク番号nの「次にリセットされるまでの進捗」を、アーリー度と同じ横帯で可視化する。
+// 一度もチェックしていないタスクは基準日が無いので、バー自体を出さない
+function taskFreqBarHtml(n){
+  var freq=(TASK_FREQ&&TASK_FREQ[n])||1;
+  var st=loadTaskChecks();
+  var d=st.done[n];
+  if(!d)return '';
+  if(d===true)d=taskCheckToday();
+  var diff=daysBetween(d,taskCheckToday());
+  if(diff<0||diff>=freq)return ''; // 期限切れ・異常値ならバーは出さない（頻度行だけ残る）
+  var pct=Math.round(((diff+1)/freq)*100); // 「今日の分」を含めた進み具合として+1日で計算
+  pct=Math.max(4,Math.min(100,pct));
+  var left=freq-diff-1;
+  var leftTxt=left<=0?'今日リセット':'あと'+left+'日でリセット';
+  return '<span class="tl-freq-bar-wrap">'
+    +'<span class="tl-freq-track"><span class="tl-freq-fill" style="width:'+pct+'%;"></span></span>'
+    +'<span class="tl-freq-left">'+leftTxt+'</span>'
+    +'</span>';
+}
 // 今日のタスクの完了状況（本文中の番号行を母数とする）
 // ─────── 自分用モードの判定 ───────
 // URLの末尾に #me を付けたときだけ、タスクのチェック機能と完了状況を出す。
@@ -2071,10 +2106,12 @@ function updateTaskStatusBar(){
 function renderTaskListWithChecks(raw){
   if(!raw)return '';
   var lines=String(raw).split(/\r?\n/);
+  var curNum=null; // 直前に見たタスク番号。「頻度：」行はこの番号のバーを表示する
   return lines.map(function(line){
     var m=line.match(/^(\s*)([0-9]\uFE0F?\u20E3|\uD83D\uDD1F)/);
     if(m){
       var n=/\uD83D\uDD1F/.test(m[2])?10:parseInt(m[2],10);
+      curNum=n;
       var checked=isTaskCheckedNow(n);
       return '<label class="tl-task-row'+(checked?' done':'')+'">'
         +'<input type="checkbox" class="tl-check" '+(checked?'checked':'')+' onclick="event.stopPropagation();" onchange="toggleTaskCheck('+n+',this)">'
@@ -2082,6 +2119,9 @@ function renderTaskListWithChecks(raw){
         +'</label>';
     }
     if(!line.trim())return '<div class="tl-blank"></div>';
+    if(/^\s*頻度[：:]/.test(line)&&curNum!=null){
+      return '<div class="tl-line tl-freq-line"><span>'+renderTaskListHtml(line)+'</span>'+taskFreqBarHtml(curNum)+'</div>';
+    }
     return '<div class="tl-line">'+renderTaskListHtml(line)+'</div>';
   }).join('');
 }
@@ -3940,7 +3980,7 @@ function llamaDeltaHtml(p){
     return '<span class="ld-item '+cls(v)+'">'
       +'<span class="ld-arrow '+arrowCls(v)+'"></span>'
       +'<span class="ld-lbl">'+lbl+'</span>'
-      +'<span>'+llamaSign(v)+'</span></span>';
+      +'<span class="ld-val">'+llamaSign(v)+'</span></span>';
   }
   var a=one('7d',p7),b=one('30d',p30);
   return (a||b)?('<div class="ld-col">'+a+b+'</div>'):'';
