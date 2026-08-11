@@ -4189,7 +4189,7 @@ function scCls(s){var m=scoreMax()||100;var pct=s/m*100;return pct>=75?'c-g':pct
 function fmtPt(v){var n=num(v);return (Math.round(n*100)/100).toString();}
 // スコア内訳表示専用：小数点を四捨五入して整数化
 function fmtPtR(v){return Math.round(num(v)).toString();}
-function msym(v){var s=v==='g'?'○':v==='m'?'△':'✕';var c=v==='g'?'ms-g':v==='m'?'ms-m':'ms-b';var o=(v==='g'||v==='m')?' ms-o':'';return '<span class="ms '+c+o+'">'+s+'</span>';}
+function msym(v){var s=v==='g'?'○':v==='m'?'▲':'✖';var c=v==='g'?'ms-g':v==='m'?'ms-m':'ms-b';var o=(v==='g'||v==='m')?' ms-o':'';return '<span class="ms '+c+o+'">'+s+'</span>';}
 function plCls(v){return v==='g'?'pl-g':v==='m'?'pl-m':'pl-b';}
 function ini(s){return(s||'?')[0].toUpperCase();}
 
@@ -4425,7 +4425,7 @@ function resultStripHtml(p){
 function fmtPt(v){var n=num(v);return (Math.round(n*100)/100).toString();}
 // スコア内訳表示専用：小数点を四捨五入して整数化
 function fmtPtR(v){return Math.round(num(v)).toString();}
-function msym(v){var s=v==='g'?'○':v==='m'?'△':'✕';var c=v==='g'?'ms-g':v==='m'?'ms-m':'ms-b';var o=(v==='g'||v==='m')?' ms-o':'';return '<span class="ms '+c+o+'">'+s+'</span>';}
+function msym(v){var s=v==='g'?'○':v==='m'?'▲':'✖';var c=v==='g'?'ms-g':v==='m'?'ms-m':'ms-b';var o=(v==='g'||v==='m')?' ms-o':'';return '<span class="ms '+c+o+'">'+s+'</span>';}
 function plCls(v){return v==='g'?'pl-g':v==='m'?'pl-m':'pl-b';}
 function ini(s){return(s||'?')[0].toUpperCase();}
 
@@ -4769,7 +4769,7 @@ function projAvHtml(p,sz){
 function smAvHtml(per,v,sz){
   sz=sz||26;
   var cls=v==='g'?'av-g':v==='m'?'av-m':'av-b';
-  var badge=v==='g'?'○':v==='m'?'△':'✕';
+  var badge=v==='g'?'○':v==='m'?'▲':'✖';
   var badgeCls=(v==='g'||v==='m')?' sm-badge-o':'';
   var hasName=!!(per&&per.name&&String(per.name).trim());
   var hdl=safeHandle(per&&per.handle);
@@ -5061,8 +5061,8 @@ function renderTaskHtml(p){
 // TGE予定の記号（○有/△匂わせ/×無、未設定は空）
 function tgeSym(v){
   if(v==='g')return '<span class="tge-g"><span class="tge-ico tge-ico-o">○</span> 有</span>';
-  if(v==='m')return '<span class="tge-m"><span class="tge-ico tge-ico-o">△</span> 匂わせ</span>';
-  if(v==='b')return '<span class="tge-b"><span class="tge-ico">✕</span> 無</span>';
+  if(v==='m')return '<span class="tge-m"><span class="tge-ico tge-ico-o">▲</span> 匂わせ</span>';
+  if(v==='b')return '<span class="tge-b"><span class="tge-ico">✖</span> 無</span>';
   return '';
 }
 // アーリー度：開始〜終了予定に対する現在位置を横帯で可視化（コンパクト）
