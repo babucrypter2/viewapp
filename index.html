@@ -492,6 +492,17 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 /* カードの文字スケールとは切り離す。ここは横幅いっぱいの本文欄なので、
    カード用の基準(--fs-md)を巻き込むと意図せず変わってしまうため専用の値を持つ */
 .strategy-txt{font-size:12.5px;color:var(--t1);line-height:1.6;white-space:pre-wrap;word-break:break-word;}
+/* 「今のメイン戦略」見出しの右に置く外部サイトへのショートカット（DefiLlama／Xスコア）。
+   リンク文字は出さずアイコンのみ。見出しの他の要素と同じgapで自然に並ぶようにする */
+.strat-shortcuts{display:inline-flex;align-items:center;gap:6px;margin-left:1px;}
+.strat-sc-btn{width:20px;height:20px;border-radius:50%;flex-shrink:0;overflow:hidden;
+  display:inline-flex;align-items:center;justify-content:center;
+  text-decoration:none;transition:opacity .15s,transform .15s;}
+.strat-sc-btn:active{opacity:.6;transform:scale(.92);}
+.strat-sc-btn svg{width:12px;height:12px;}
+.strat-sc-btn img{width:100%;height:100%;object-fit:cover;display:block;}
+.strat-sc-llama{background:#1c2c4a;box-shadow:inset 0 0 0 1.3px rgba(74,144,232,.4);}
+.strat-sc-xscore{background:rgba(255,255,255,.12);color:#f0f0f4;box-shadow:inset 0 0 0 1.3px rgba(255,255,255,.3);}
 .tl-body{font-size:15px;color:var(--t1);line-height:1.8;white-space:pre-wrap;word-break:break-word;margin-top:10px;}
 .tl-head-row{display:flex;align-items:center;justify-content:space-between;gap:8px;}
 /* 精度を上げるための提案 */
@@ -1909,7 +1920,11 @@ function renderStrategy(){
   var el=document.getElementById('strategy-bar');
   if(!el)return;
   if(!STRATEGY){el.style.display='none';return;}
-  el.innerHTML='<div class="detail-h"><span class="dh-i">'+ICO.pin+'今のメイン戦略</span></div><div class="strategy-txt">'+esc(STRATEGY)+'</div>';
+  el.innerHTML='<div class="detail-h"><span class="dh-i">'+ICO.pin+'今のメイン戦略'
+    +'<span class="strat-shortcuts">'
+    +'<a class="strat-sc-btn strat-sc-llama" href="https://defillama.com" target="_blank" rel="noopener noreferrer" aria-label="DefiLlama" onclick="event.stopPropagation()"><img src="data:image/jpeg;base64,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" alt="DefiLlama"></a>'
+    +'<a class="strat-sc-btn strat-sc-xscore" href="https://twitterscore.io" target="_blank" rel="noopener noreferrer" aria-label="X Score" onclick="event.stopPropagation()"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path></svg></a>'
+    +'</span></span></div><div class="strategy-txt">'+esc(STRATEGY)+'</div>';
   el.style.display='block';
 }
 
