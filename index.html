@@ -651,7 +651,7 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .q-badge-row{display:flex;justify-content:flex-end;margin-top:3px;}
 /* セクション見出しのアイコン。添付イメージに合わせて丸く大きくし、存在感を出す */
 /* カード・案件アイコン等、他の主要要素が角丸四角なので、見出しアイコンも揃えて統一感を出す */
-.q-icon{flex-shrink:0;width:24px;height:24px;border-radius:7px;
+.q-icon{flex-shrink:0;width:24px;height:24px;border-radius:50%;
   display:flex;align-items:center;justify-content:center;}
 .q-icon svg{width:14px;height:14px;}
 .q-icon-quality{background:rgba(74,144,232,.2);color:#7fb8ff;box-shadow:inset 0 0 0 1.5px rgba(74,144,232,.45);}
@@ -4198,7 +4198,7 @@ function fmtPtR(v){return Math.round(num(v)).toString();}
 // 同じviewBox・同じ線の太さで統一して描画することで、どの環境でも同じ見た目にする。
 function symIconSvg(v){
   if(v==='g')return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><circle cx="12" cy="12" r="8"></circle></svg>';
-  if(v==='m')return '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12 4 L21 20 L3 20 Z"></path></svg>';
+  if(v==='m')return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linejoin="round"><path d="M12 4 L21 20 L3 20 Z"></path></svg>';
   return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"><line x1="5" y1="5" x2="19" y2="19"></line><line x1="19" y1="5" x2="5" y2="19"></line></svg>';
 }
 function msym(v){var c=v==='g'?'ms-g':v==='m'?'ms-m':'ms-b';return '<span class="ms ms-svg '+c+'">'+symIconSvg(v)+'</span>';}
