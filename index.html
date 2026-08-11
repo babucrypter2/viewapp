@@ -2639,7 +2639,8 @@ function isRecentProj(p){
   return typeof p.createdAt==='number' && p.createdAt>0 && (Date.now()-p.createdAt)<NEW_DAYS*86400000;
 }
 function projBadge(p){
-  if(isRecentProj(p))return '<span class="pj-badge pj-badge-new">NEW</span>';
+  // スルー案件（仕込みすらしていない）はNEWの点滅バッジを出さない
+  if(isRecentProj(p)&&!isPassedProj(p))return '<span class="pj-badge pj-badge-new">NEW</span>';
   if(updatedPids[p.id])return '<span class="pj-badge pj-badge-upd" onclick="event.stopPropagation();showUpdateDiff('+p.id+')">更新</span>';
   return '';
 }
@@ -4433,8 +4434,8 @@ function fmtApr(p){
 var RS_ICO_GIFT='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="9" width="18" height="11" rx="1.5"></rect><path d="M3 9h18v-1a2 2 0 0 0-2-2h-3.5a2.5 2.5 0 0 0 0-5C13 1 12 5 12 5s-1-4-3.5-4a2.5 2.5 0 0 0 0 5H5a2 2 0 0 0-2 2v1z"></path><path d="M12 9v11"></path></svg>';
 var RS_ICO_FLAG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4"></path><path d="M5 4h13l-3 4 3 4H5"></path></svg>';
 function resultStripHtml(p){
-  if(!p.endDate)return '';
   if(Array.isArray(p.results)&&p.results.length){
+    if(!p.endDate)return '';
     var extra=(p.results.length>1?'<span class="result-strip-sub">（'+p.results.length+'回）</span>':'')
       +(fmtMultiple(p)?' <span class="apr-tag mul-tag">削り '+fmtMultiple(p)+'</span>':'')
       +(fmtApr(p)?' <span class="apr-tag">年利'+fmtApr(p)+'</span>':'');
@@ -4444,13 +4445,22 @@ function resultStripHtml(p){
       +'<span class="result-strip-val">'+fmtResultTotal(p.results)+'</span>'
       +extra+'</div>';
   }
-  // 仕込みを一度もしていない（仕込みLv・デポジット残高・削り額どれも無い）まま終了日だけ入れた案件は、
-  // 「仕込み終了日」ではなく「スルー案件」として表示する（現在の残高だけで判定すると、実際に仕込んで
+  // 仕込みを一度もしていない（仕込みLv・デポジット残高・削り額どれも無い）案件は、
+  // 終了日の有無に関わらず「スルー案件」として常に表示する（現在の残高だけで判定すると、実際に仕込んで
   // 後で全額引き出した終了案件まで「仕込み無し」扱いになってしまうため、仕込みLvも合わせて見る）
   var hasInvested=((p.lv||0)>0||p.totalUsd>0||burnAmt(p)>0||!!p.forceActive);
+  if(!hasInvested){
+    return '<div class="result-strip rs-plain">'
+      +'<span class="result-strip-ico">'+RS_ICO_FLAG+'</span>'
+      +'<span class="result-strip-lbl">スルー案件</span>'
+      +(p.endDate?'<span class="result-strip-val">'+esc(p.endDate)+'</span>':'')
+      +'</div>';
+  }
+  // 仕込んではいるが、まだ終了日が入っていない（仕込み中）案件は何も出さない
+  if(!p.endDate)return '';
   return '<div class="result-strip rs-plain">'
     +'<span class="result-strip-ico">'+RS_ICO_FLAG+'</span>'
-    +'<span class="result-strip-lbl">'+(hasInvested?'仕込み終了日':'スルー案件')+'</span>'
+    +'<span class="result-strip-lbl">仕込み終了日</span>'
     +'<span class="result-strip-val">'+esc(p.endDate)+'</span>'
     +'</div>';
 }// 調達額の表示。元データはM単位なので、1000M(=1B)以上ならB表記にして桁数を短くする。
@@ -4909,7 +4919,7 @@ function renderList(id,mode){
       .map(function(o){return smAvHtml(o.per,o.v,26);}).join('');
 
     var isOpen=!!openDetailKeys[mode+':'+p.id]; // 再描画（保存・同期・並び替え等）の後も開いた状態を維持する
-    return '<div class="proj-card'+(p.endDate?' ended-card':'')+(earlyIsOver(p)?' early-over':'')+(isRecentProj(p)?' proj-card-new':updatedPids[p.id]?' proj-card-upd':'')+(isOpen?' dt-open':'')+'" data-pid="'+p.id+'" onclick="cardTapOpen(\''+mode+'\','+idx+')">'
+    return '<div class="proj-card'+(p.endDate?' ended-card':'')+(earlyIsOver(p)?' early-over':'')+(isRecentProj(p)&&!isPassedProj(p)?' proj-card-new':updatedPids[p.id]?' proj-card-upd':'')+(isOpen?' dt-open':'')+'" data-pid="'+p.id+'" onclick="cardTapOpen(\''+mode+'\','+idx+')">'
 
       // ── Row 1: medal | icon | name+meta(2 lines) | X | score ──
       +'<div class="card-r1">'
