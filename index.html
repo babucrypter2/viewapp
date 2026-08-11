@@ -654,8 +654,8 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .q-icon{flex-shrink:0;width:24px;height:24px;border-radius:7px;
   display:flex;align-items:center;justify-content:center;}
 .q-icon svg{width:14px;height:14px;}
-.q-icon-quality{background:rgba(168,124,255,.2);color:#c4a4ff;box-shadow:inset 0 0 0 1.5px rgba(168,124,255,.45);}
-.q-icon-pie{background:rgba(90,160,255,.2);color:#7fb8ff;box-shadow:inset 0 0 0 1.5px rgba(90,160,255,.45);}
+.q-icon-quality{background:rgba(74,144,232,.2);color:#7fb8ff;box-shadow:inset 0 0 0 1.5px rgba(74,144,232,.45);}
+.q-icon-pie{background:rgba(245,197,66,.2);color:#f5c542;box-shadow:inset 0 0 0 1.5px rgba(245,197,66,.45);}
 .q-icon-early{background:rgba(61,220,134,.2);color:#5ce89b;width:24px;height:24px;box-shadow:inset 0 0 0 1.5px rgba(61,220,134,.45);}
 .q-icon-early svg{width:14px;height:14px;}
 /* 見出しは案件名(21px)より少し小さいサイズに揃える */
@@ -4911,7 +4911,7 @@ function renderList(id,mode){
       // 採点ロジック自体はscoreBreakdown()から一切変えていない
       +'<div class="q-card">'
       +'<div class="q-head">'
-      +'<span class="q-icon q-icon-quality"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l8 3v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5z"></path></svg></span>'
+      +'<span class="q-icon q-icon-quality"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"></circle><path d="M4.5 20c0-4.4 3.4-7.5 7.5-7.5s7.5 3.1 7.5 7.5"></path></svg></span>'
       +'<span class="q-title" style="flex:1;">プロジェクトの質</span>'
       +'<span class="q-score">'+fmtPtR(bd.sm)+'<span class="q-score-max">/'+Math.round((W.w_sm||0)+(W.w_sm_x||0)+(W.w_sm_sf||0))+'</span></span>'
       +'</div>'
@@ -4929,7 +4929,7 @@ function renderList(id,mode){
       // 元のst-col-sc(数字+暫定値+パイ記号)の中身を、そのまま見出しへ移しただけ
       +'<div class="q-card">'
       +'<div class="q-head">'
-      +'<span class="q-icon q-icon-pie"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path><path d="M22 12A10 10 0 0 0 12 2v10z"></path></svg></span>'
+      +'<span class="q-icon q-icon-pie"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M9.3 15c0 1.4 1.2 2.2 2.7 2.2s2.7-.7 2.7-2c0-1.5-1.4-1.9-2.7-2.2-1.3-.3-2.7-.7-2.7-2.2 0-1.3 1.2-2 2.7-2s2.7.8 2.7 2.2"></path><line x1="12" y1="6.3" x2="12" y2="7.6"></line><line x1="12" y1="16.4" x2="12" y2="17.7"></line></svg></span>'
       +'<span class="q-title">報酬の競争率</span>'
       +'<span class="q-badge">明確な自分の報酬シェア：'+(p.pieShare?msym(p.pieShare):'<span class="ms ms-none">ー</span>')+'</span>'
       +'<span class="q-score">'+(eff_disp!=='—'?eff_disp:'—')+'<span class="q-score-max">/'+Math.round(W.w_ef||0)+'</span></span>'
@@ -5107,7 +5107,7 @@ function earlyHtml(p){
     var eyE=Math.floor(tmE/12),emE=tmE%12,ewE=Math.round(elapsedDays/7);
     var elapsedTxt=(eyE>0?eyE+'年':'')+(emE>0?emE+'ヶ月':'')||(ewE>0?ewE+'週':'1週未満');
     return '<div class="early-wrap">'
-      +'<div class="early-top"><span class="early-lbl"><span class="q-icon q-icon-early"><svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8z"></path></svg></span>アーリー度</span><span class="early-gap"></span>'+emk+tgeTail+'</div>'
+      +'<div class="early-top"><span class="early-lbl"><span class="q-icon q-icon-early"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4"></path><path d="M5 4h13l-3 4 3 4H5"></path></svg></span>アーリー度</span><span class="early-gap"></span>'+emk+tgeTail+'</div>'
       +'<div class="early-track"><div class="early-fill" style="width:'+fixedPct+'%;background:'+earlyFillGrad(stage)+';"></div></div>'
       +'<div class="early-dates"><span class="early-date-w"><span class="early-lbl-w">開始</span> '+fmtD(d0)+'</span><span class="early-pct-mid">'+elapsedTxt+' <span class="early-lbl-w">経過</span></span><span class="early-date-w"><span class="early-lbl-w">終了</span> 不明</span></div>'
       +'</div>';
@@ -5140,7 +5140,7 @@ function earlyHtml(p){
   var topInner=remDays<=0?'<span class="early-wk">終了</span>':'';
   var pctMid=pct+'%（'+curWClamped+'週/'+totalW+'週）';
   return '<div class="early-wrap">'
-    +'<div class="early-top"><span class="early-lbl"><span class="q-icon q-icon-early"><svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8z"></path></svg></span>アーリー度</span><span class="early-gap"></span>'+mark+(topInner?'<span class="early-sep"></span>'+topInner:'')+tgeTail+'</div>'
+    +'<div class="early-top"><span class="early-lbl"><span class="q-icon q-icon-early"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4"></path><path d="M5 4h13l-3 4 3 4H5"></path></svg></span>アーリー度</span><span class="early-gap"></span>'+mark+(topInner?'<span class="early-sep"></span>'+topInner:'')+tgeTail+'</div>'
     +'<div class="early-track"><div class="early-fill" style="width:'+pct+'%;background:'+earlyFillGrad(stage2)+';"></div></div>'
     +'<div class="early-dates"><span class="early-date-w"><span class="early-lbl-w">開始</span> '+fmtD(d0)+'</span><span class="early-pct-mid">'+pctMid+'</span><span class="early-date-w"><span class="early-lbl-w">終了</span> '+fmtD(d1)+'</span></div>'
     +'</div>';
