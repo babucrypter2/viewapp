@@ -564,9 +564,9 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .pj-lbl{color:var(--t1);font-weight:600;}
 /* お題（ラベル）は細字・グレーに統一。値の太字と対比させて視認性を上げる */
 /* ラベルは白字に。太さは細字のまま維持してメリハリをつける */
-/* 左揃えのまま、幅を「仕込みLv：」基準の固定幅にする。これで:の位置と、
-   その後ろの★や値の開始位置が全ラベルで揃う */
-.pj-lbl-row{display:inline-block;width:67px;text-align:left;color:var(--t1);font-weight:500;flex-shrink:0;}
+/* コロンの位置を「仕込みLv：」基準で右揃えにして統一する。
+   これで各ラベルの:の位置と、後ろに続く★や値の開始位置が全て揃う */
+.pj-lbl-row{display:inline-block;width:67px;text-align:right;color:var(--t1);font-weight:500;flex-shrink:0;}
 /* 仕込み額・コストのラベルだけグレーへ（優先度・仕込みLvは白のまま維持） */
 .pj-meta2 .pj-lbl-row,.pj-meta3 .pj-lbl-row{color:var(--t3);}
 .pj-stars{display:inline-flex;align-items:center;gap:.5px;}
@@ -1572,6 +1572,16 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .pj-name{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text',sans-serif;font-weight:600;letter-spacing:.015em;line-height:1.15;}
 /* 優先度・仕込みLvなどのラベルと同じ白字・細字に統一する */
 .st-lbl{color:var(--t3);font-weight:500;}
+/* 仕込み額・コストの値もグレーへ（優先度・仕込みLvの★は対象外）。
+   他の場所で.pj-dvや.pj-burnに色指定が重複していたため、確実に効くよう最後尾に置く */
+.pj-meta2 .pj-dv,.pj-burn{color:var(--t3)!important;}
+/* 収益の実測値も他の統計(調達額・参加者・TVL)より薄く見せる */
+.st-col-fee .st-val{color:var(--t3)!important;}
+/* △✕は塗りつぶしの分量が○より少なく、同じfont-sizeでも視覚的に小さく・薄く見えるため、
+   △✕だけひとまわり大きくして見た目の存在感を○に合わせる */
+.ms-m,.ms-b{font-size:15px!important;}
+.sm-item.av-m .sm-badge,.sm-item.av-b .sm-badge{font-size:15px!important;}
+.tge-m .tge-ico,.tge-b .tge-ico{font-size:15px!important;}
 </style>
 </head>
 <body>
@@ -3827,7 +3837,7 @@ function llamaFeeCol(p){
     +'<div class="st-lbl">'+lbl+'<span class="st-lbl-sub">30d</span></div>'
     +'<div class="st-val">'+llamaFmtFee(f.cur30)+'</div>'
     +(pct===null?'':'<div class="ld-col"><span class="ld-item '+cls+'">'
-      +'<span class="ld-arrow '+arCls+'"></span><span>'+llamaSign(pct)+'</span></span></div>')
+      +'<span class="ld-arrow '+arCls+'"></span><span class="ld-val">'+llamaSign(pct)+'</span></span></div>')
     +'</div>';
 }
 
