@@ -4444,9 +4444,12 @@ function resultStripHtml(p){
       +'<span class="result-strip-val">'+fmtResultTotal(p.results)+'</span>'
       +extra+'</div>';
   }
+  // 仕込みを一度もしていない（totalUsd・削り額・強制アクティブどれも無い）まま終了日だけ入れた案件は、
+  // 「終了日」ではなく「スルー案件」として表示する（実際に仕込んで終わった案件と区別するため）
+  var hasInvested=(p.totalUsd>0||burnAmt(p)>0||!!p.forceActive);
   return '<div class="result-strip rs-plain">'
     +'<span class="result-strip-ico">'+RS_ICO_FLAG+'</span>'
-    +'<span class="result-strip-lbl">終了日</span>'
+    +'<span class="result-strip-lbl">'+(hasInvested?'仕込み終了日':'スルー案件')+'</span>'
     +'<span class="result-strip-val">'+esc(p.endDate)+'</span>'
     +'</div>';
 }// 調達額の表示。元データはM単位なので、1000M(=1B)以上ならB表記にして桁数を短くする。
@@ -4911,7 +4914,7 @@ function renderList(id,mode){
       +'<div class="card-r1">'
       +'<div class="pj-av-wrap">'+projAvHtml(p,60)+'<span class="rank-badge '+rankCls+'">'+rankNum+'</span></div>'
       +'<div class="pj-inf">'
-      +'<div class="pj-nmr"><span class="pj-name">'+esc(p.name)+'</span>'+catTag(p.cat)+(p.endDate?'<span class="ended-badge">🏁仕込み終了</span>':'')+projBadge(p)+'</div>'
+      +'<div class="pj-nmr"><span class="pj-name">'+esc(p.name)+'</span>'+catTag(p.cat)+projBadge(p)+'</div>'
       +(p.prio?'<div class="pj-meta1"><span class="pj-lbl-row">優先度：</span><span class="pj-stars pj-stars-prio">'+starsHtml(p.prio)+'</span></div>':'')
       +'<div class="pj-meta1"><span class="pj-lbl-row">仕込みLv：</span><span class="pj-stars">'+starsHtml(p.lv||0)+'</span></div>'
       +'<div class="pj-meta2"><span class="pj-lbl-row">'+stakeLbl_+'</span> '+stakeHtml+'</div>'
@@ -5139,8 +5142,7 @@ function earlyHtml(p){
   var curWClamped=Math.max(0,Math.min(totalW,curW));
   // アーリー度の評価：序盤ほどアーリー（○）、終盤は×（TGE予定と同じ配色・記号に統一）
   var stage2 = pct<33?'g':pct<70?'m':'b';
-  var mark = stage2==='g'?'<span class="tge-g"><span class="tge-ico tge-ico-svg">'+symIconSvg('g')+'</span> 序盤</span>' : stage2==='m'?'<span class="tge-m"><span class="tge-ico tge-ico-svg">'+symIconSvg('m')+'</span> 中盤</span>' : '<span class="tge-b"><span class="tge-ico tge-ico-svg">'+symIconSvg('b')+'</span> 終盤</span>';
-  // 残り期間（日数→年月換算。終了済みなら「終了」表示）
+  // 残り期間（日数→年月換算）
   var remDays=Math.round((t1-now)/86400000);
   var remTxt;
   if(remDays<=0){remTxt='終了';}
@@ -5153,9 +5155,10 @@ function earlyHtml(p){
       remTxt=rw>0?(rw+'週'):'1週未満';
     }
   }
-  // 上段は状態＋残りのみ（週内訳は下段の進行%に集約して1行に収める）
-  // 「残り◯ヶ月」の表示は廃止。ただし終了済みの案件は状態として引き続き示す
-  var topInner=remDays<=0?'<span class="early-wk">終了</span>':'';
+  // 完全に終了した案件は「終盤」＋別枠の「終了」を重ねて出さず、赤字の「×終了」だけにまとめる
+  var mark = stage2==='g'?'<span class="tge-g"><span class="tge-ico tge-ico-svg">'+symIconSvg('g')+'</span> 序盤</span>' : stage2==='m'?'<span class="tge-m"><span class="tge-ico tge-ico-svg">'+symIconSvg('m')+'</span> 中盤</span>' : (remDays<=0?'<span class="tge-b"><span class="tge-ico tge-ico-svg">'+symIconSvg('b')+'</span> 終了</span>':'<span class="tge-b"><span class="tge-ico tge-ico-svg">'+symIconSvg('b')+'</span> 終盤</span>');
+  // 上段は状態バッジのみ（終了済みも上の mark に統合済みなので別枠表示は無し）
+  var topInner='';
   var pctMid=pct+'%（'+curWClamped+'週/'+totalW+'週）';
   return '<div class="early-wrap">'
     +'<div class="early-top"><span class="early-lbl"><span class="q-icon q-icon-early"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4"></path><path d="M5 4h13l-3 4 3 4H5"></path></svg></span>アーリー度</span><span class="early-gap"></span>'+mark+(topInner?'<span class="early-sep"></span>'+topInner:'')+tgeTail+'</div>'
