@@ -655,7 +655,7 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
   display:flex;align-items:center;justify-content:center;}
 .q-icon svg{width:14px;height:14px;}
 .q-icon-quality{background:rgba(74,144,232,.2);color:#7fb8ff;box-shadow:inset 0 0 0 1.5px rgba(74,144,232,.45);}
-.q-icon-pie{background:rgba(255,110,167,.2);color:#ff8fc0;box-shadow:inset 0 0 0 1.5px rgba(255,110,167,.45);}
+.q-icon-pie{background:rgba(255,92,92,.2);color:#ff5c5c;box-shadow:inset 0 0 0 1.5px rgba(255,92,92,.45);}
 .q-icon-early{background:rgba(61,220,134,.2);color:#5ce89b;width:24px;height:24px;box-shadow:inset 0 0 0 1.5px rgba(61,220,134,.45);}
 .q-icon-early svg{width:14px;height:14px;}
 /* 見出しは案件名(21px)より少し小さいサイズに揃える */
@@ -1584,8 +1584,7 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 /* 仕込み額・コストの値もグレーへ（優先度・仕込みLvの★は対象外）。
    他の場所で.pj-dvや.pj-burnに色指定が重複していたため、確実に効くよう最後尾に置く */
 .pj-meta2 .pj-dv,.pj-burn{color:var(--t3)!important;}
-/* 収益の実測値も他の統計(調達額・参加者・TVL)より薄く見せる */
-.st-col-fee .st-val{color:var(--t3)!important;}
+/* 収益の実測値も他の統計(調達額・参加者・TVL)と同じ白で統一する */
 </style>
 </head>
 <body>
@@ -4929,7 +4928,7 @@ function renderList(id,mode){
       // 元のst-col-sc(数字+暫定値+パイ記号)の中身を、そのまま見出しへ移しただけ
       +'<div class="q-card">'
       +'<div class="q-head">'
-      +'<span class="q-icon q-icon-pie"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5C3 5.8 7 2.5 12 2.5s9 3.3 9 8"></path><path d="M3 10.5L9.5 15.5M8 10.2L10.3 15.5M12 10V15.5M16 10.2L13.7 15.5M21 10.5L14.5 15.5"></path><rect x="9.5" y="15.5" width="5" height="4.5" rx="1"></rect></svg></span>'
+      +'<span class="q-icon q-icon-pie"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5C3 5.8 7 2.5 12 2.5s9 3.3 9 8"></path><path d="M3 10.5L9.3 15M8 10.2L10.2 15M12 10V15M16 10.2L13.8 15M21 10.5L14.7 15"></path><rect x="8.7" y="15" width="6.6" height="5.3" rx="1"></rect><line x1="8.7" y1="17.6" x2="15.3" y2="17.6"></line><line x1="12" y1="15" x2="12" y2="20.3"></line></svg></span>'
       +'<span class="q-title">報酬の競争率</span>'
       +'<span class="q-badge">明確な自分の報酬シェア：'+(p.pieShare?msym(p.pieShare):'<span class="ms ms-none">ー</span>')+'</span>'
       +'<span class="q-score">'+(eff_disp!=='—'?eff_disp:'—')+'<span class="q-score-max">/'+Math.round(W.w_ef||0)+'</span></span>'
