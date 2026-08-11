@@ -797,6 +797,15 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .ms-g{color:#34D17B;}
 .ms-m{color:#f5c542;}
 .ms-b{color:#ff5c5c;}
+/* ○△✕をフォント文字ではなくSVGで統一描画する。実機のiOSでは「✖」等の記号文字が
+   極端に小さく表示されたり位置がズレたりすることがあったため、同じviewBoxの
+   アイコンに置き換えて環境差を無くす */
+.ms-svg{display:inline-flex;align-items:center;justify-content:center;width:1em;height:1em;vertical-align:-2px;}
+.ms-svg svg{width:100%;height:100%;}
+.sm-badge-svg{display:inline-flex;width:1em;height:1em;}
+.sm-badge-svg svg{width:100%;height:100%;}
+.tge-ico-svg{display:inline-flex;align-items:center;justify-content:center;width:1em;height:1em;vertical-align:-2px;}
+.tge-ico-svg svg{width:100%;height:100%;}
 .sm-avs{display:flex;align-items:flex-start;gap:6px;flex-wrap:nowrap;overflow:visible;padding:4px 2px 2px;}
 
 /* 詳細トグルボタン */
@@ -1577,11 +1586,6 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .pj-meta2 .pj-dv,.pj-burn{color:var(--t3)!important;}
 /* 収益の実測値も他の統計(調達額・参加者・TVL)より薄く見せる */
 .st-col-fee .st-val{color:var(--t3)!important;}
-/* △✕は塗りつぶしの分量が○より少なく、同じfont-sizeでも視覚的に小さく・薄く見えるため、
-   △✕だけひとまわり大きくして見た目の存在感を○に合わせる */
-.ms-m,.ms-b{font-size:15px!important;}
-.sm-item.av-m .sm-badge,.sm-item.av-b .sm-badge{font-size:15px!important;}
-.tge-m .tge-ico,.tge-b .tge-ico{font-size:15px!important;}
 </style>
 </head>
 <body>
@@ -4189,7 +4193,15 @@ function scCls(s){var m=scoreMax()||100;var pct=s/m*100;return pct>=75?'c-g':pct
 function fmtPt(v){var n=num(v);return (Math.round(n*100)/100).toString();}
 // スコア内訳表示専用：小数点を四捨五入して整数化
 function fmtPtR(v){return Math.round(num(v)).toString();}
-function msym(v){var s=v==='g'?'○':v==='m'?'▲':'✖';var c=v==='g'?'ms-g':v==='m'?'ms-m':'ms-b';var o=(v==='g'||v==='m')?' ms-o':'';return '<span class="ms '+c+o+'">'+s+'</span>';}
+// ○△✕は文字フォントに依存すると、環境によってサイズ・位置・太さが大きくバラつく
+// （実機iOSでは「✖」が極端に小さく表示される等）。フォントに頼らず、SVGで
+// 同じviewBox・同じ線の太さで統一して描画することで、どの環境でも同じ見た目にする。
+function symIconSvg(v){
+  if(v==='g')return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><circle cx="12" cy="12" r="8"></circle></svg>';
+  if(v==='m')return '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12 4 L21 20 L3 20 Z"></path></svg>';
+  return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"><line x1="5" y1="5" x2="19" y2="19"></line><line x1="19" y1="5" x2="5" y2="19"></line></svg>';
+}
+function msym(v){var c=v==='g'?'ms-g':v==='m'?'ms-m':'ms-b';return '<span class="ms ms-svg '+c+'">'+symIconSvg(v)+'</span>';}
 function plCls(v){return v==='g'?'pl-g':v==='m'?'pl-m':'pl-b';}
 function ini(s){return(s||'?')[0].toUpperCase();}
 
@@ -4425,7 +4437,7 @@ function resultStripHtml(p){
 function fmtPt(v){var n=num(v);return (Math.round(n*100)/100).toString();}
 // スコア内訳表示専用：小数点を四捨五入して整数化
 function fmtPtR(v){return Math.round(num(v)).toString();}
-function msym(v){var s=v==='g'?'○':v==='m'?'▲':'✖';var c=v==='g'?'ms-g':v==='m'?'ms-m':'ms-b';var o=(v==='g'||v==='m')?' ms-o':'';return '<span class="ms '+c+o+'">'+s+'</span>';}
+function msym(v){var c=v==='g'?'ms-g':v==='m'?'ms-m':'ms-b';return '<span class="ms ms-svg '+c+'">'+symIconSvg(v)+'</span>';}
 function plCls(v){return v==='g'?'pl-g':v==='m'?'pl-m':'pl-b';}
 function ini(s){return(s||'?')[0].toUpperCase();}
 
@@ -4769,8 +4781,6 @@ function projAvHtml(p,sz){
 function smAvHtml(per,v,sz){
   sz=sz||26;
   var cls=v==='g'?'av-g':v==='m'?'av-m':'av-b';
-  var badge=v==='g'?'○':v==='m'?'▲':'✖';
-  var badgeCls=(v==='g'||v==='m')?' sm-badge-o':'';
   var hasName=!!(per&&per.name&&String(per.name).trim());
   var hdl=safeHandle(per&&per.handle);
   var isAnon=!hasName&&!hdl;
@@ -4784,7 +4794,7 @@ function smAvHtml(per,v,sz){
   var tip=isAnon?'匿名':(hdl?('@'+esc(hdl)):esc(per.name));
   return '<div class="sm-item '+cls+'" title="'+tip+'">'
     +'<div class="sm-av '+cls+'" style="'+avStyle+'">'+inner+'</div>'
-    +'<span class="sm-badge'+badgeCls+'">'+badge+'</span>'
+    +'<span class="sm-badge sm-badge-svg">'+symIconSvg(v)+'</span>'
     +'</div>';
 }
 
@@ -5060,9 +5070,9 @@ function renderTaskHtml(p){
 }
 // TGE予定の記号（○有/△匂わせ/×無、未設定は空）
 function tgeSym(v){
-  if(v==='g')return '<span class="tge-g"><span class="tge-ico tge-ico-o">○</span> 有</span>';
-  if(v==='m')return '<span class="tge-m"><span class="tge-ico tge-ico-o">▲</span> 匂わせ</span>';
-  if(v==='b')return '<span class="tge-b"><span class="tge-ico">✖</span> 無</span>';
+  if(v==='g')return '<span class="tge-g"><span class="tge-ico tge-ico-svg">'+symIconSvg('g')+'</span> 有</span>';
+  if(v==='m')return '<span class="tge-m"><span class="tge-ico tge-ico-svg">'+symIconSvg('m')+'</span> 匂わせ</span>';
+  if(v==='b')return '<span class="tge-b"><span class="tge-ico tge-ico-svg">'+symIconSvg('b')+'</span> 無</span>';
   return '';
 }
 // アーリー度：開始〜終了予定に対する現在位置を横帯で可視化（コンパクト）
@@ -5091,7 +5101,7 @@ function earlyHtml(p){
     var elapsedDays=Math.max(0,Math.floor((Date.now()-d0.getTime())/86400000));
     var elapsedMonths=elapsedDays/30.44;
     var stage=elapsedMonths<=6?'g':elapsedMonths<12?'m':'b';
-    var emk = stage==='g'?'<span class="tge-g"><span class="tge-ico tge-ico-o">○</span> 序盤</span>' : stage==='m'?'<span class="tge-m"><span class="tge-ico tge-ico-o">△</span> 中盤</span>' : '<span class="tge-b"><span class="tge-ico">✕</span> 終盤</span>';
+    var emk = stage==='g'?'<span class="tge-g"><span class="tge-ico tge-ico-svg">'+symIconSvg('g')+'</span> 序盤</span>' : stage==='m'?'<span class="tge-m"><span class="tge-ico tge-ico-svg">'+symIconSvg('m')+'</span> 中盤</span>' : '<span class="tge-b"><span class="tge-ico tge-ico-svg">'+symIconSvg('b')+'</span> 終盤</span>';
     var fixedPct=stage==='g'?25:stage==='m'?50:75;
     var tmE=Math.floor(elapsedDays/30.44);
     var eyE=Math.floor(tmE/12),emE=tmE%12,ewE=Math.round(elapsedDays/7);
@@ -5111,7 +5121,7 @@ function earlyHtml(p){
   var curWClamped=Math.max(0,Math.min(totalW,curW));
   // アーリー度の評価：序盤ほどアーリー（○）、終盤は×（TGE予定と同じ配色・記号に統一）
   var stage2 = pct<33?'g':pct<70?'m':'b';
-  var mark = stage2==='g'?'<span class="tge-g"><span class="tge-ico tge-ico-o">○</span> 序盤</span>' : stage2==='m'?'<span class="tge-m"><span class="tge-ico tge-ico-o">△</span> 中盤</span>' : '<span class="tge-b"><span class="tge-ico">✕</span> 終盤</span>';
+  var mark = stage2==='g'?'<span class="tge-g"><span class="tge-ico tge-ico-svg">'+symIconSvg('g')+'</span> 序盤</span>' : stage2==='m'?'<span class="tge-m"><span class="tge-ico tge-ico-svg">'+symIconSvg('m')+'</span> 中盤</span>' : '<span class="tge-b"><span class="tge-ico tge-ico-svg">'+symIconSvg('b')+'</span> 終盤</span>';
   // 残り期間（日数→年月換算。終了済みなら「終了」表示）
   var remDays=Math.round((t1-now)/86400000);
   var remTxt;
