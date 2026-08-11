@@ -4444,9 +4444,10 @@ function resultStripHtml(p){
       +'<span class="result-strip-val">'+fmtResultTotal(p.results)+'</span>'
       +extra+'</div>';
   }
-  // 仕込みを一度もしていない（totalUsd・削り額・強制アクティブどれも無い）まま終了日だけ入れた案件は、
-  // 「終了日」ではなく「スルー案件」として表示する（実際に仕込んで終わった案件と区別するため）
-  var hasInvested=(p.totalUsd>0||burnAmt(p)>0||!!p.forceActive);
+  // 仕込みを一度もしていない（仕込みLv・デポジット残高・削り額どれも無い）まま終了日だけ入れた案件は、
+  // 「仕込み終了日」ではなく「スルー案件」として表示する（現在の残高だけで判定すると、実際に仕込んで
+  // 後で全額引き出した終了案件まで「仕込み無し」扱いになってしまうため、仕込みLvも合わせて見る）
+  var hasInvested=((p.lv||0)>0||p.totalUsd>0||burnAmt(p)>0||!!p.forceActive);
   return '<div class="result-strip rs-plain">'
     +'<span class="result-strip-ico">'+RS_ICO_FLAG+'</span>'
     +'<span class="result-strip-lbl">'+(hasInvested?'仕込み終了日':'スルー案件')+'</span>'
