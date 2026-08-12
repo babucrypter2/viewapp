@@ -2131,8 +2131,11 @@ function toggleTaskCheck(n,el){
 }
 // 見出し左に出す完了状況マーク（緑チェック＝完了／赤警告＝未完了）。
 // 閲覧者モードや対象タスクが無い場合は何も出さない
+// 見出し左に出すマーク。オーナー(#me)は完了状況（緑チェック／赤警告）、
+// それ以外（閲覧者）は元のパラシュート風アイコンのまま
+var TL_HEAD_ICO_DEFAULT='<svg class="dh-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a8 8 0 0 1 16 0"></path><path d="M4 11l4.5 7.5"></path><path d="M20 11l-4.5 7.5"></path><path d="M9.5 11l1 7.5"></path><path d="M14.5 11l-1 7.5"></path><rect x="9.5" y="17.5" width="5" height="3" rx="1"></rect></svg>';
 function taskHeadStatusIcon(st){
-  if(!(IS_OWNER&&st&&st.total>0))return '';
+  if(!(IS_OWNER&&st&&st.total>0))return TL_HEAD_ICO_DEFAULT;
   var todo=st.left>0;
   return '<span class="tl-head-status-ico '+(todo?'todo':'done')+'" id="tl-head-status-ico">'+taskHeadStatusSvg(todo)+'</span>';
 }
