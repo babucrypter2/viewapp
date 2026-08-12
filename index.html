@@ -2129,6 +2129,27 @@ function toggleTaskCheck(n,el){
   if(row)row.classList.toggle('done',!!el.checked);
   updateTaskStatusBar();   // 見出し下の完了状況もその場で更新する
 }
+// ── 日付またぎの自動リセット検知 ──
+// アプリを開いたまま0時をまたいでも、何かのきっかけが無いと画面が再描画されず、
+// チェック状態や頻度バーが古い日付のまま止まって見えてしまう（内部の判定ロジック自体は正しい）。
+// そこで「アプリがフォアグラウンドに戻った時」「一定間隔ごと」に日付が変わっていないか確認し、
+// 変わっていればタスク日課を再描画して見た目を追従させる。
+var __tlLastDateStr=taskCheckToday();
+function tlCheckDateRollover(){
+  var cur=taskCheckToday();
+  if(cur!==__tlLastDateStr){
+    __tlLastDateStr=cur;
+    renderTaskList();
+  }
+}
+try{
+  document.addEventListener('visibilitychange',function(){
+    if(document.visibilityState==='visible')tlCheckDateRollover();
+  });
+  window.addEventListener('focus',tlCheckDateRollover);
+  window.addEventListener('pageshow',tlCheckDateRollover); // iOSのbfcache復帰でも拾う
+  setInterval(tlCheckDateRollover,30000); // 30秒おきに日付変化を確認（開きっぱなしのPWA対策）
+}catch(e){}
 // 見出し左に出す完了状況マーク（緑チェック＝完了／赤警告＝未完了）。
 // 閲覧者モードや対象タスクが無い場合は何も出さない
 // 見出し左に出すマーク。オーナー(#me)は完了状況（緑チェック／赤警告）、
@@ -5563,13 +5584,6 @@ document.addEventListener('visibilitychange',function(){ if(!document.hidden)ref
 window.addEventListener('focus',function(){ refreshFromCloud(); });
 window.addEventListener('pageshow',function(e){ if(e.persisted)refreshFromCloud(); }); // bfcache復帰
 window.addEventListener('online',function(){ refreshFromCloud(); });
-
-// 開きっぱなしでも、日付が変わった瞬間にタスク日課のチェックを自動リセットする
-var _taskCheckDate=taskCheckToday();
-setInterval(function(){
-  var d=taskCheckToday();
-  if(d!==_taskCheckDate){ _taskCheckDate=d; renderTaskList(); }
-},30000);
 
 // 開きっぱなしでも反映されるよう、表示中は一定間隔でチェック（非表示中は内部でスキップ）
 setInterval(function(){ refreshFromCloud(); },30000);
