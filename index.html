@@ -2400,7 +2400,6 @@ function renderTaskList(){
     +'</div>'
     +'<div class="tl-body" id="tl-fold-body" style="display:'+(taskListFoldOpen?'block':'none')+';">'+(function(){var t=injectTaskFreqLines(TASKLIST,TASK_FREQ);return IS_OWNER?renderTaskListWithChecks(t):renderTaskListHtml(t);})()+'<button class="fold-close" onclick="event.stopPropagation();toggleTaskListFold()">閉じる<span class="dt-arrow">▲</span></button></div>';
   el.classList.toggle('fold-closed',!taskListFoldOpen); // 閉時はヘッダー帯だけの見た目に
-  el.classList.toggle('has-status',!!statusHtml);       // 完了状況の行があるときは下の余白を戻す
   el.style.display='block';
 }
 // 折りたたみを開いた時、そのカードの見出しが画面上部（少し余白を残した位置）に来るよう自動スクロール。
