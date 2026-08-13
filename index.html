@@ -3804,7 +3804,9 @@ function toggleSimpleView(){
   renderAll();
 }
 // 簡易表示の行をタップした時：通常表示に切り替えつつ、タップした案件の詳細を
-// 既存のtoggleDetail()に開かせる（滑らかな展開アニメーション＋スクロールをそのまま流用）
+// 既存のtoggleDetail()に開かせる（滑らかな展開アニメーション＋スクロールをそのまま流用）。
+// renderAll()直後は新しいカードのレイアウトがまだ確定していないため、固定時間のsetTimeoutではなく
+// rAFを二重に挟んでブラウザの描画確定を待ってから開くことで、詳細を見る/閉じると同じ滑らかさにする
 function simpleRowTapOpen(mode,idx,pid){
   if(SIMPLE_VIEW){
     SIMPLE_VIEW=false;
@@ -3813,10 +3815,19 @@ function simpleRowTapOpen(mode,idx,pid){
   delete openDetailKeys[mode+':'+pid]; // 開いた状態で一気に描画させず、下のtoggleDetailに滑らかに開かせる
   renderUpdated();
   renderAll();
-  setTimeout(function(){
-    var btn=document.getElementById('dt-btn-'+mode+'-'+idx);
-    if(btn&&!btn.classList.contains('open'))toggleDetail(mode,idx);
-  },60);
+  // 簡易リストと通常カードは高さがまるで違うため、同じscrollTop値のままだと描画直後に
+  // 全然違う位置へワープしたように見えてガタつく。切り替え直後は一旦先頭へ戻し、
+  // そこから毎フレーム目的地を再計算するscrollFoldTopに滑らかに運んでもらう
+  var listId=mode==='active'?'list-active':mode==='ended'?'list-ended':'list-all';
+  var listEl=document.getElementById(listId);
+  var cont=listEl&&listEl.closest('.scroll-area');
+  if(cont)cont.scrollTop=0;
+  requestAnimationFrame(function(){
+    requestAnimationFrame(function(){
+      var btn=document.getElementById('dt-btn-'+mode+'-'+idx);
+      if(btn&&!btn.classList.contains('open'))toggleDetail(mode,idx);
+    });
+  });
 }
 // 簡易表示用：アーリー度を進捗バー無しの小さなラベルだけで返す（earlyHtml()と同じ判定基準を使う）
 function earlyStageMini(p){
