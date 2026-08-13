@@ -3690,8 +3690,14 @@ var PROJ=[
    sm:['g','m','g','m','g'],deps:[],totalUsd:0,startDate:null,endDate:null,active:false,result:''},
 ];
 var curF='all',editIdx=-1,pid=10,isNewProj=false;
-var sortBy='score';  // score | new | lv | prio
-var sortDir=-1; // -1=降順(高い順・デフォルト), 1=昇順(低い順)
+// 並び替えはタブごとに別々の設定を持つ（仕込み中＝優先度高い順、スルー／終了＝期待値順がデフォルト）。
+// localStorageには保存せず、アプリを開き直すたびに必ずこのデフォルトへ戻る
+var curTab='active';
+var SORT_STATE={
+  active:{by:'prio',dir:-1},
+  all:{by:'score',dir:-1},
+  ended:{by:'score',dir:-1}
+};
 var editImg=null,newPImg=null,curSM=[];
 
 // ─────────── データ保存（localStorage） ───────────
@@ -4984,10 +4990,11 @@ function smAvHtml(per,v,sz){
 }
 
 // LIST
-function sortVal(p){
-  if(sortBy==='lv')return p.lv||0;
-  if(sortBy==='prio')return p.prio||0;
-  if(sortBy==='new')return p.createdAt||p.id||0; // 新しい順（createdAtが無い古いデータはidで代用）
+function sortVal(p,by){
+  by=by||'score';
+  if(by==='lv')return p.lv||0;
+  if(by==='prio')return p.prio||0;
+  if(by==='new')return p.createdAt||p.id||0; // 新しい順（createdAtが無い古いデータはidで代用）
   return score(p); // default 期待値
 }
 // 案件が「仕込み中」か（残高あり or 削り額ありで未終了）
@@ -5031,14 +5038,15 @@ function flist(mode){
       var ao=earlyIsOver(a)?1:0,bo=earlyIsOver(b)?1:0;
       if(ao!==bo)return ao-bo;
     }
-    var d=sortVal(a)-sortVal(b);
+    var st=SORT_STATE[mode]||SORT_STATE.active;
+    var d=sortVal(a,st.by)-sortVal(b,st.by);
     // 期待値スコアが同点のときは、優先度→仕込みLvが高い方を上に持ってくる
     // （スコアは同じでも「どれだけ本気で仕込んでいるか」で並びを分けたいため）
-    if(sortBy==='score'&&d===0){
+    if(st.by==='score'&&d===0){
       d=(a.prio||0)-(b.prio||0);
       if(d===0)d=(a.lv||0)-(b.lv||0);
     }
-    return sortDir===1?d:-d;
+    return st.dir===1?d:-d;
   });
 }
 
@@ -5478,13 +5486,14 @@ function renderTabs(){
   el.innerHTML=all+rest;
 }
 function setSort(v){
-  sortBy=v;
+  SORT_STATE[curTab].by=v;
   renderAll();
 }
 function toggleSortDir(){
-  sortDir=sortDir===1?-1:1;
+  var st=SORT_STATE[curTab];
+  st.dir=st.dir===1?-1:1;
   var btn=document.getElementById('sort-dir-btn');
-  if(btn)btn.classList.toggle('asc',sortDir===1);
+  if(btn)btn.classList.toggle('asc',st.dir===1);
   renderAll();
 }
 // カテゴリ絞り込み（ヘッダーのプルダウン。全タブ共通）
@@ -5515,6 +5524,14 @@ function sv(name,el,type){
   if(cw)cw.style.display=showListCtrl?'flex':'none';
   var sdb=document.getElementById('sort-dir-btn');
   if(sdb)sdb.style.display=showListCtrl?'flex':'none';
+  // タブごとに独立した並び替え設定を、切り替えた先のタブの内容に合わせて表示へ反映する
+  if(showListCtrl){
+    curTab=name;
+    var st=SORT_STATE[name];
+    var sel=document.getElementById('sort-sel');
+    if(sel&&st)sel.value=st.by;
+    if(sdb&&st)sdb.classList.toggle('asc',st.dir===1);
+  }
   if(type!=='b'){document.querySelectorAll('.nav-item').forEach(function(n){n.classList.remove('active');});el.classList.add('active');}
   document.querySelectorAll('.bni').forEach(function(b){b.classList.remove('active');});
   var bi=document.getElementById('bni-'+name);if(bi)bi.classList.add('active');
