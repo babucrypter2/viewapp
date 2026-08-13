@@ -3803,20 +3803,19 @@ function toggleSimpleView(){
   renderUpdated();
   renderAll();
 }
-// 簡易表示の行をタップした時：通常表示に切り替えつつ、タップした案件の詳細を開いた状態で
-// 再描画し、その案件までスクロールする（簡易表示のカードには詳細の折りたたみ要素自体が無いため）
+// 簡易表示の行をタップした時：通常表示に切り替えつつ、タップした案件の詳細を
+// 既存のtoggleDetail()に開かせる（滑らかな展開アニメーション＋スクロールをそのまま流用）
 function simpleRowTapOpen(mode,idx,pid){
   if(SIMPLE_VIEW){
     SIMPLE_VIEW=false;
     try{ localStorage.setItem('babuSimpleViewV1','0'); }catch(e){}
   }
-  openDetailKeys[mode+':'+pid]=true;
+  delete openDetailKeys[mode+':'+pid]; // 開いた状態で一気に描画させず、下のtoggleDetailに滑らかに開かせる
   renderUpdated();
   renderAll();
   setTimeout(function(){
-    var listId=mode==='active'?'list-active':mode==='ended'?'list-ended':'list-all';
-    var card=document.querySelector('#'+listId+' .proj-card[data-pid="'+pid+'"]');
-    if(card)card.scrollIntoView({block:'start',behavior:'auto'});
+    var btn=document.getElementById('dt-btn-'+mode+'-'+idx);
+    if(btn&&!btn.classList.contains('open'))toggleDetail(mode,idx);
   },60);
 }
 // 簡易表示用：アーリー度を進捗バー無しの小さなラベルだけで返す（earlyHtml()と同じ判定基準を使う）
