@@ -1321,11 +1321,13 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .updated-txt{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
   display:inline-flex;align-items:center;gap:5px;}
 .uview-ico{width:12px;height:12px;flex-shrink:0;}
-.uview-toggle{flex-shrink:0;font-size:11px;font-weight:700;color:var(--acc);background:rgba(90,160,255,.12);
-  border:1px solid rgba(90,160,255,.35);border-radius:99px;padding:4px 11px 4px 9px;white-space:nowrap;
-  display:inline-flex;align-items:center;gap:4px;}
+.uview-toggle{flex-shrink:0;font-size:11px;font-weight:700;border-radius:99px;padding:4px 11px 4px 9px;white-space:nowrap;
+  display:inline-flex;align-items:center;gap:4px;border:1px solid transparent;}
 .uview-toggle svg{width:12px;height:12px;}
-.uview-toggle:active{background:rgba(90,160,255,.24);}
+.uview-toggle.is-normal{color:var(--acc);background:rgba(90,160,255,.12);border-color:rgba(90,160,255,.35);}
+.uview-toggle.is-normal:active{background:rgba(90,160,255,.24);}
+.uview-toggle.is-simple{color:#5ce89b;background:rgba(61,220,134,.14);border-color:rgba(61,220,134,.4);}
+.uview-toggle.is-simple:active{background:rgba(61,220,134,.26);}
 /* ── 簡易表示（案件を1行リストで、ぱっと見の比較用に並べる） ── */
 .ez-list{display:flex;flex-direction:column;gap:6px;padding:10px 12px 14px;}
 .ez-row{background:var(--card);border:1px solid var(--b);border-radius:12px;padding:7px 10px;
@@ -3801,6 +3803,22 @@ function toggleSimpleView(){
   renderUpdated();
   renderAll();
 }
+// 簡易表示の行をタップした時：通常表示に切り替えつつ、タップした案件の詳細を開いた状態で
+// 再描画し、その案件までスクロールする（簡易表示のカードには詳細の折りたたみ要素自体が無いため）
+function simpleRowTapOpen(mode,idx,pid){
+  if(SIMPLE_VIEW){
+    SIMPLE_VIEW=false;
+    try{ localStorage.setItem('babuSimpleViewV1','0'); }catch(e){}
+  }
+  openDetailKeys[mode+':'+pid]=true;
+  renderUpdated();
+  renderAll();
+  setTimeout(function(){
+    var listId=mode==='active'?'list-active':mode==='ended'?'list-ended':'list-all';
+    var card=document.querySelector('#'+listId+' .proj-card[data-pid="'+pid+'"]');
+    if(card)card.scrollIntoView({block:'start',behavior:'auto'});
+  },60);
+}
 // 簡易表示用：アーリー度を進捗バー無しの小さなラベルだけで返す（earlyHtml()と同じ判定基準を使う）
 function earlyStageMini(p){
   if(!p.earlyStart)return '<span class="ez-mini-na">—</span>';
@@ -3834,7 +3852,7 @@ function renderSimpleListHtml(list,mode){
     var qual=Math.round(bd.sm);
     var rew=Math.round(bd.eff+bd.deduct);
     var rankCls=i===0?'rank-1':i===1?'rank-2':i===2?'rank-3':'rank-n';
-    return '<div class="ez-row" data-pid="'+p.id+'" onclick="cardTapOpen(\''+mode+'\','+idx+')">'
+    return '<div class="ez-row" data-pid="'+p.id+'" onclick="simpleRowTapOpen(\''+mode+'\','+idx+','+p.id+')">'
       +'<span class="ez-rank '+rankCls+'">'+(i+1)+'</span>'
       +projAvHtml(p,26)
       +'<span class="ez-name">'+esc(p.name)+'</span>'
@@ -3852,7 +3870,7 @@ function renderUpdated(){
   var clockIco='<svg class="uview-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"></circle><path d="M12 7.5V12l3 2"></path></svg>';
   var listIco='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6.5" x2="20" y2="6.5"></line><line x1="8" y1="12" x2="20" y2="12"></line><line x1="8" y1="17.5" x2="20" y2="17.5"></line><circle cx="4" cy="6.5" r="1.2" fill="currentColor" stroke="none"></circle><circle cx="4" cy="12" r="1.2" fill="currentColor" stroke="none"></circle><circle cx="4" cy="17.5" r="1.2" fill="currentColor" stroke="none"></circle></svg>';
   var cardIco='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="9" height="14" rx="2"></rect><rect x="14.5" y="5" width="6" height="14" rx="2"></rect></svg>';
-  var toggleHtml='<button class="uview-toggle" onclick="event.stopPropagation();toggleSimpleView()">'+(SIMPLE_VIEW?cardIco+'通常表示':listIco+'簡易表示')+'</button>';
+  var toggleHtml='<button class="uview-toggle'+(SIMPLE_VIEW?' is-simple':' is-normal')+'" onclick="event.stopPropagation();toggleSimpleView()">'+(SIMPLE_VIEW?cardIco+'通常表示へ切り替え':listIco+'簡易表示へ切り替え')+'</button>';
   el.innerHTML='<span class="updated-txt">'+(_lastUpdated?(clockIco+'データ最終更新：'+esc(fmtUpdated(_lastUpdated))):'')+'</span>'+toggleHtml;
   el.style.display='';
 }
