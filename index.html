@@ -5727,6 +5727,15 @@ setInterval(function(){ refreshFromCloud(); },30000);
 
 // 起動：まずキャッシュを即描画（待ち時間ゼロ）→ その裏でクラウドの最新を取りに行く
 renderTabs();
+// 初期表示タブ（仕込み中）の並び替えプルダウン／矢印ボタンを、タブごとのデフォルト設定に同期しておく
+// （タブを一度も切り替えていない起動直後は sv() が呼ばれないため、ここで明示的に合わせる）
+(function(){
+  var st=SORT_STATE.active;
+  var sel=document.getElementById('sort-sel');
+  if(sel)sel.value=st.by;
+  var sdb=document.getElementById('sort-dir-btn');
+  if(sdb)sdb.classList.toggle('asc',st.dir===1);
+})();
 var _hadCache=bootFromCache();
 if(_hadCache){
   // 既に前回のデータがあるので、すぐに本物の画面を表示する
