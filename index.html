@@ -2035,7 +2035,7 @@ function renderTaskListHtml(raw){
     var pid=m[1],fallback=m[2];
     var proj=(Array.isArray(PROJ)?PROJ:[]).find(function(p){return String(p.id)===pid;});
     if(proj){
-      out+='<span class="tl-chip tl-chip-btn" onclick="event.stopPropagation();jumpToProjectAny('+pid+')">'+esc(proj.name||fallback||'（無題）')+'<span class="tl-chip-go">›</span></span>';
+      out+='<span class="tl-chip tl-chip-btn" onclick="event.preventDefault();event.stopPropagation();jumpToProjectAny('+pid+')">'+esc(proj.name||fallback||'（無題）')+'<span class="tl-chip-go">›</span></span>';
     }else{
       out+='<span class="tl-chip tl-chip-gone">'+esc(fallback||'削除済み案件')+'</span>';
     }
