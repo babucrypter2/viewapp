@@ -3803,16 +3803,15 @@ function toggleSimpleView(){
   renderUpdated();
   renderAll();
 }
-// 簡易表示の行をタップした時：通常表示に切り替えつつ、タップした案件の詳細を
-// 既存のtoggleDetail()に開かせる（滑らかな展開アニメーション＋スクロールをそのまま流用）。
-// renderAll()直後は新しいカードのレイアウトがまだ確定していないため、固定時間のsetTimeoutではなく
-// rAFを二重に挟んでブラウザの描画確定を待ってから開くことで、詳細を見る/閉じると同じ滑らかさにする
+// 簡易表示の行をタップした時：通常表示に切り替えて、その案件のカード位置まで
+// 滑らかにスクロールするだけ（詳細は開かない。参考にしたのはscrollFoldTopの滑らかさのみ）。
+// renderAll()直後は新しいカードのレイアウトがまだ確定していないため、rAFを二重に挟んで
+// ブラウザの描画確定を待ってからスクロールする
 function simpleRowTapOpen(mode,idx,pid){
   if(SIMPLE_VIEW){
     SIMPLE_VIEW=false;
     try{ localStorage.setItem('babuSimpleViewV1','0'); }catch(e){}
   }
-  delete openDetailKeys[mode+':'+pid]; // 開いた状態で一気に描画させず、下のtoggleDetailに滑らかに開かせる
   renderUpdated();
   renderAll();
   // 簡易リストと通常カードは高さがまるで違うため、同じscrollTop値のままだと描画直後に
@@ -3824,8 +3823,8 @@ function simpleRowTapOpen(mode,idx,pid){
   if(cont)cont.scrollTop=0;
   requestAnimationFrame(function(){
     requestAnimationFrame(function(){
-      var btn=document.getElementById('dt-btn-'+mode+'-'+idx);
-      if(btn&&!btn.classList.contains('open'))toggleDetail(mode,idx);
+      var card=document.querySelector('#'+listId+' .proj-card[data-pid="'+pid+'"]');
+      if(card)scrollFoldTop(card);
     });
   });
 }
