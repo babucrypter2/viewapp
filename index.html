@@ -1318,40 +1318,43 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 @keyframes cs-pulse{0%,100%{opacity:.35;}50%{opacity:1;}}
 .updated-bar{font-size:11px;color:var(--t3);background:var(--card2);padding:6px 14px;border-bottom:1px solid var(--b);flex-shrink:0;
   display:flex;align-items:center;justify-content:space-between;gap:10px;text-align:left;}
-.updated-txt{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.updated-txt{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  display:inline-flex;align-items:center;gap:5px;}
+.uview-ico{width:12px;height:12px;flex-shrink:0;}
 .uview-toggle{flex-shrink:0;font-size:11px;font-weight:700;color:var(--acc);background:rgba(90,160,255,.12);
-  border:1px solid rgba(90,160,255,.35);border-radius:99px;padding:4px 11px;white-space:nowrap;}
+  border:1px solid rgba(90,160,255,.35);border-radius:99px;padding:4px 11px 4px 9px;white-space:nowrap;
+  display:inline-flex;align-items:center;gap:4px;}
+.uview-toggle svg{width:12px;height:12px;}
 .uview-toggle:active{background:rgba(90,160,255,.24);}
-/* ── 簡易表示（案件をカードではなく1行リストで、ぱっと見の比較用に並べる） ── */
-.ez-list{display:flex;flex-direction:column;gap:8px;padding:10px 12px 14px;}
-.ez-row{background:var(--card);border:1px solid var(--b);border-radius:14px;padding:10px 12px;
-  display:flex;flex-direction:column;gap:8px;cursor:pointer;transition:border-color .15s,background .15s;}
+/* ── 簡易表示（案件を1行リストで、ぱっと見の比較用に並べる） ── */
+.ez-list{display:flex;flex-direction:column;gap:6px;padding:10px 12px 14px;}
+.ez-row{background:var(--card);border:1px solid var(--b);border-radius:12px;padding:7px 10px;
+  display:flex;align-items:center;gap:7px;cursor:pointer;transition:border-color .15s,background .15s;}
 .ez-row:active{background:var(--card2);border-color:var(--acc);}
-.ez-row-top{display:flex;align-items:center;gap:8px;}
-.ez-rank{flex-shrink:0;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;
-  font-size:11px;font-weight:800;background:rgba(255,255,255,.08);color:var(--t2);}
+.ez-rank{flex-shrink:0;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:10px;font-weight:800;background:rgba(255,255,255,.08);color:var(--t2);}
 .ez-rank.rank-1{background:linear-gradient(135deg,#ffd76a,#f0a730);color:#241a02;}
 .ez-rank.rank-2{background:linear-gradient(135deg,#e2e2ea,#a8a8b8);color:#1c1c22;}
 .ez-rank.rank-3{background:linear-gradient(135deg,#d9a066,#a9723f);color:#241505;}
-.ez-name{flex:1 1 auto;min-width:0;font-size:15px;font-weight:700;color:var(--t1);
+.ez-row .pj-av{flex-shrink:0;border-radius:8px;font-size:12px;}
+.ez-name{flex:1 1 auto;min-width:0;font-size:13.5px;font-weight:700;color:var(--t1);
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.ez-mini-stage{flex-shrink:0;display:inline-flex;align-items:center;gap:3px;font-size:11px;font-weight:700;
-  padding:2px 8px;border-radius:99px;white-space:nowrap;}
-.ez-mini-stage svg{width:10px;height:10px;}
+.ez-score{flex-shrink:0;font-size:17px;font-weight:800;font-variant-numeric:tabular-nums;
+  min-width:26px;text-align:right;}
+.ez-score.c-g{color:#5ce89b;}
+.ez-score.c-a{color:#a3e06a;}
+.ez-score.c-y{color:#f5c542;}
+.ez-score.c-r{color:#ff7b7b;}
+.ez-mini-stage{flex-shrink:0;display:inline-flex;align-items:center;gap:3px;font-size:10.5px;font-weight:700;
+  padding:3px 7px;border-radius:99px;white-space:nowrap;}
+.ez-mini-stage svg{width:9px;height:9px;}
 .ez-mini-g{background:rgba(61,220,134,.14);color:#5ce89b;}
 .ez-mini-m{background:rgba(245,197,66,.14);color:#f5c542;}
 .ez-mini-b{background:rgba(255,92,92,.14);color:#ff7b7b;}
-.ez-mini-na{flex-shrink:0;font-size:11px;color:var(--t3);}
-.ez-stats{display:flex;gap:6px;}
-.ez-stat{flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:center;gap:1px;
-  background:rgba(255,255,255,.035);border-radius:9px;padding:5px 4px;}
-.ez-stat-lbl{font-size:9.5px;color:var(--t3);font-weight:700;letter-spacing:.02em;}
-.ez-stat-val{font-size:14px;font-weight:800;color:var(--t1);font-variant-numeric:tabular-nums;}
-.ez-stat-val i{font-style:normal;font-size:9.5px;color:var(--t3);font-weight:600;margin-left:1px;}
-.ez-stat-score.c-g .ez-stat-val{color:#5ce89b;}
-.ez-stat-score.c-a .ez-stat-val{color:#a3e06a;}
-.ez-stat-score.c-y .ez-stat-val{color:#f5c542;}
-.ez-stat-score.c-r .ez-stat-val{color:#ff7b7b;}
+.ez-mini-na{flex-shrink:0;font-size:10.5px;color:var(--t3);}
+.ez-stat{flex-shrink:0;display:inline-flex;align-items:center;gap:3px;}
+.ez-stat-lbl{font-size:9.5px;color:var(--t3);font-weight:700;}
+.ez-stat-val{font-size:13px;font-weight:800;color:var(--t1);font-variant-numeric:tabular-nums;min-width:16px;text-align:right;}
 .view.active{display:flex;flex-direction:column;flex:1;min-height:0;}
 .ftab.active{background:var(--acc);border-color:var(--acc);color:#fff;}
 .early-over.dt-open{opacity:1;filter:none;}
@@ -3822,28 +3825,23 @@ function earlyStageMini(p){
   return '<span class="ez-mini-stage ez-mini-'+stage+'">'+symIconSvg(stage)+label+'</span>';
 }
 // 簡易表示のリストHTMLを生成。並び順は通常のカード表示と同じ flist(mode) の並びをそのまま使う
-// （タブの並び替え設定＝期待値順などが自動的にそのまま反映される）
+// （タブの並び替え設定＝期待値順などが自動的にそのまま反映される）。分母は出さず、全項目1行に収める
 function renderSimpleListHtml(list,mode){
   return '<div class="ez-list">'+list.map(function(p,i){
     var idx=PROJ.indexOf(p);
     var bd=scoreBreakdown(p);
     var s=Math.round(bd.total);
-    var qualMax=Math.round((W.w_sm||0)+(W.w_sm_x||0)+(W.w_sm_sf||0));
     var qual=Math.round(bd.sm);
-    var rewMax=Math.round((W.w_ef||0)+(W.w_deduct||0));
     var rew=Math.round(bd.eff+bd.deduct);
     var rankCls=i===0?'rank-1':i===1?'rank-2':i===2?'rank-3':'rank-n';
     return '<div class="ez-row" data-pid="'+p.id+'" onclick="cardTapOpen(\''+mode+'\','+idx+')">'
-      +'<div class="ez-row-top">'
       +'<span class="ez-rank '+rankCls+'">'+(i+1)+'</span>'
+      +projAvHtml(p,26)
       +'<span class="ez-name">'+esc(p.name)+'</span>'
+      +'<span class="ez-score '+scCls(s)+'">'+s+'</span>'
       +earlyStageMini(p)
-      +'</div>'
-      +'<div class="ez-stats">'
-      +'<span class="ez-stat ez-stat-score '+scCls(s)+'"><span class="ez-stat-lbl">期待値</span><span class="ez-stat-val">'+s+'<i>/'+scoreMax()+'</i></span></span>'
-      +'<span class="ez-stat"><span class="ez-stat-lbl">質</span><span class="ez-stat-val">'+qual+'<i>/'+qualMax+'</i></span></span>'
-      +'<span class="ez-stat"><span class="ez-stat-lbl">報酬</span><span class="ez-stat-val">'+rew+'<i>/'+rewMax+'</i></span></span>'
-      +'</div>'
+      +'<span class="ez-stat ez-stat-q"><span class="ez-stat-lbl">質</span><span class="ez-stat-val">'+qual+'</span></span>'
+      +'<span class="ez-stat ez-stat-r"><span class="ez-stat-lbl">酬</span><span class="ez-stat-val">'+rew+'</span></span>'
       +'</div>';
   }).join('')+'</div>';
 }
@@ -3851,8 +3849,11 @@ function renderSimpleListHtml(list,mode){
 function renderUpdated(){
   var el=document.getElementById('updated-bar');
   if(!el)return;
-  var toggleHtml='<button class="uview-toggle" onclick="event.stopPropagation();toggleSimpleView()">'+(SIMPLE_VIEW?'🗂️ 通常表示':'📋 簡易表示')+'</button>';
-  el.innerHTML='<span class="updated-txt">'+(_lastUpdated?('🕒 データ最終更新：'+esc(fmtUpdated(_lastUpdated))):'')+'</span>'+toggleHtml;
+  var clockIco='<svg class="uview-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"></circle><path d="M12 7.5V12l3 2"></path></svg>';
+  var listIco='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6.5" x2="20" y2="6.5"></line><line x1="8" y1="12" x2="20" y2="12"></line><line x1="8" y1="17.5" x2="20" y2="17.5"></line><circle cx="4" cy="6.5" r="1.2" fill="currentColor" stroke="none"></circle><circle cx="4" cy="12" r="1.2" fill="currentColor" stroke="none"></circle><circle cx="4" cy="17.5" r="1.2" fill="currentColor" stroke="none"></circle></svg>';
+  var cardIco='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="9" height="14" rx="2"></rect><rect x="14.5" y="5" width="6" height="14" rx="2"></rect></svg>';
+  var toggleHtml='<button class="uview-toggle" onclick="event.stopPropagation();toggleSimpleView()">'+(SIMPLE_VIEW?cardIco+'通常表示':listIco+'簡易表示')+'</button>';
+  el.innerHTML='<span class="updated-txt">'+(_lastUpdated?(clockIco+'データ最終更新：'+esc(fmtUpdated(_lastUpdated))):'')+'</span>'+toggleHtml;
   el.style.display='';
 }
 // 読み込んだデータを各stateへ反映（全データをサニタイズして取り込む）
