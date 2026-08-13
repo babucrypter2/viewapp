@@ -3861,7 +3861,8 @@ function renderSimpleListHtml(list,mode){
     var qual=Math.round(bd.sm);
     var rew=Math.round(bd.eff+bd.deduct);
     var rankCls=i===0?'rank-1':i===1?'rank-2':i===2?'rank-3':'rank-n';
-    return '<div class="ez-row" data-pid="'+p.id+'" onclick="simpleRowTapOpen(\''+mode+'\','+idx+','+p.id+')">'
+    var overCls=(mode==='ended'&&earlyIsOver(p))?' early-over':'';
+    return '<div class="ez-row'+overCls+'" data-pid="'+p.id+'" onclick="simpleRowTapOpen(\''+mode+'\','+idx+','+p.id+')">'
       +'<span class="ez-rank '+rankCls+'">'+(i+1)+'</span>'
       +projAvHtml(p,26)
       +'<span class="ez-name">'+esc(p.name)+'</span>'
