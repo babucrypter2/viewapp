@@ -1316,7 +1316,42 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .cs-loading{color:var(--t3);background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.12);}
 .cs-loading::before{animation:cs-pulse 1.1s ease-in-out infinite;}
 @keyframes cs-pulse{0%,100%{opacity:.35;}50%{opacity:1;}}
-.updated-bar{font-size:11px;color:var(--t3);background:var(--card2);padding:6px 14px;border-bottom:1px solid var(--b);text-align:center;flex-shrink:0;}
+.updated-bar{font-size:11px;color:var(--t3);background:var(--card2);padding:6px 14px;border-bottom:1px solid var(--b);flex-shrink:0;
+  display:flex;align-items:center;justify-content:space-between;gap:10px;text-align:left;}
+.updated-txt{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.uview-toggle{flex-shrink:0;font-size:11px;font-weight:700;color:var(--acc);background:rgba(90,160,255,.12);
+  border:1px solid rgba(90,160,255,.35);border-radius:99px;padding:4px 11px;white-space:nowrap;}
+.uview-toggle:active{background:rgba(90,160,255,.24);}
+/* ── 簡易表示（案件をカードではなく1行リストで、ぱっと見の比較用に並べる） ── */
+.ez-list{display:flex;flex-direction:column;gap:8px;padding:10px 12px 14px;}
+.ez-row{background:var(--card);border:1px solid var(--b);border-radius:14px;padding:10px 12px;
+  display:flex;flex-direction:column;gap:8px;cursor:pointer;transition:border-color .15s,background .15s;}
+.ez-row:active{background:var(--card2);border-color:var(--acc);}
+.ez-row-top{display:flex;align-items:center;gap:8px;}
+.ez-rank{flex-shrink:0;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:800;background:rgba(255,255,255,.08);color:var(--t2);}
+.ez-rank.rank-1{background:linear-gradient(135deg,#ffd76a,#f0a730);color:#241a02;}
+.ez-rank.rank-2{background:linear-gradient(135deg,#e2e2ea,#a8a8b8);color:#1c1c22;}
+.ez-rank.rank-3{background:linear-gradient(135deg,#d9a066,#a9723f);color:#241505;}
+.ez-name{flex:1 1 auto;min-width:0;font-size:15px;font-weight:700;color:var(--t1);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.ez-mini-stage{flex-shrink:0;display:inline-flex;align-items:center;gap:3px;font-size:11px;font-weight:700;
+  padding:2px 8px;border-radius:99px;white-space:nowrap;}
+.ez-mini-stage svg{width:10px;height:10px;}
+.ez-mini-g{background:rgba(61,220,134,.14);color:#5ce89b;}
+.ez-mini-m{background:rgba(245,197,66,.14);color:#f5c542;}
+.ez-mini-b{background:rgba(255,92,92,.14);color:#ff7b7b;}
+.ez-mini-na{flex-shrink:0;font-size:11px;color:var(--t3);}
+.ez-stats{display:flex;gap:6px;}
+.ez-stat{flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:center;gap:1px;
+  background:rgba(255,255,255,.035);border-radius:9px;padding:5px 4px;}
+.ez-stat-lbl{font-size:9.5px;color:var(--t3);font-weight:700;letter-spacing:.02em;}
+.ez-stat-val{font-size:14px;font-weight:800;color:var(--t1);font-variant-numeric:tabular-nums;}
+.ez-stat-val i{font-style:normal;font-size:9.5px;color:var(--t3);font-weight:600;margin-left:1px;}
+.ez-stat-score.c-g .ez-stat-val{color:#5ce89b;}
+.ez-stat-score.c-a .ez-stat-val{color:#a3e06a;}
+.ez-stat-score.c-y .ez-stat-val{color:#f5c542;}
+.ez-stat-score.c-r .ez-stat-val{color:#ff7b7b;}
 .view.active{display:flex;flex-direction:column;flex:1;min-height:0;}
 .ftab.active{background:var(--acc);border-color:var(--acc);color:#fff;}
 .early-over.dt-open{opacity:1;filter:none;}
@@ -3754,16 +3789,71 @@ function fmtUpdated(iso){
   var abs=mo+'月'+da+'日 '+hh+':'+mm;
   return rel?(abs+'（'+rel+'）'):abs;
 }
+// ── 簡易表示（1行リスト比較モード） ──
+// 端末に切替状態を覚えさせておき、次回開いた時も同じ表示モードで開く
+var SIMPLE_VIEW=(function(){ try{ return localStorage.getItem('babuSimpleViewV1')==='1'; }catch(e){ return false; } })();
+function toggleSimpleView(){
+  SIMPLE_VIEW=!SIMPLE_VIEW;
+  try{ localStorage.setItem('babuSimpleViewV1',SIMPLE_VIEW?'1':'0'); }catch(e){}
+  renderUpdated();
+  renderAll();
+}
+// 簡易表示用：アーリー度を進捗バー無しの小さなラベルだけで返す（earlyHtml()と同じ判定基準を使う）
+function earlyStageMini(p){
+  if(!p.earlyStart)return '<span class="ez-mini-na">—</span>';
+  var d0=new Date(p.earlyStart+'T00:00:00');
+  var stage,label;
+  if(!p.earlyEnd){
+    var elapsedDays=Math.max(0,Math.floor((Date.now()-d0.getTime())/86400000));
+    var elapsedMonths=elapsedDays/30.44;
+    stage=elapsedMonths<=6?'g':elapsedMonths<12?'m':'b';
+    label=stage==='g'?'序盤':stage==='m'?'中盤':'終盤';
+  }else{
+    var d1=new Date(p.earlyEnd+'T00:00:00');
+    var t0=d0.getTime(),t1=d1.getTime(),now=Date.now();
+    if(!(t1>t0)){stage='b';label='終了';}
+    else{
+      var pct=Math.max(0,Math.min(100,Math.round((now-t0)/(t1-t0)*100)));
+      var remDays=Math.round((t1-now)/86400000);
+      if(remDays<=0){stage='b';label='終了';}
+      else{stage=pct<33?'g':pct<70?'m':'b';label=stage==='g'?'序盤':stage==='m'?'中盤':'終盤';}
+    }
+  }
+  return '<span class="ez-mini-stage ez-mini-'+stage+'">'+symIconSvg(stage)+label+'</span>';
+}
+// 簡易表示のリストHTMLを生成。並び順は通常のカード表示と同じ flist(mode) の並びをそのまま使う
+// （タブの並び替え設定＝期待値順などが自動的にそのまま反映される）
+function renderSimpleListHtml(list,mode){
+  return '<div class="ez-list">'+list.map(function(p,i){
+    var idx=PROJ.indexOf(p);
+    var bd=scoreBreakdown(p);
+    var s=Math.round(bd.total);
+    var qualMax=Math.round((W.w_sm||0)+(W.w_sm_x||0)+(W.w_sm_sf||0));
+    var qual=Math.round(bd.sm);
+    var rewMax=Math.round((W.w_ef||0)+(W.w_deduct||0));
+    var rew=Math.round(bd.eff+bd.deduct);
+    var rankCls=i===0?'rank-1':i===1?'rank-2':i===2?'rank-3':'rank-n';
+    return '<div class="ez-row" data-pid="'+p.id+'" onclick="cardTapOpen(\''+mode+'\','+idx+')">'
+      +'<div class="ez-row-top">'
+      +'<span class="ez-rank '+rankCls+'">'+(i+1)+'</span>'
+      +'<span class="ez-name">'+esc(p.name)+'</span>'
+      +earlyStageMini(p)
+      +'</div>'
+      +'<div class="ez-stats">'
+      +'<span class="ez-stat ez-stat-score '+scCls(s)+'"><span class="ez-stat-lbl">期待値</span><span class="ez-stat-val">'+s+'<i>/'+scoreMax()+'</i></span></span>'
+      +'<span class="ez-stat"><span class="ez-stat-lbl">質</span><span class="ez-stat-val">'+qual+'<i>/'+qualMax+'</i></span></span>'
+      +'<span class="ez-stat"><span class="ez-stat-lbl">報酬</span><span class="ez-stat-val">'+rew+'<i>/'+rewMax+'</i></span></span>'
+      +'</div>'
+      +'</div>';
+  }).join('')+'</div>';
+}
 // 更新日時バーを描画
 function renderUpdated(){
   var el=document.getElementById('updated-bar');
   if(!el)return;
-  if(_lastUpdated){
-    el.innerHTML='🕒 データ最終更新：'+esc(fmtUpdated(_lastUpdated));
-    el.style.display='';
-  }else{
-    el.style.display='none';
-  }
+  var toggleHtml='<button class="uview-toggle" onclick="event.stopPropagation();toggleSimpleView()">'+(SIMPLE_VIEW?'🗂️ 通常表示':'📋 簡易表示')+'</button>';
+  el.innerHTML='<span class="updated-txt">'+(_lastUpdated?('🕒 データ最終更新：'+esc(fmtUpdated(_lastUpdated))):'')+'</span>'+toggleHtml;
+  el.style.display='';
 }
 // 読み込んだデータを各stateへ反映（全データをサニタイズして取り込む）
 function applyLoadedData(d,opts){
@@ -4927,6 +5017,7 @@ function renderList(id,mode){
   var el=document.getElementById(id);if(!el)return;
   var list=flist(mode);
   if(!list.length){el.innerHTML='<div style="text-align:center;color:var(--t3);padding:30px 0;font-size:14px;">案件がありません</div>';return;}
+  if(SIMPLE_VIEW){ el.innerHTML=renderSimpleListHtml(list,mode); return; }
 
   el.innerHTML=list.map(function(p,i){
     var idx=PROJ.indexOf(p);
