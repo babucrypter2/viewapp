@@ -4196,8 +4196,8 @@ function sanProj(o,spLen){
     refa:sanMark(o.refa),low:sanMark(o.low),
     lv:Math.max(0,Math.min(5,Math.round(num(o.lv)))),
     prio:Math.max(0,Math.min(5,Math.round(num(o.prio)))), // 優先度（★1〜5）。ばぶ本人がどれだけ優先しているかの表明
-    memo:clampStr(o.memo,1000),
-    task:clampStr(o.task,1000),
+    memo:clampStr(o.memo,4000),
+    task:clampStr(o.task,4000),
     taskImg:(Array.isArray(o.taskImg)?o.taskImg.filter(function(d){return typeof d==='string'&&safeImg(d);}).slice(0,5):[]),
     postUrl:safeUrl(o.postUrl),
     sm:sm,
@@ -5709,11 +5709,90 @@ setInterval(function(){
   }else{_vhStuck=0;}
 },350);
 
-// 入力欄フォーカス時、キーボード表示後に対象を可視領域中央へスクロール（黒い余白バグ対策）
+// ── 入力中のカーソル位置を実測して、キーボードに隠れないようスクロールする ──
+// textareaは自動で高さが伸びるため、要素全体をscrollIntoView({block:'center'})すると
+// 「要素の中央」が基準になり、実際に打っている行（末尾など）がキーボードの下に隠れてしまう。
+function caretOffsetTop(ta){
+  try{
+    var cs=window.getComputedStyle(ta);
+    var mirror=document.createElement('div');
+    ['fontFamily','fontSize','fontWeight','fontStyle','letterSpacing','textTransform',
+     'wordSpacing','textIndent','lineHeight','paddingTop','paddingRight','paddingBottom',
+     'paddingLeft','borderTopWidth','borderRightWidth','borderBottomWidth','borderLeftWidth',
+     'boxSizing'].forEach(function(pr){ mirror.style[pr]=cs[pr]; });
+    mirror.style.position='absolute';
+    mirror.style.visibility='hidden';
+    mirror.style.left='-9999px';
+    mirror.style.top='0';
+    mirror.style.width=ta.clientWidth+'px';
+    mirror.style.height='auto';
+    mirror.style.whiteSpace='pre-wrap';
+    mirror.style.wordWrap='break-word';
+    mirror.style.overflowWrap='break-word';
+    mirror.textContent=ta.value.slice(0,ta.selectionEnd);
+    var span=document.createElement('span');
+    span.textContent='\u200b';
+    mirror.appendChild(span);
+    document.body.appendChild(mirror);
+    var top=span.offsetTop;
+    document.body.removeChild(mirror);
+    return top;
+  }catch(e){ return null; }
+}
+function scrollCaretIntoView(t){
+  if(!t)return;
+  var tag=(t.tagName||'').toLowerCase();
+  if(tag!=='input'&&tag!=='textarea')return;
+  var vh=(window.visualViewport&&window.visualViewport.height)||window.innerHeight;
+  var r=t.getBoundingClientRect();
+  var lineH=parseFloat(window.getComputedStyle(t).lineHeight)||20;
+  var caretY;
+  if(tag==='textarea'){
+    var off=caretOffsetTop(t);
+    caretY=(off===null)?(r.top+Math.min(r.height,lineH)):(r.top+off-t.scrollTop);
+  }else{
+    caretY=r.top+r.height/2;
+  }
+  var need=0;
+  var bottomKeep=lineH+70;
+  var topKeep=80;
+  if(caretY+bottomKeep>vh)need=caretY+bottomKeep-vh;
+  else if(caretY<topKeep)need=caretY-topKeep;
+  if(!need)return;
+  var el=t.parentElement;
+  while(el&&el!==document.body){
+    var st=window.getComputedStyle(el);
+    if(/(auto|scroll)/.test(st.overflowY)&&el.scrollHeight>el.clientHeight+2){
+      var before=el.scrollTop;
+      el.scrollTop=before+need;
+      need-=(el.scrollTop-before);
+      if(Math.abs(need)<1)return;
+    }
+    el=el.parentElement;
+  }
+  if(Math.abs(need)>1){ try{ window.scrollBy(0,need); }catch(e){} }
+}
+// 入力欄フォーカス時、キーボード表示後にカーソル位置が見えるようスクロール（黒い余白バグ対策も兼ねる）
 document.addEventListener('focusin',function(e){
   var t=e.target,tag=(t&&t.tagName||'').toLowerCase();
   if(tag!=='input'&&tag!=='textarea')return;
-  setTimeout(function(){ setAppH(); try{t.scrollIntoView({block:'center'});}catch(_){}} ,300);
+  var settle=function(){ setAppH(); scrollCaretIntoView(t); };
+  if(window.visualViewport){
+    var done=false;
+    var onResize=function(){ if(done)return; done=true; settle(); };
+    window.visualViewport.addEventListener('resize',onResize,{once:true});
+    setTimeout(function(){ if(!done){done=true;window.visualViewport.removeEventListener('resize',onResize);settle();} },500);
+  }else{
+    setTimeout(settle,300);
+  }
+});
+// 打っている最中も、改行などでカーソルが下がったら追従させる
+document.addEventListener('input',function(e){
+  var t=e.target,tag=(t&&t.tagName||'').toLowerCase();
+  if(tag!=='input'&&tag!=='textarea')return;
+  if(document.activeElement!==t)return;
+  clearTimeout(t._caretT);
+  t._caretT=setTimeout(function(){ scrollCaretIntoView(t); },0);
 });
 
 // アプリに戻った／再表示された時に自動チェック（iOSのPWAでも効くように複数イベントを使用）
