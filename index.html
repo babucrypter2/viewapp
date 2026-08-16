@@ -1009,6 +1009,8 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .result-edit-item{background:var(--card2);border:1px solid var(--b);border-radius:9px;padding:9px 10px;margin-bottom:7px;}
 .achv-rank-row{display:flex;align-items:center;gap:9px;background:var(--card2);border:1px solid var(--b);border-radius:9px;padding:8px 10px;margin-bottom:6px;}
 .achv-rank-badge{width:22px;height:22px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#fff;flex-shrink:0;}
+/* 実績一覧の案件アイコン。順位バッジのすぐ右に、簡易表示と同じ小さめの角丸で並べる */
+.achv-rank-row .pj-av{flex-shrink:0;border-radius:7px;font-size:11px;margin-left:-2px;}
 .achv-rank-name{flex:1;min-width:0;font-size:13px;font-weight:700;color:var(--t1);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .achv-rank-amt{font-size:13px;font-weight:600;color:var(--grn);flex-shrink:0;white-space:nowrap;}
 .achv-rank-amt.neg{color:var(--red);}
@@ -2607,8 +2609,10 @@ function renderAchv(){
       var rank=pageStart+i;
       var rc=rank===0?'rank-1':rank===1?'rank-2':rank===2?'rank-3':'rank-n';
       var clk=it.pid!=null;
+      var pj=(it.pid!=null)?PROJ.filter(function(p){return p.id===it.pid;})[0]:null;
       return '<div class="achv-rank-row'+(clk?' achv-rank-clk':'')+'"'+(clk?' onclick="jumpToProject('+it.pid+',true)"':'')+'>'
         +'<span class="achv-rank-badge '+rc+'">'+(rank+1)+'</span>'
+        +(pj?projAvHtml(pj,22):'')
         +'<span class="achv-rank-name">'+esc(it.name)+'</span>'
         +'<span class="achv-rank-amt'+(it._eq<0?' neg':'')+'">'+fmtAchvItemAmt(it)+'</span>'
         +(clk?'<span class="achv-rank-go">詳細へ ›</span>':'')
