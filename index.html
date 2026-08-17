@@ -1932,13 +1932,7 @@ function sanAchv(o){
 }
 // エアドロ結果ランキング（案件のresultsを自動集計＋手動追加分ACHV.extraを統合、金額順）
 var ACHV_FX=150; // USD→JPY概算換算レート（並び替え専用。表示は$/¥そのまま）
-function fmtManyen(jpy){
-  if(!jpy)return '';
-  var neg=jpy<0;
-  var man=Math.abs(jpy)/10000;
-  var r=(man>=100)?Math.round(man).toLocaleString('en-US'):(Math.round(man*10)/10);
-  return (neg?'-':'')+r+'万円';
-}
+
 function achvRankItems(){
   var items=[];
   (Array.isArray(PROJ)?PROJ:[]).forEach(function(p){
@@ -3341,59 +3335,10 @@ function scoreCheckItems(){
 var _scPopItems={};
 // スコア（横軸）× 実際の獲得額（縦軸）の散布図。「高スコアの案件は本当に稼げてるか」を一目で検証できるようにする。
 // タップしてもいきなり詳細には飛ばず、まず吹き出しでスコア・名前・金額を見せ、「詳細カードへ」を押した時だけ飛ぶ
-function buildScoreScatterSvg(items,jumpFn){
-  if(!items.length)return '';
-  var W=300,H=190,padL=40,padR=10,padT=12,padB=26;
-  var plotW=W-padL-padR, plotH=H-padT-padB;
-  var maxScore=scoreMax()||100;
-  var vals=items.map(function(it){return it._eq;});
-  var minV=Math.min.apply(null,vals), maxV=Math.max.apply(null,vals);
-  if(minV===maxV){ minV-=1; maxV+=1; } // 全件同額など、幅が0になるケースの防御
-  var padV=(maxV-minV)*0.08; minV-=padV; maxV+=padV;
-  function px(sc){ return padL+(sc/maxScore)*plotW; }
-  function py(v){ return padT+(1-(v-minV)/(maxV-minV))*plotH; }
-  var zeroY=(minV<0&&maxV>0)?py(0):null;
-  var gridX=[0,50,100].map(function(s){
-    return '<line x1="'+px(s)+'" y1="'+padT+'" x2="'+px(s)+'" y2="'+(padT+plotH)+'" stroke="var(--b)" stroke-width="1"></line>'
-      +'<text x="'+px(s)+'" y="'+(H-8)+'" font-size="9" fill="var(--t3)" text-anchor="middle">'+s+'</text>';
-  }).join('');
-  var zeroLine=zeroY!==null?('<line x1="'+padL+'" y1="'+zeroY+'" x2="'+(padL+plotW)+'" y2="'+zeroY+'" stroke="var(--t3)" stroke-width="1" stroke-dasharray="2,2"></line>'):'';
-  var yLabels=[maxV,minV].map(function(v,i){
-    var y=i===0?padT+3:padT+plotH;
-    return '<text x="2" y="'+y+'" font-size="9" fill="var(--t3)">'+(fmtManyen(Math.round(v))||'0円')+'</text>';
-  }).join('');
-  var pts=items.map(function(it){
-    var cx=px(it.sc), cy=py(it._eq);
-    var col=it._eq>=0?'#34d17b':'#ff5c5c';
-    _scPopItems[it.pid]={name:it.name,sc:it.sc,amtLabel:fmtAchvItemAmt(it)}; // 下のリストと全く同じ整形を使い、表示のズレをなくす
-    return '<circle id="sc-dot-'+it.pid+'" class="sc-dot" cx="'+cx+'" cy="'+cy+'" r="5.5" fill="'+col+'" fill-opacity=".85" stroke="var(--card)" stroke-width="1.5" style="cursor:pointer;" onclick="showScorePop('+it.pid+',\''+jumpFn+'\')"></circle>';
-  }).join('');
-  return '<div class="sc-scatter-wrap">'
-    +'<div class="sc-scatter-title">スコア × 実際の獲得額</div>'
-    +'<svg viewBox="0 0 '+W+' '+H+'" class="sc-scatter-svg">'+gridX+zeroLine+yLabels+pts+'</svg>'
-    +'<div class="sc-scatter-axis">→ 期待値スコア（横軸）</div>'
-    +'<div class="sc-pop" id="sc-pop" style="display:none;">'
-    +'<div class="sc-pop-row"><span class="sc-pop-score" id="sc-pop-score"></span><span class="sc-pop-name" id="sc-pop-name"></span></div>'
-    +'<div class="sc-pop-bottom"><span class="sc-pop-amt" id="sc-pop-amt"></span><button class="sc-pop-btn" id="sc-pop-btn">詳細カードへ ›</button></div>'
-    +'</div>'
-    +'</div>';
-}
+
 // 散布図の点をタップした時：吹き出しにスコア・名前・金額（ドル＋円換算）を表示し、
 // 「詳細カードへ」を押した時だけ、詳細窓を開かずカードの位置まで移動する
-function showScorePop(pid,jumpFn){
-  var it=_scPopItems[pid];
-  var pop=document.getElementById('sc-pop');
-  if(!it||!pop)return;
-  document.getElementById('sc-pop-score').textContent=it.sc;
-  document.getElementById('sc-pop-name').textContent=it.name;
-  document.getElementById('sc-pop-amt').innerHTML=it.amtLabel; // リストと同じ表記をそのまま使う
-  document.getElementById('sc-pop-btn').onclick=function(){ window[jumpFn](pid,true); };
-  // 選択中のプロットだけ枠を付けて、どれを見ているか分かるようにする
-  document.querySelectorAll('.sc-dot').forEach(function(c){ c.classList.remove('sel'); });
-  var dot=document.getElementById('sc-dot-'+pid);
-  if(dot)dot.classList.add('sel');
-  pop.style.display='block';
-}
+
 function renderScoreCheck(){
   var el=document.getElementById('scorecheck-card');
   if(!el)return;
@@ -3989,28 +3934,7 @@ function sanLlamaFee(o){
           at:(typeof o.at==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(o.at))?o.at:''};
 }
 // 日次履歴 [[unixtime, 値], ...] から、直近N日とその前のN日の合計を出す
-function llamaSumWindows(chart,days){
-  if(!Array.isArray(chart)||!chart.length)return null;
-  var rows=[];
-  for(var i=0;i<chart.length;i++){
-    var r=chart[i];
-    if(!Array.isArray(r))continue;
-    var t=Number(r[0]), v=Number(r[1]);
-    if(!isFinite(t)||!isFinite(v))continue;
-    rows.push([t,v]);
-  }
-  if(rows.length<2)return null;
-  rows.sort(function(a,b){return a[0]-b[0];});
-  var last=rows[rows.length-1][0];
-  var cutA=last-days*86400, cutB=last-days*2*86400;
-  var cur=0,prev=0,nCur=0,nPrev=0;
-  for(var k=0;k<rows.length;k++){
-    var t2=rows[k][0], v2=rows[k][1];
-    if(t2>cutA){cur+=v2;nCur++;}
-    else if(t2>cutB){prev+=v2;nPrev++;}
-  }
-  return {cur:cur, prev:(nPrev>=Math.floor(days*0.6)?prev:null)};  // 前期間のデータが足りなければ比較しない
-}
+
 // カードの統計行に差し込む収益の列。データが無ければ列そのものを出さない
 function llamaFeeCol(p){
   var f=p&&p.llamaFee;
@@ -4080,77 +4004,9 @@ function llamaSign(p){
 // DefiLlamaの fees エンドポイントは無料で使える。
 // 収益（Revenue）が取れればそれを、無ければ手数料（Fees）を代わりに使う。
 // 増減は日次履歴から「直近30日の合計」と「その前の30日の合計」を比べて出す。
-function sanLlamaFee(o){
-  if(!o||typeof o!=='object')return null;
-  function n(v){ var x=Number(v); return (typeof v!=='object'&&isFinite(x))?x:null; }
-  var cur=n(o.cur30);
-  if(cur===null)return null;
-  return {cur30:cur, prev30:n(o.prev30), feeCur30:n(o.feeCur30),
-          kind:(o.kind==='revenue'?'revenue':'fees'),
-          at:(typeof o.at==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(o.at))?o.at:''};
-}
-// 日次履歴 [[unixtime, 値], ...] から、直近N日とその前のN日の合計を出す
-function llamaSumWindows(chart,days){
-  if(!Array.isArray(chart)||!chart.length)return null;
-  var rows=[];
-  for(var i=0;i<chart.length;i++){
-    var r=chart[i];
-    if(!Array.isArray(r))continue;
-    var t=Number(r[0]), v=Number(r[1]);
-    if(!isFinite(t)||!isFinite(v))continue;
-    rows.push([t,v]);
-  }
-  if(rows.length<2)return null;
-  rows.sort(function(a,b){return a[0]-b[0];});
-  var last=rows[rows.length-1][0];
-  var cutA=last-days*86400, cutB=last-days*2*86400;
-  var cur=0,prev=0,nCur=0,nPrev=0;
-  for(var k=0;k<rows.length;k++){
-    var t2=rows[k][0], v2=rows[k][1];
-    if(t2>cutA){cur+=v2;nCur++;}
-    else if(t2>cutB){prev+=v2;nPrev++;}
-  }
-  return {cur:cur, prev:(nPrev>=Math.floor(days*0.6)?prev:null)};  // 前期間のデータが足りなければ比較しない
-}
-async function llamaFetchFee(slug){
-  slug=sanSlug(slug);
-  if(!slug)return null;
-  var sl=encodeURIComponent(slug);
-  // 収益と手数料の両方を取り、値が違うかどうかで「本当に収益が返っているか」を判定する。
-  // DefiLlamaが dataType を無視して手数料を返してくる場合があるため、
-  // 同じ値なら収益とは名乗らせず「手数料」として表示する。
-  var rev=await llamaFeeOne('https://api.llama.fi/summary/fees/'+sl+'?dataType=dailyRevenue');
-  var fee=await llamaFeeOne('https://api.llama.fi/summary/fees/'+sl);
-  var today=new Date();
-  var at=today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0')+'-'+String(today.getDate()).padStart(2,'0');
-  if(rev&&fee){
-    // 差があれば収益が正しく返っている。ほぼ同額なら dataType が効いていない
-    var same=Math.abs(rev.cur-fee.cur)<Math.max(1,fee.cur*0.001);
-    if(same)return sanLlamaFee({cur30:fee.cur,prev30:fee.prev,kind:'fees',feeCur30:fee.cur,at:at});
-    return sanLlamaFee({cur30:rev.cur,prev30:rev.prev,kind:'revenue',feeCur30:fee.cur,at:at});
-  }
-  if(fee)return sanLlamaFee({cur30:fee.cur,prev30:fee.prev,kind:'fees',feeCur30:fee.cur,at:at});
-  if(rev)return sanLlamaFee({cur30:rev.cur,prev30:rev.prev,kind:'fees',feeCur30:null,at:at});
-  return null;
-}
+
 // 1本ぶん取得して、直近30日と前30日の合計を返す
-async function llamaFeeOne(url){
-  var res;
-  try{
-    res=await fetch(url,{method:'GET',cache:'no-store',
-      credentials:'omit',referrerPolicy:'no-referrer'});
-  }catch(e){ return null; }
-  if(!res.ok)return null;
-  var txt=await res.text();
-  if(txt.length>4000000)return null;
-  var j;
-  try{ j=JSON.parse(txt); }catch(e){ return null; }
-  if(!j||typeof j!=='object'||Array.isArray(j))return null;
-  var w=llamaSumWindows(j.totalDataChart,30);
-  var cur=w?w.cur:Number(j.total30d);
-  if(!isFinite(cur)||cur<0)return null;
-  return {cur:cur, prev:w?w.prev:null};
-}// カードに出す増減表示。数値が無ければ何も出さない
+// カードに出す増減表示。数値が無ければ何も出さない
 function llamaDeltaHtml(p){
   var d=p&&p.llama;
   if(!d)return '';
@@ -4252,7 +4108,7 @@ function sanResults(o){
 }
 
 // THEME（このアプリはダークモード固定）
-function updateThemeBtns(){}
+
 
 // SCORE
 // 期待値スコア（100点満点）: 強い人の言及 + 調達効率 + 減点方式の3ブロック
@@ -4282,10 +4138,7 @@ function smFullAuto(){
 function markScore(v,full){ return v==='g'?full:(v==='m'?full/2:0); }
 // 報酬パイ・シェア率は同じ25点枠の指標なので、効率スコアの真下に記号だけ小さく添える。
 // 未判断（空）の項目は出さないので、入力していない案件では何も増えない
-function pieShareHtml(p){
-  if(!p.pieShare)return '';
-  return '<div class="st-pie">パイ'+msym(p.pieShare)+'</div>';
-}
+
 // スコア凍結を使うかどうか。
 // 本来の凍結は「結果を知る前の予想」を残すためのものだが、アルゴリズムを調整している間は
 // 古い基準のスコアが混ざって比較にならないため、既定では使わず常に最新ロジックで再計算する。
@@ -4384,7 +4237,7 @@ function symIconSvg(v){
   return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"><line x1="5" y1="5" x2="19" y2="19"></line><line x1="19" y1="5" x2="5" y2="19"></line></svg>';
 }
 function msym(v){var c=v==='g'?'ms-g':v==='m'?'ms-m':'ms-b';return '<span class="ms ms-svg '+c+'">'+symIconSvg(v)+'</span>';}
-function plCls(v){return v==='g'?'pl-g':v==='m'?'pl-m':'pl-b';}
+
 function ini(s){return(s||'?')[0].toUpperCase();}
 
 // ─────────── セキュリティ: 出力エスケープ & 入力検証 ───────────
@@ -4409,19 +4262,9 @@ function fmtFundM(v){
   return v+'M';
 }
 // ±ボタン: 入力欄の符号を反転（テンキーでマイナスが打てない問題の対策）
-function toggleSign(id){
-  var el=document.getElementById(id);
-  if(!el)return;
-  var v=(el.value||'').trim();
-  if(v===''||v==='0'){el.value='-';el.focus();return;} // 空なら−を置いてマイナス入力開始
-  if(v==='-'){el.value='';el.focus();return;}
-  if(v.charAt(0)==='-'){el.value=v.slice(1);}else{el.value='-'+v;}
-  // 変更を即反映（onchangeを発火）
-  if(typeof el.onchange==='function'){el.onchange();}
-  else{var ev=document.createEvent('HTMLEvents');ev.initEvent('change',true,false);el.dispatchEvent(ev);}
-}
+
 // 数値表示（空ならそのまま空文字。XSS無効化のため数値化）
-function numOrEmpty(v){if(v===''||v===null||v===undefined)return '';var n=parseFloat(v);return isFinite(n)?n:'';}
+
 // カラー値として安全化（#hex か rgb(...) のみ許可、それ以外は既定色）
 function safeColor(c){
   if(typeof c!=='string')return '#888';
@@ -4430,7 +4273,10 @@ function safeColor(c){
 // 画像URLとして安全化（data:image か https のみ許可。javascript: 等を拒否）
 function safeImg(u){
   if(typeof u!=='string')return '';
-  return /^data:image\/[a-zA-Z0-9.+-]+;base64,[A-Za-z0-9+/=\s]*$/.test(u)||/^https:\/\//.test(u)?u:'';
+  // 写真は data:image のbase64で埋め込み。外部URL(https)は画像ビーコン防止のため不許可（未該当はアイコンを頭文字表示にフォールバック）。
+  // ※このファイル内には同名の定義がもう1つあり、JSの仕様で「後の定義」が有効になる。
+  //   片方だけ直すと直したつもりで効いていない事故が起きるため、両方を同じ内容に揃えてある。
+  return /^data:image\/[a-zA-Z0-9.+-]+;base64,[A-Za-z0-9+/=\s]*$/.test(u)?u:'';
 }
 // Xハンドルとして安全化（英数・_ のみ、最大32字）
 function safeHandle(h){
@@ -4473,12 +4319,7 @@ function catTag(c){
 }
 function fmtU(n){return n>=1000?'$'+(n/1000).toFixed(1)+'K':'$'+n;}
 // エアドロ結果フォーマット（1件分）
-function fmtOneResult(r){
-  var parts=[];
-  if(r&&r.usd!==''&&r.usd!=null&&num(r.usd)>0)parts.push('$'+num(r.usd).toLocaleString('en-US'));
-  if(r&&r.jpy!==''&&r.jpy!=null&&num(r.jpy)>0)parts.push('¥'+num(r.jpy).toLocaleString('ja-JP'));
-  return parts.join(' / ')||'—';
-}
+
 // 受取履歴の合計
 function fmtResultTotal(results){
   var su=0,sj=0;
@@ -4489,11 +4330,8 @@ function fmtResultTotal(results){
   return parts.join(' / ')||'—';
 }
 // カード用：合計表示（受取回数も）
-function fmtResult(p){
-  var results=Array.isArray(p.results)?p.results:[];
-  return fmtResultTotal(results);
-}
-function mos(d,end){if(!d)return 0;var a=new Date(d),b=end?new Date(end):new Date();return Math.max(0,(b.getFullYear()-a.getFullYear())*12+(b.getMonth()-a.getMonth()));}
+
+
 // 投入元本（プラスのデポジット合計）= いくら預けたか。引き出しても消えない
 function principalUsd(p){
   if(!p||!Array.isArray(p.deps))return 0;
@@ -4540,7 +4378,7 @@ function depShowUsd(p){
   return num(p.totalUsd)>0?num(p.totalUsd):b;
 }
 // 最初の預入からの月数 / 期間テキスト（ヶ月→無ければ日）
-function depMonths(p){var s=firstDepDate(p);return s?mos(s,p.endDate||null):0;}
+
 function depPeriodTxt(p){
   if(num(p.periodOverrideMonths)>0){ // 手動上書き優先
     var rm=Math.round(num(p.periodOverrideMonths)*10)/10;
@@ -4626,201 +4464,6 @@ function resultStripHtml(p){
     +'<span class="result-strip-lbl">仕込み終了日</span>'
     +'<span class="result-strip-val">'+esc(p.endDate)+'</span>'
     +'</div>';
-}// 調達額の表示。元データはM単位なので、1000M(=1B)以上ならB表記にして桁数を短くする。
-// これで統計行の横幅に余裕ができ、隣接するTVL・収益列の増減が収まりやすくなるfunction scCls(s){var m=scoreMax()||100;var pct=s/m*100;return pct>=75?'c-g':pct>=55?'c-a':pct>=35?'c-y':'c-r';}
-// ポイント表示（小数の余分なゼロを除去。負数はそのまま）
-function fmtPt(v){var n=num(v);return (Math.round(n*100)/100).toString();}
-// スコア内訳表示専用：小数点を四捨五入して整数化
-function fmtPtR(v){return Math.round(num(v)).toString();}
-function msym(v){var c=v==='g'?'ms-g':v==='m'?'ms-m':'ms-b';return '<span class="ms ms-svg '+c+'">'+symIconSvg(v)+'</span>';}
-function plCls(v){return v==='g'?'pl-g':v==='m'?'pl-m':'pl-b';}
-function ini(s){return(s||'?')[0].toUpperCase();}
-
-// ─────────── セキュリティ: 出力エスケープ & 入力検証 ───────────
-// テキストとして安全にエスケープ（<,>,&,",' を実体参照化）
-function esc(s){
-  if(s===null||s===undefined)return '';
-  return String(s)
-    .replace(/&/g,'&amp;')
-    .replace(/</g,'&lt;')
-    .replace(/>/g,'&gt;')
-    .replace(/"/g,'&quot;')
-    .replace(/'/g,'&#39;');
-}
-// 数値として安全化（数値以外は0、有限数のみ）
-function num(v){var n=parseFloat(v);return isFinite(n)?n:0;}
-// ±ボタン: 入力欄の符号を反転（テンキーでマイナスが打てない問題の対策）
-// 数値表示（空ならそのまま空文字。XSS無効化のため数値化）
-function numOrEmpty(v){if(v===''||v===null||v===undefined)return '';var n=parseFloat(v);return isFinite(n)?n:'';}
-// カラー値として安全化（#hex か rgb(...) のみ許可、それ以外は既定色）
-function safeColor(c){
-  if(typeof c!=='string')return '#888';
-  return /^#[0-9a-fA-F]{3,8}$/.test(c)||/^rgba?\([\d.,\s%]+\)$/.test(c)?c:'#888';
-}
-// 画像URLとして安全化（data:image か https のみ許可。javascript: 等を拒否）
-function safeImg(u){
-  if(typeof u!=='string')return '';
-  // 写真は data:image のbase64で埋め込み。外部URL(https)は画像ビーコン防止のため不許可（未該当はアイコンを頭文字表示にフォールバック）。
-  return /^data:image\/[a-zA-Z0-9.+-]+;base64,[A-Za-z0-9+/=\s]*$/.test(u)?u:'';
-}
-// Xハンドルとして安全化（英数・_ のみ、最大32字）
-function safeHandle(h){
-  if(typeof h!=='string')return '';
-  return h.replace(/[^A-Za-z0-9_]/g,'').slice(0,32);
-}
-// URLとして安全化（http/https のみ許可。javascript:/data: 等の危険スキームと '"<> 空白を遮断）
-// 紹介リンク（postUrl）はX限定にせず、開く前のドメイン確認モーダルで利用者が偽サイトを弾く方式に変更。
-function safeUrl(u){
-  if(typeof u!=='string')return '';
-  u=u.trim();
-  if(!u)return '';
-  if(/^https?:\/\/[^\s"'<>]+$/i.test(u))return u.slice(0,400);
-  return '';
-}
-
-var CAT_KNOWN={ETH:'eth',SOL:'sol',BTC:'btc',Monad:'monad',Perp:'perp',DEX:'dex',
-  Lending:'lending',Stable:'stable',HYPE:'hype',Free:'free',L1:'l1',AI:'ai'};
-// palette for custom (unknown) categories
-var CAT_PALETTE=[
-  ['#1a2a50','#7aa0ff'],['#1a1a40','#a070ff'],['#2a1800','#e89030'],
-  ['#0a2018','#30c870'],['#280a0a','#e87070'],['#0a2030','#60c8e0'],
-  ['#280a20','#e860a0'],['#102a1a','#40d090'],['#2a1030','#c080e0']
-];
-function catHash(c){var h=0;for(var i=0;i<c.length;i++)h=(h*31+c.charCodeAt(i))>>>0;return h;}
-var ICO={
-fund:'<svg class="st-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="7" ry="3"></ellipse><path d="M5 5v5c0 1.66 3.13 3 7 3s7-1.34 7-3V5"></path><path d="M5 10v5c0 1.66 3.13 3 7 3s7-1.34 7-3v-5"></path><path d="M5 15v4c0 1.66 3.13 3 7 3s7-1.34 7-3v-4"></path></svg>',
-usr:'<svg class="st-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"></circle><circle cx="17" cy="8" r="3"></circle><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"></path><path d="M15 14.5c2.8 0.3 5 2.7 5 5.5"></path></svg>',
-tvl:'<svg class="st-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 15 9 9 13 13 21 5"></polyline><polyline points="15 5 21 5 21 11"></polyline><line x1="3" y1="19" x2="21" y2="19"></line></svg>',
-doc:'<svg class="dh-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="13" x2="16" y2="13"></line><line x1="8" y1="17" x2="16" y2="17"></line><line x1="8" y1="9" x2="10" y2="9"></line></svg>',
-clip:'<svg class="dh-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="2" width="8" height="4" rx="1"></rect><path d="M9 4H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-4"></path><path d="M9 14l2 2 4-4"></path></svg>',
-link:'<svg class="dh-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>',
-bag:'<svg class="dh-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8h12l1.5 12.5a2 2 0 0 1-2 2.5H6.5a2 2 0 0 1-2-2.5L6 8z"></path><path d="M9 8V6a3 3 0 0 1 6 0v2"></path><line x1="12" y1="12" x2="12" y2="16"></line></svg>',
-pin:'<svg class="dh-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 17v5"></path><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"></path></svg>',
-pencil:'<svg class="dh-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"></path><path d="M15 5l4 4"></path></svg>'
-};
-function catTag(c){
-  if(CAT_KNOWN[c])return '<span class="tag tag-'+CAT_KNOWN[c]+'">'+esc(c)+'</span>';
-  var pal=CAT_PALETTE[catHash(String(c))%CAT_PALETTE.length];
-  return '<span class="tag" style="background:'+pal[0]+';color:'+pal[1]+';">'+esc(c)+'</span>';
-}
-function fmtU(n){return n>=1000?'$'+(n/1000).toFixed(1)+'K':'$'+n;}
-// エアドロ結果フォーマット（1件分）
-function fmtOneResult(r){
-  var parts=[];
-  if(r&&r.usd!==''&&r.usd!=null&&num(r.usd)>0)parts.push('$'+num(r.usd).toLocaleString('en-US'));
-  if(r&&r.jpy!==''&&r.jpy!=null&&num(r.jpy)>0)parts.push('¥'+num(r.jpy).toLocaleString('ja-JP'));
-  return parts.join(' / ')||'—';
-}
-// 受取履歴の合計
-function fmtResultTotal(results){
-  var su=0,sj=0;
-  (results||[]).forEach(function(r){su+=num(r.usd);sj+=num(r.jpy);});
-  var parts=[];
-  if(su!==0)parts.push((su<0?'-$':'$')+Math.abs(su).toLocaleString('en-US'));
-  if(sj!==0)parts.push((sj<0?'-¥':'¥')+Math.abs(sj).toLocaleString('ja-JP'));
-  return parts.join(' / ')||'—';
-}
-// カード用：合計表示（受取回数も）
-function fmtResult(p){
-  var results=Array.isArray(p.results)?p.results:[];
-  return fmtResultTotal(results);
-}
-function mos(d,end){if(!d)return 0;var a=new Date(d),b=end?new Date(end):new Date();return Math.max(0,(b.getFullYear()-a.getFullYear())*12+(b.getMonth()-a.getMonth()));}
-// 投入元本（プラスのデポジット合計）= いくら預けたか。引き出しても消えない
-function principalUsd(p){
-  if(!p||!Array.isArray(p.deps))return 0;
-  return p.deps.reduce(function(a,d){var u=num(d.usd);return a+(u>0?u:0);},0);
-}
-// === 預入額・期間の算出（実際に預けた日ベース。引き出しがあれば平均残高） ===
-// 実際に預けた最初の日（usd>0の入金の最古日）。無ければstartDate
-function firstDepDate(p){
-  if(!p||!Array.isArray(p.deps))return p&&p.startDate||null;
-  var ds=p.deps.filter(function(d){return num(d.usd)>0&&/^\d{4}-\d{2}-\d{2}$/.test(d.date);}).map(function(d){return d.date;}).sort();
-  return ds.length?ds[0]:(p.startDate||null);
-}
-// 引き出し（マイナス入力）があるか
-function hasWithdrawal(p){return !!(p&&Array.isArray(p.deps)&&p.deps.some(function(d){return num(d.usd)<0;}));}
-// 現在の残高（入金−出金）
-function balanceUsd(p){
-  if(!p||!Array.isArray(p.deps))return 0;
-  return p.deps.reduce(function(a,d){return a+num(d.usd);},0);
-}
-// 時間加重の平均残高（最初の預入〜終了 or 現在）
-function avgBalanceUsd(p){
-  if(!p||!Array.isArray(p.deps)||!p.deps.length)return 0;
-  var s=firstDepDate(p); if(!s)return 0;
-  var startMs=new Date(s).getTime();
-  var endMs=(p.endDate?new Date(p.endDate):new Date()).getTime();
-  var span=endMs-startMs;
-  var evs=p.deps.filter(function(d){return /^\d{4}-\d{2}-\d{2}$/.test(d.date);})
-    .map(function(d){return {t:new Date(d.date).getTime(),u:num(d.usd)};})
-    .filter(function(e){return e.t<=endMs;}).sort(function(a,b){return a.t-b.t;});
-  if(!evs.length)return 0;
-  if(span<=0)return evs.reduce(function(a,e){return a+e.u;},0);
-  var bal=0,prev=startMs,area=0;
-  evs.forEach(function(e){var t=e.t<startMs?startMs:e.t;if(t>prev){area+=bal*(t-prev);prev=t;}bal+=e.u;});
-  if(endMs>prev)area+=bal*(endMs-prev);
-  return area/span;
-}
-// 表示用の預入額：引き出しがあれば平均残高、なければ現在残高（無ければ保存値totalUsd）
-function depShowUsd(p){
-  if(!p)return 0;
-  if(num(p.depOverrideUsd)>0)return num(p.depOverrideUsd); // 手動上書き優先
-  if(hasWithdrawal(p))return avgBalanceUsd(p);
-  var b=balanceUsd(p);
-  if(b>0)return b;
-  return num(p.totalUsd)>0?num(p.totalUsd):b;
-}
-// 最初の預入からの月数 / 期間テキスト（ヶ月→無ければ日）
-function depMonths(p){var s=firstDepDate(p);return s?mos(s,p.endDate||null):0;}
-function depPeriodTxt(p){
-  if(num(p.periodOverrideMonths)>0){ // 手動上書き優先
-    var rm=Math.round(num(p.periodOverrideMonths)*10)/10;
-    return (rm%1===0?String(Math.round(rm)):rm.toFixed(1))+'ヶ月';
-  }
-  var d=heldDays(p);if(d<=0)return '';var m=d/30.44;var r=Math.round(m*10)/10;if(r<0.1)r=0.1;return (r%1===0?String(Math.round(r)):r.toFixed(1))+'ヶ月';
-}
-// 削り額（消費したドル）
-function burnAmt(p){return p?Math.max(0,num(p.burnUsd)):0;}
-// 保有日数（開始〜終了 or 現在）。月数が0でも日割りで使えるように日数も返す
-function heldDays(p){
-  var s=firstDepDate(p); if(!s)return 0;
-  var a=new Date(s),b=p.endDate?new Date(p.endDate):new Date();
-  return Math.max(0,Math.round((b-a)/86400000));
-}
-// エアドロ受取合計($)
-function resultSumUsd(p){
-  var su=0;(Array.isArray(p&&p.results)?p.results:[]).forEach(function(r){su+=num(r.usd);});
-  return su;
-}
-// 年利%（預入に対して）= (エアドロ$ ÷ 元本$) × (365 ÷ 保有日数) × 100
-function calcApr(p){
-  var prin=principalUsd(p);
-  if(prin<=0)return null;
-  var su=resultSumUsd(p);
-  if(su<=0)return null;
-  var days=heldDays(p);
-  if(days<=0)days=30; // 保有が極短なら最低30日とみなす（年利が無限大になるのを防ぐ）
-  return (su/prin)*(365/days)*100;
-}
-// 倍率（削りに対して）= エアドロ$ ÷ 削り額$
-function calcMultiple(p){
-  var burn=burnAmt(p);
-  if(burn<=0)return null;
-  var su=resultSumUsd(p);
-  if(su<=0)return null;
-  return su/burn;
-}
-function fmtMultiple(p){
-  var m=calcMultiple(p);
-  if(m==null)return '';
-  return '×'+(m>=100?Math.round(m).toLocaleString('en-US'):m>=10?m.toFixed(1):m.toFixed(2));
-}
-function fmtApr(p){
-  var a=calcApr(p);
-  if(a==null)return '';
-  var v=a>=1000?Math.round(a).toLocaleString('en-US'):a>=100?a.toFixed(0):a.toFixed(1);
-  return v+'%';
 }
 function today(){return new Date().toISOString().slice(0,10);}
 // FDV換算: 自分のエアドロ$ = FDV × 割当% × (自分の量 ÷ 総量)
@@ -4850,12 +4493,7 @@ function fmtBigUsd(v){
   return '$'+Math.round(v).toLocaleString('en-US');
 }
 function fmtFdvLevel(m){return m>=1000?(m/1000)+'B':m+'M';}
-function fmtNumComma(v){
-  v=num(v);
-  if(v>=1e9)return (v/1e9).toFixed(v/1e9>=10?1:2)+'B';
-  if(v>=1e6)return (v/1e6).toFixed(v/1e6>=10?1:2)+'M';
-  return v.toLocaleString('en-US',{maximumFractionDigits:2});
-}
+
 function fmtCommaStr(v){
   if(v===''||v===null||v===undefined)return '';
   var s=String(v).replace(/,/g,'');
@@ -5411,20 +5049,7 @@ function openRefGo(){
   if(isIOS()){ window.location.href=u; }
   else { var w=window.open(u,'_blank','noopener,noreferrer'); if(!w){try{window.top.location.href=u;}catch(e){window.location.href=u;}} }
 }
-function openUrl(u){
-  markExtNav();
-  var url=safeUrl(u);
-  if(!url)return;
-  // x.com / twitter.com のポストURLならアプリのstatus画面へ
-  var m=url.match(/(?:x|twitter)\.com\/[^\/]+\/status(?:es)?\/(\d+)/);
-  if(m){ openXApp('twitter://status?id='+m[1], url); return; }
-  // プロフィールURLならアプリのプロフィールへ
-  var mu=url.match(/(?:x|twitter)\.com\/([A-Za-z0-9_]+)\/?$/);
-  if(mu){ openXApp('twitter://user?screen_name='+mu[1], url); return; }
-  // それ以外は通常リンク
-  if(isIOS()){ window.location.href=url; }
-  else { var w=window.open(url,'_blank','noopener,noreferrer'); if(!w){try{window.top.location.href=url;}catch(e){window.location.href=url;}} }
-}
+
 // カード全体タップで開く（閉じるのは専用の「✕閉じる」バーのみが担当。開いた状態で本文をタップしても閉じない）
 function cardTapOpen(mode,idx){
   var btn=document.getElementById('dt-btn-'+mode+'-'+idx);
