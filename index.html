@@ -4682,11 +4682,18 @@ function flist(mode){
     }
     var st=SORT_STATE[mode]||SORT_STATE.active;
     var d=sortVal(a,st.by)-sortVal(b,st.by);
-    // 期待値スコアが同点のときは、優先度→仕込みLvが高い方を上に持ってくる
-    // （スコアは同じでも「どれだけ本気で仕込んでいるか」で並びを分けたいため）
-    if(st.by==='score'&&d===0){
-      d=(a.prio||0)-(b.prio||0);
-      if(d===0)d=(a.lv||0)-(b.lv||0);
+    // 主キーが同点になったときの second key。
+    // ・期待値順  → 優先度 → 仕込みLv（スコアが同じでも「どれだけ本気で仕込んでいるか」で分ける）
+    // ・それ以外（優先度順・仕込みLv順・新着順）→ 期待値 → 仕込みLv
+    //   例：優先度★★★★★が複数あるとき、その中は期待値の高い順に並ぶ
+    if(d===0){
+      if(st.by==='score'){
+        d=(a.prio||0)-(b.prio||0);
+        if(d===0)d=(a.lv||0)-(b.lv||0);
+      }else{
+        d=score(a)-score(b);
+        if(d===0)d=(a.lv||0)-(b.lv||0);
+      }
     }
     return st.dir===1?d:-d;
   });
