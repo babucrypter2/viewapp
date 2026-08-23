@@ -1709,6 +1709,9 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
   color:#8fbdff;font-size:9px;font-weight:800;cursor:pointer;vertical-align:middle;
   letter-spacing:.01em;white-space:nowrap;}
 .st-lbl-i:active{background:rgba(90,160,255,.3);}
+.vc-ico{width:11px;height:11px;flex-shrink:0;vertical-align:-1px;}
+.modal-title .vc-ico{width:15px;height:15px;vertical-align:-2px;margin-right:2px;}
+.flbl .vc-ico{width:13px;height:13px;vertical-align:-2px;margin-right:2px;}
 /* 編集画面のVC選択 */
 .vc-pick{display:flex;flex-wrap:wrap;gap:5px;margin-top:4px;max-height:230px;overflow-y:auto;
   -webkit-overflow-scrolling:touch;padding:2px;}
@@ -1876,7 +1879,7 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
   <div class="modal">
     <div class="modal-handle"></div>
     <button class="modal-x" onclick="cm('m-vc')" aria-label="閉じる">✕</button>
-    <div class="modal-title">🏦 VCティア表</div>
+    <div class="modal-title"><svg class="vc-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M3.2 9.2L12 4l8.8 5.2"></path><line x1="6.2" y1="11.4" x2="6.2" y2="17"></line><line x1="12" y1="11.4" x2="12" y2="17"></line><line x1="17.8" y1="11.4" x2="17.8" y2="17"></line><line x1="3.6" y1="19.6" x2="20.4" y2="19.6"></line></svg> VCティア表</div>
     <div id="m-vc-body" style="max-height:70vh;overflow-y:auto;-webkit-overflow-scrolling:touch;"></div>
     <div class="mfooter"><button class="btn-c" onclick="cm('m-vc')">閉じる</button></div>
   </div>
@@ -4871,7 +4874,7 @@ function renderList(id,mode){
       +(bd.effImputed?'<div class="st-prov" style="text-align:right;margin-top:2px;">暫定値</div>':'')
       +'<div class="q-hr"></div>'
       +'<div class="card-r2">'
-      +'<div class="st-col"><div class="st-lbl">'+ICO.fund+' 調達額<span class="st-lbl-i" onclick="event.stopPropagation();openVcInfo()">🏦 VCリスト</span></div><div class="st-val">'+fmtFundM(p.fund)+'</div></div>'
+      +'<div class="st-col"><div class="st-lbl">'+ICO.fund+' 調達額<span class="st-lbl-i" onclick="event.stopPropagation();openVcInfo()"><svg class="vc-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M3.2 9.2L12 4l8.8 5.2"></path><line x1="6.2" y1="11.4" x2="6.2" y2="17"></line><line x1="12" y1="11.4" x2="12" y2="17"></line><line x1="17.8" y1="11.4" x2="17.8" y2="17"></line><line x1="3.6" y1="19.6" x2="20.4" y2="19.6"></line></svg>VCリスト</span></div><div class="st-val">'+fmtFundM(p.fund)+'</div></div>'
       +'<div class="st-col st-col-usr"><div class="st-lbl">'+ICO.usr+' 参加者</div><div class="st-val">'+(p.usr?num(p.usr)+'万':'—')+'</div></div>'
       +'<div class="st-col st-col-tvl"><div class="st-lbl">'+ICO.tvl+' '+(p.llamaKind==='perp'?'Vol':'TVL')+'</div>'
         +'<div class="st-val">'+(p.llama?llamaFmt(p.llama.cur):(p.tvl?'$'+num(p.tvl)+'M':'—'))+'</div>'
@@ -5322,8 +5325,8 @@ var VC_LIST=[
 ];
 var VC_MAP=(function(){var m={};VC_LIST.forEach(function(v){m[v.id]=v;});return m;})();
 var VC_TIER_DESC={
-  S:'最上位。研究主導でデューデリが厳格。ここが入っていればプロジェクトの質はほぼ担保される。ただし私募で高いバリュエーションが付きやすく、その分TGEも高FDVになりがちで、コミュニティ配分は渋くなる傾向がある。',
-  A:'一線級。Sに次ぐ影響力と資金力を持つ。取引所系（Coinbase Ventures / YZi Labs）もここに含まれ、上場ルートを持つ点でエアドロ確度に効く。TradFi系はトークンを出さない出口もあり得るので別扱い。',
+  S:'最上位。運用資産・調達力・影響力のすべてで突出した4社に限定（a16z crypto=5本のファンドで累計98億ドル・2026年に22億ドルの新ファンド／Paradigm=累計85億ドル超・Kalshiの10億ドルラウンドを主導／Pantera=2013年からのOG・2025年にCircleとBitGoを含む5社が上場／Polychain=運用50億ドル超・BerachainへL1/L2主導投資）。ここが入っていればプロジェクトの質はほぼ担保される。ただし私募で高いバリュエーションが付きやすく、その分TGEも高FDVになりがちで、コミュニティ配分は渋くなる傾向がある。',
+  A:'一線級。Sに次ぐ影響力と資金力を持つ。Sに最も近いのはDragonfly（第4号ファンド6.5億ドル）とHaun Ventures（2026年Q2に第2号10億ドル・主要ファンドで唯一運用資産が3割増）。ただしHaunの実績はBridgeのStripe買収・BVNKのMastercard買収という株式のExitであり、TGEではない点に注意。取引所系（Coinbase Ventures / YZi Labs）もここに含まれ、上場ルートを持つ点でエアドロ確度に効く。TradFi系はトークンを出さない出口もあり得るので別扱い。',
   B:'有力・特化型。単独では格の証明にならないが、取引所系（cex）が複数入っていればTGE実行力のシグナルになる。エアドロ実績「高」の常連が並ぶ層でもあるので、数と組み合わせで読む。',
   C:'要注意。2021-22年のブル相場で広く投資し、その後案件数が最大98.9%減少して実質的に影響力を失った層。ここが並んでいる案件は当時の遺物である可能性があり、TGEまで到達しないリスクを見込む。'
 };
@@ -5341,6 +5344,12 @@ var VC_AIR_DESC={
   m:{n:'実績 中', d:'出す案件もあるが、株式のみの投資も混ざる。'},
   l:{n:'実績 低', d:'株式中心。エアドロまで届かない案件が多い。'}
 };
+// ティア内をアルファベット順（記号・数字始まりが先）に並べて返す。一覧から探しやすくするため
+function vcSortedByTier(t){
+  return VC_LIST.filter(function(v){return v.t===t;})
+                .slice()
+                .sort(function(a,b){return a.n.toLowerCase()<b.n.toLowerCase()?-1:(a.n.toLowerCase()>b.n.toLowerCase()?1:0);});
+}
 // 案件に紐づくVCを、ティア順（S→A→B→C）に並べて返す
 function projVcs(p){
   var ids=(p&&Array.isArray(p.vcs))?p.vcs:[];
@@ -5391,7 +5400,7 @@ function openVcInfo(focusId){
   ['S','A','B','C'].forEach(function(t){
     h+='<div class="vc-sec"><div class="vc-sec-h"><span class="vc-tier vc-t'+t+'">'+t+'</span>'
       +'<span class="vc-sec-d">'+esc(VC_TIER_DESC[t])+'</span></div><div class="vc-sec-list">';
-    VC_LIST.filter(function(v){return v.t===t;}).forEach(function(v){
+    vcSortedByTier(t).forEach(function(v){
       var on=(focusId&&v.id===focusId)?' vc-focus':'';
       h+='<span class="vc-chip vc-t'+v.t+' vc-c'+v.c+on+'" id="vcrow-'+v.id+'">'
         +'<span class="vc-tier">'+v.t+'</span>'+esc(v.n)
