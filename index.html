@@ -1649,6 +1649,56 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
    他の場所で.pj-dvや.pj-burnに色指定が重複していたため、確実に効くよう最後尾に置く */
 .pj-meta2 .pj-dv,.pj-burn{color:var(--t3)!important;}
 /* 収益の実測値も他の統計(調達額・参加者・TVL)と同じ白で統一する */
+/* ─── VC（投資家）バッジ。調達額セルの下に出す。点数には影響しない表示専用 ─── */
+.vc-row{display:flex;flex-wrap:wrap;gap:4px;margin:7px 0 0;justify-content:center;padding:0 2px;}
+.vc-chip{display:inline-flex;align-items:center;gap:4px;font-size:9.5px;font-weight:700;
+  padding:2px 7px 2px 3px;border-radius:99px;white-space:nowrap;cursor:pointer;
+  background:rgba(255,255,255,.05);color:var(--t2);border:1px solid rgba(255,255,255,.12);}
+.vc-chip:active{opacity:.6;}
+.vc-tier{display:inline-flex;align-items:center;justify-content:center;width:13px;height:13px;
+  border-radius:50%;font-size:8.5px;font-weight:800;flex-shrink:0;}
+/* ティアごとの光り方。Sほど強く光る */
+.vc-tS{background:rgba(255,199,88,.14);border-color:rgba(255,199,88,.55);color:#ffd76a;
+  box-shadow:0 0 9px rgba(255,199,88,.35);}
+.vc-tS .vc-tier{background:linear-gradient(135deg,#ffd76a,#f0a730);color:#241a02;}
+.vc-tA{background:rgba(160,140,255,.13);border-color:rgba(160,140,255,.45);color:#c4b0ff;
+  box-shadow:0 0 7px rgba(160,140,255,.24);}
+.vc-tA .vc-tier{background:linear-gradient(135deg,#cbb8ff,#8c6df0);color:#1a1030;}
+.vc-tB{background:rgba(120,160,220,.1);border-color:rgba(120,160,220,.3);color:#9fc0e8;}
+.vc-tB .vc-tier{background:rgba(159,192,232,.85);color:#0e1622;}
+.vc-tC{background:rgba(255,92,92,.1);border-color:rgba(255,92,92,.38);color:#ff9d9d;}
+.vc-tC .vc-tier{background:#ff5c5c;color:#2a0d0d;}
+/* 取引所系だけ、カテゴリが分かるよう左に細い緑のラインを足す */
+.vc-ccex{border-left:3px solid #3ddc86;}
+.vc-cliq{border-left:3px solid #f5c542;}
+.vc-cdead{border-left:3px solid #ff5c5c;}
+/* ティア表モーダルの中身 */
+.vc-note{font-size:11.5px;color:var(--t2);line-height:1.65;margin:0 0 12px;}
+.vc-note b{color:#ffd76a;}
+.vc-sec{margin-bottom:16px;}
+.vc-sec-h{display:flex;align-items:flex-start;gap:8px;margin-bottom:8px;}
+.vc-sec-h .vc-tier{width:20px;height:20px;font-size:11px;margin-top:1px;}
+.vc-sec-d{font-size:11px;color:var(--t3);line-height:1.6;flex:1;min-width:0;}
+.vc-sec-h2{font-size:12px;font-weight:800;color:var(--t1);margin-bottom:8px;}
+.vc-sec-list{display:flex;flex-wrap:wrap;gap:5px;}
+.vc-sec-list .vc-chip{font-size:10.5px;padding:3px 8px 3px 4px;}
+.vc-cat{font-size:8.5px;font-weight:700;opacity:.75;padding-left:4px;border-left:1px solid currentColor;margin-left:2px;}
+.vc-cat-row{display:flex;align-items:flex-start;gap:8px;margin-bottom:7px;}
+.vc-cat-row .vc-cat{border:none;padding:2px 7px;border-radius:99px;flex-shrink:0;margin:0;
+  background:rgba(255,255,255,.07);font-size:10px;}
+.vc-cat-d{font-size:10.5px;color:var(--t3);line-height:1.55;flex:1;min-width:0;}
+.vc-focus{outline:2px solid var(--acc);outline-offset:2px;}
+/* 調達額ラベルのℹ️ボタン */
+.st-lbl-i{display:inline-flex;align-items:center;justify-content:center;width:13px;height:13px;
+  border-radius:50%;border:1px solid rgba(255,255,255,.3);color:var(--t3);
+  font-size:9px;font-weight:800;margin-left:3px;cursor:pointer;vertical-align:middle;}
+.st-lbl-i:active{opacity:.6;}
+/* 編集画面のVC選択 */
+.vc-pick{display:flex;flex-wrap:wrap;gap:5px;margin-top:4px;}
+.vc-pick .vc-chip{opacity:.4;filter:saturate(.4);}
+.vc-pick .vc-chip.on{opacity:1;filter:none;}
+.vc-pick-h{font-size:10px;font-weight:800;color:var(--t3);margin:9px 0 3px;}
+
 </style>
 </head>
 <body>
@@ -1804,6 +1854,16 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 </div>
 </div>
 
+
+<div class="modal-overlay" id="m-vc">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <button class="modal-x" onclick="cm('m-vc')" aria-label="閉じる">✕</button>
+    <div class="modal-title">🏦 VCティア表</div>
+    <div id="m-vc-body" style="max-height:70vh;overflow-y:auto;-webkit-overflow-scrolling:touch;"></div>
+    <div class="mfooter"><button class="btn-c" onclick="cm('m-vc')">閉じる</button></div>
+  </div>
+</div>
 <div class="modal-overlay" id="m-ref">
   <div class="modal">
     <div class="modal-handle"></div>
@@ -4060,6 +4120,8 @@ function sanProj(o,spLen){
     task:clampStr(o.task,4000),
     taskImg:(Array.isArray(o.taskImg)?o.taskImg.filter(function(d){return typeof d==='string'&&safeImg(d);}).slice(0,5):[]),
     postUrl:safeUrl(o.postUrl),
+    // 調達したVC。VC_MAPに存在するidだけを許可（外部由来の値をそのまま持たない）。現時点でスコアには影響しない
+    vcs:(Array.isArray(o.vcs)?o.vcs.filter(function(x){return typeof x==='string'&&VC_MAP[x];}).slice(0,20):[]),
     sm:sm,
     deps:deps,
     totalUsd:num(o.totalUsd),
@@ -4792,13 +4854,14 @@ function renderList(id,mode){
       +(bd.effImputed?'<div class="st-prov" style="text-align:right;margin-top:2px;">暫定値</div>':'')
       +'<div class="q-hr"></div>'
       +'<div class="card-r2">'
-      +'<div class="st-col"><div class="st-lbl">'+ICO.fund+' 調達額</div><div class="st-val">'+fmtFundM(p.fund)+'</div></div>'
+      +'<div class="st-col"><div class="st-lbl">'+ICO.fund+' 調達額<span class="st-lbl-i" onclick="event.stopPropagation();openVcInfo()">i</span></div><div class="st-val">'+fmtFundM(p.fund)+'</div></div>'
       +'<div class="st-col st-col-usr"><div class="st-lbl">'+ICO.usr+' 参加者</div><div class="st-val">'+(p.usr?num(p.usr)+'万':'—')+'</div></div>'
       +'<div class="st-col st-col-tvl"><div class="st-lbl">'+ICO.tvl+' '+(p.llamaKind==='perp'?'Vol':'TVL')+'</div>'
         +'<div class="st-val">'+(p.llama?llamaFmt(p.llama.cur):(p.tvl?'$'+num(p.tvl)+'M':'—'))+'</div>'
         +llamaDeltaHtml(p)+'</div>'
       +llamaFeeCol(p)
       +'</div>'
+      +vcBadgesHtml(p)
       +'<div class="q-hr"></div>'
       +'<div class="q-deduct-row">'
       +'<span class="pl-txt">リファ影響度の低さ：'+msym(p.refa)+' <span class="pv pv-white">'+fmtPtR(rPt)+'</span></span>'
@@ -5108,6 +5171,142 @@ function jumpToProject(pid,skipExpand){
     if(card)card.scrollIntoView({behavior:'smooth',block:'start'});
   },60);
 }
+// ─────────── VC（投資家）マスターリスト ───────────
+// t: ティア（格）  S=最上位 / A=一線級 / B=有力・地域特化 / C=要注意（衰退・実質活動停止）
+// c: カテゴリ（性格）
+//    lead = リード型（研究主導・デューデリ厳格。質は高いが高FDVになりやすく配分は渋め）
+//    cex  = 取引所系（上場ルートと流動性を持つ。TGE実行力が高い）
+//    liq  = 流動性・マーケットメイク系
+//    eco  = エコシステム／アクセラ／事業会社系
+//    ang  = エンジェル・ファミリーオフィス
+//    dead = 衰退（2021-22年の遺物である可能性を示す警告）
+var VC_LIST=[
+  // ── S: 最上位 ──
+  {id:'paradigm',   n:'Paradigm',          t:'S', c:'lead'},
+  {id:'a16z',       n:'a16z crypto',       t:'S', c:'lead'},
+  {id:'pantera',    n:'Pantera Capital',   t:'S', c:'lead'},
+  {id:'polychain',  n:'Polychain Capital', t:'S', c:'lead'},
+  // ── A: 一線級 ──
+  {id:'dragonfly',  n:'Dragonfly',         t:'A', c:'lead'},
+  {id:'multicoin',  n:'Multicoin Capital', t:'A', c:'lead'},
+  {id:'coinbasev',  n:'Coinbase Ventures', t:'A', c:'cex'},
+  {id:'yzilabs',    n:'YZi Labs (旧Binance Labs)', t:'A', c:'cex'},
+  {id:'galaxy',     n:'Galaxy Digital',    t:'A', c:'lead'},
+  {id:'electric',   n:'Electric Capital',  t:'A', c:'lead'},
+  {id:'framework',  n:'Framework Ventures',t:'A', c:'lead'},
+  {id:'variant',    n:'Variant Fund',      t:'A', c:'lead'},
+  {id:'blockchaincap',n:'Blockchain Capital',t:'A', c:'lead'},
+  {id:'haun',       n:'Haun Ventures',     t:'A', c:'lead'},
+  {id:'hackvc',     n:'Hack VC',           t:'A', c:'lead'},
+  {id:'delphi',     n:'Delphi Ventures',   t:'A', c:'lead'},
+  // ── B: 有力・地域特化・取引所系 ──
+  {id:'okx',        n:'OKX Ventures',      t:'B', c:'cex'},
+  {id:'hashkey',    n:'HashKey Capital',   t:'B', c:'cex'},
+  {id:'mirana',     n:'Mirana Ventures (Bybit)', t:'B', c:'cex'},
+  {id:'gate',       n:'Gate Labs / Gate Ventures', t:'B', c:'cex'},
+  {id:'cdccapital', n:'Crypto.com Capital',t:'B', c:'cex'},
+  {id:'bitget',     n:'Bitget Wallet / Foresight X', t:'B', c:'cex'},
+  {id:'kraken',     n:'Kraken Ventures',   t:'B', c:'cex'},
+  {id:'animoca',    n:'Animoca Brands',    t:'B', c:'eco'},
+  {id:'hashed',     n:'Hashed',            t:'B', c:'eco'},
+  {id:'iosg',       n:'IOSG Ventures',     t:'B', c:'lead'},
+  {id:'spartan',    n:'The Spartan Group', t:'B', c:'lead'},
+  {id:'nascent',    n:'Nascent',           t:'B', c:'lead'},
+  {id:'placeholder',n:'Placeholder',       t:'B', c:'lead'},
+  {id:'1confirm',   n:'1confirmation',     t:'B', c:'lead'},
+  {id:'robot',      n:'Robot Ventures',    t:'B', c:'ang'},
+  {id:'cyberfund',  n:'Cyber Fund',        t:'B', c:'lead'},
+  {id:'borderless', n:'Borderless Capital',t:'B', c:'eco'},
+  {id:'northisland',n:'North Island Ventures', t:'B', c:'lead'},
+  {id:'arrington',  n:'Arrington Capital', t:'B', c:'lead'},
+  {id:'banklessv',  n:'Bankless Ventures', t:'B', c:'eco'},
+  {id:'fenbushi',   n:'Fenbushi Capital',  t:'B', c:'lead'},
+  {id:'sevenx',     n:'SevenX Ventures',   t:'B', c:'lead'},
+  {id:'foresight',  n:'Foresight Ventures',t:'B', c:'eco'},
+  {id:'mapleblock', n:'Mapleblock Capital',t:'B', c:'lead'},
+  {id:'maelstrom',  n:'Maelstrom (Arthur Hayes)', t:'B', c:'ang'},
+  {id:'redstone',   n:'RedStone',          t:'B', c:'eco'},
+  {id:'plasma',     n:'Plasma',            t:'B', c:'eco'},
+  {id:'sky',        n:'Sky Ecosystem (旧MakerDAO)', t:'B', c:'eco'},
+  {id:'dwf',        n:'DWF Labs',          t:'B', c:'liq'},
+  {id:'wintermute', n:'Wintermute Ventures',t:'B', c:'liq'},
+  {id:'gsr',        n:'GSR',               t:'B', c:'liq'},
+  {id:'mh',         n:'MH Ventures',       t:'B', c:'eco'},
+  {id:'kairos',     n:'Kairos Research',   t:'B', c:'eco'},
+  // ── C: 要注意（衰退・実質活動停止）──
+  {id:'au21',       n:'AU21 Capital',      t:'C', c:'dead'},
+  {id:'ldcapital',  n:'LD Capital',        t:'C', c:'dead'},
+  {id:'shima',      n:'Shima Capital',     t:'C', c:'dead'}
+];
+var VC_MAP=(function(){var m={};VC_LIST.forEach(function(v){m[v.id]=v;});return m;})();
+var VC_TIER_DESC={
+  S:'最上位。研究主導でデューデリが厳格。ここが入っていればプロジェクトの質はほぼ担保される。ただし高いバリュエーションが付きやすく、その分TGEも高FDVになりがちで、コミュニティ配分は渋くなる傾向がある。',
+  A:'一線級。Sに次ぐ影響力と資金力を持つ。取引所系（Coinbase Ventures / YZi Labs）はここに含まれ、上場ルートを持つ点でエアドロ確度に効く。',
+  B:'有力・地域特化・取引所系。単独では格の証明にならないが、取引所系（cex）が複数入っていればTGE実行力のシグナルになる。',
+  C:'要注意。2021-22年のブル相場で広く投資し、その後案件数が最大98.9%減少して実質的に影響力を失った層。ここが並んでいる案件は当時の遺物である可能性があり、TGEまで到達しないリスクを見込む。'
+};
+var VC_CAT_DESC={
+  lead:{n:'リード型',   d:'研究主導でリードを取る。質の証明にはなるが、高FDVローンチの動機を持つため配分は渋めになりやすい。'},
+  cex: {n:'取引所系',   d:'上場ルートと流動性を自前で持つ。エアドロ確度という一点では最も効く。複数入っていれば加点材料。'},
+  liq: {n:'流動性系',   d:'マーケットメイクを兼ねる。上場後の板は厚くなるが、売り圧の出方が読みにくい。'},
+  eco: {n:'エコシステム',d:'事業会社・アクセラ・既存プロトコル。配布ノウハウを持つ場合がある。'},
+  ang: {n:'エンジェル', d:'個人・ファミリーオフィス。影響力は人によるが、名前が付くこと自体が集客力になる。'},
+  dead:{n:'衰退',       d:'実質的に活動を停止した層。警告シグナルとして扱う。'}
+};
+// 案件に紐づくVCを、ティア順（S→A→B→C）に並べて返す
+function projVcs(p){
+  var ids=(p&&Array.isArray(p.vcs))?p.vcs:[];
+  var ord={S:0,A:1,B:2,C:3};
+  return ids.map(function(id){return VC_MAP[id];}).filter(Boolean)
+            .sort(function(a,b){
+              var xa=(ord[a.t]===undefined)?9:ord[a.t], xb=(ord[b.t]===undefined)?9:ord[b.t];
+              return xa-xb; // 0(=Sティア)を ||9 で拾うと偽値扱いで最後に飛ぶので undefined 判定にする
+            });
+}
+// 調達額セルの下に出すVCバッジ。ティアで光り方が変わる（点数には影響しない表示専用）
+function vcBadgesHtml(p){
+  var vs=projVcs(p);
+  if(!vs.length)return '';
+  return '<div class="vc-row">'+vs.map(function(v){
+    return '<span class="vc-chip vc-t'+v.t+' vc-c'+v.c+'" onclick="event.stopPropagation();openVcInfo(\''+v.id+'\')">'
+      +'<span class="vc-tier">'+v.t+'</span>'+esc(v.n)+'</span>';
+  }).join('')+'</div>';
+}
+// ティア表モーダル
+function openVcInfo(focusId){
+  var el=document.getElementById('m-vc-body');
+  if(!el)return;
+  var tiers=['S','A','B','C'];
+  var h='<p class="vc-note">調達したVCの「格（ティア）」と「性格（カテゴリ）」の一覧です。'
+      +'<b>格が高い＝エアドロが来やすい、ではありません。</b>質の担保は格、TGEの実行力は取引所系が効きます。'
+      +'現時点でスコアには一切影響しません。</p>';
+  tiers.forEach(function(t){
+    h+='<div class="vc-sec"><div class="vc-sec-h"><span class="vc-tier vc-t'+t+'">'+t+'</span>'
+      +'<span class="vc-sec-d">'+esc(VC_TIER_DESC[t])+'</span></div><div class="vc-sec-list">';
+    VC_LIST.filter(function(v){return v.t===t;}).forEach(function(v){
+      var on=(focusId&&v.id===focusId)?' vc-focus':'';
+      h+='<span class="vc-chip vc-t'+v.t+' vc-c'+v.c+on+'" id="vcrow-'+v.id+'">'
+        +'<span class="vc-tier">'+v.t+'</span>'+esc(v.n)
+        +'<span class="vc-cat">'+esc(VC_CAT_DESC[v.c].n)+'</span></span>';
+    });
+    h+='</div></div>';
+  });
+  h+='<div class="vc-sec"><div class="vc-sec-h2">カテゴリの意味</div>';
+  Object.keys(VC_CAT_DESC).forEach(function(k){
+    h+='<div class="vc-cat-row"><span class="vc-cat vc-c'+k+'">'+esc(VC_CAT_DESC[k].n)+'</span>'
+      +'<span class="vc-cat-d">'+esc(VC_CAT_DESC[k].d)+'</span></div>';
+  });
+  h+='</div>';
+  el.innerHTML=h;
+  document.getElementById('m-vc').classList.add('open');
+  if(focusId){
+    setTimeout(function(){
+      var r=document.getElementById('vcrow-'+focusId);
+      if(r&&r.scrollIntoView)r.scrollIntoView({block:'center'});
+    },60);
+  }
+}
+
 function cm(id){document.getElementById(id).classList.remove('open');}
 document.querySelectorAll('.modal-overlay').forEach(function(el){
   el.addEventListener('click',function(e){if(e.target===this)this.classList.remove('open');});
