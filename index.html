@@ -102,7 +102,7 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 
 /* ── MAIN ── */
 .main{flex:1;display:flex;flex-direction:column;height:100vh;height:var(--app-h,100vh);overflow:hidden;min-width:0;}
-.topbar{position:sticky;top:0;z-index:50;height:46px;background:var(--card);border-bottom:1px solid var(--b);display:flex;align-items:center;padding:0 14px;flex-shrink:0;}
+.topbar{position:sticky;top:0;z-index:50;height:46px;background:var(--card);border-bottom:1px solid var(--b);display:flex;align-items:center;gap:9px;padding:0 14px;flex-shrink:0;}
 .topbar-title{font-size:15px;font-weight:700;color:var(--t1);flex:1;}
 .ttl-svg{width:17px;height:17px;flex-shrink:0;}
 .topbar-title{display:flex;align-items:center;gap:7px;}
@@ -1671,7 +1671,7 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .vcx-sum:active{background:rgba(255,255,255,.05);}
 .vcx-body{padding:0 9px 9px;}
 .vcx-list{display:flex;flex-wrap:wrap;gap:5px;padding-top:2px;}
-.vcx.open .vcx-sum{border-bottom:1px solid rgba(255,255,255,.08);margin-bottom:8px;}
+
 /* 開閉できない（1社のみ）ときはカーソルも変えない */
 .vcx-solo .vcx-sum{cursor:default;}
 /* ティア表リンクはVC枠の"外"に置き、展開しなくても常に押せるようにする。
@@ -5455,8 +5455,8 @@ function vcBadgesHtml(p){
     +(hasRest?'</button>':'</div>')
     +(hasRest
       ? '<div class="vcx-body" id="vcx-body-'+p.id+'" style="display:'+(isOpen?'block':'none')+';">'
-        // 先頭のVCはサマリー行に出ているので、ここでは残りだけを並べる（重複表示を避ける）
-        +'<div class="vcx-list">'+rest.map(vcChipHtml).join('')+'</div>'
+        // 展開時はサマリーと同じ先頭VCも含めて全件並べる（欠けて見えるのを避ける）
+        +'<div class="vcx-list">'+vs.map(vcChipHtml).join('')+'</div>'
         +'</div>'
       : '')
   +'</div>';
