@@ -1649,10 +1649,10 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
    他の場所で.pj-dvや.pj-burnに色指定が重複していたため、確実に効くよう最後尾に置く */
 .pj-meta2 .pj-dv,.pj-burn{color:var(--t3)!important;}
 /* 収益の実測値も他の統計(調達額・参加者・TVL)と同じ白で統一する */
-/* ─── VC（投資家）バッジ。調達額セルの下に出す。点数には影響しない表示専用 ─── */
+/* ─── VC（投資家）バッジ。統計行の下に出す。点数には影響しない表示専用 ─── */
 .vc-row{display:flex;flex-wrap:wrap;gap:4px;margin:7px 0 0;justify-content:center;padding:0 2px;}
 .vc-chip{display:inline-flex;align-items:center;gap:4px;font-size:9.5px;font-weight:700;
-  padding:2px 7px 2px 3px;border-radius:99px;white-space:nowrap;cursor:pointer;
+  padding:2px 6px 2px 3px;border-radius:99px;white-space:nowrap;cursor:pointer;
   background:rgba(255,255,255,.05);color:var(--t2);border:1px solid rgba(255,255,255,.12);}
 .vc-chip:active{opacity:.6;}
 .vc-tier{display:inline-flex;align-items:center;justify-content:center;width:13px;height:13px;
@@ -1668,12 +1668,23 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .vc-tB .vc-tier{background:rgba(159,192,232,.85);color:#0e1622;}
 .vc-tC{background:rgba(255,92,92,.1);border-color:rgba(255,92,92,.38);color:#ff9d9d;}
 .vc-tC .vc-tier{background:#ff5c5c;color:#2a0d0d;}
-/* 取引所系だけ、カテゴリが分かるよう左に細い緑のラインを足す */
+/* 左端の縦線＝カテゴリ */
+.vc-clead{border-left:3px solid #c4b0ff;}
 .vc-ccex{border-left:3px solid #3ddc86;}
 .vc-cliq{border-left:3px solid #f5c542;}
+.vc-ceco{border-left:3px solid #7fb8ff;}
+.vc-ctfi{border-left:3px solid #9aa3b5;}
+.vc-cang{border-left:3px solid #ffb3d9;}
 .vc-cdead{border-left:3px solid #ff5c5c;}
+/* 右のカテゴリラベル */
+.vc-cat{font-size:8.5px;font-weight:700;opacity:.8;padding-left:4px;margin-left:1px;
+  border-left:1px solid currentColor;flex-shrink:0;}
+.vc-air{font-size:8px;font-weight:800;padding:1px 5px;border-radius:99px;margin-left:3px;flex-shrink:0;}
+.vc-ah{background:rgba(61,220,134,.18);color:#5ce89b;}
+.vc-am{background:rgba(245,197,66,.16);color:#f5c542;}
+.vc-al{background:rgba(255,255,255,.08);color:var(--t3);}
 /* ティア表モーダルの中身 */
-.vc-note{font-size:11.5px;color:var(--t2);line-height:1.65;margin:0 0 12px;}
+.vc-note{font-size:11.5px;color:var(--t2);line-height:1.65;margin:0 0 14px;}
 .vc-note b{color:#ffd76a;}
 .vc-sec{margin-bottom:16px;}
 .vc-sec-h{display:flex;align-items:flex-start;gap:8px;margin-bottom:8px;}
@@ -1681,23 +1692,29 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .vc-sec-d{font-size:11px;color:var(--t3);line-height:1.6;flex:1;min-width:0;}
 .vc-sec-h2{font-size:12px;font-weight:800;color:var(--t1);margin-bottom:8px;}
 .vc-sec-list{display:flex;flex-wrap:wrap;gap:5px;}
-.vc-sec-list .vc-chip{font-size:10.5px;padding:3px 8px 3px 4px;}
-.vc-cat{font-size:8.5px;font-weight:700;opacity:.75;padding-left:4px;border-left:1px solid currentColor;margin-left:2px;}
-.vc-cat-row{display:flex;align-items:flex-start;gap:8px;margin-bottom:7px;}
-.vc-cat-row .vc-cat{border:none;padding:2px 7px;border-radius:99px;flex-shrink:0;margin:0;
-  background:rgba(255,255,255,.07);font-size:10px;}
+.vc-sec-list .vc-chip{font-size:10.5px;padding:3px 7px 3px 4px;}
+.vc-legend{background:rgba(255,255,255,.035);border-radius:10px;padding:9px 10px;}
+.vc-leg-row{display:flex;align-items:center;gap:9px;flex-wrap:wrap;}
+.vc-leg-d{font-size:10.5px;color:var(--t3);line-height:1.6;flex:1;min-width:150px;}
+.vc-leg-d b{color:var(--t2);}
+.vc-legline{width:4px;height:16px;border-radius:2px;flex-shrink:0;}
+.vc-cat-row{display:flex;align-items:center;gap:7px;margin-bottom:7px;}
+.vc-cat-row .vc-cat{border:none;padding:2px 8px;border-radius:99px;flex-shrink:0;margin:0;
+  background:rgba(255,255,255,.07);font-size:10px;opacity:1;}
 .vc-cat-d{font-size:10.5px;color:var(--t3);line-height:1.55;flex:1;min-width:0;}
 .vc-focus{outline:2px solid var(--acc);outline-offset:2px;}
-/* 調達額ラベルのℹ️ボタン */
-.st-lbl-i{display:inline-flex;align-items:center;justify-content:center;width:13px;height:13px;
-  border-radius:50%;border:1px solid rgba(255,255,255,.3);color:var(--t3);
-  font-size:9px;font-weight:800;margin-left:3px;cursor:pointer;vertical-align:middle;}
-.st-lbl-i:active{opacity:.6;}
+/* 調達額ラベルの「VCリスト」ボタン */
+.st-lbl-i{display:inline-flex;align-items:center;gap:2px;padding:1px 7px;margin-left:5px;
+  border-radius:99px;background:rgba(90,160,255,.16);border:1px solid rgba(90,160,255,.45);
+  color:#8fbdff;font-size:9px;font-weight:800;cursor:pointer;vertical-align:middle;
+  letter-spacing:.01em;white-space:nowrap;}
+.st-lbl-i:active{background:rgba(90,160,255,.3);}
 /* 編集画面のVC選択 */
-.vc-pick{display:flex;flex-wrap:wrap;gap:5px;margin-top:4px;}
-.vc-pick .vc-chip{opacity:.4;filter:saturate(.4);}
+.vc-pick{display:flex;flex-wrap:wrap;gap:5px;margin-top:4px;max-height:230px;overflow-y:auto;
+  -webkit-overflow-scrolling:touch;padding:2px;}
+.vc-pick .vc-chip{opacity:.38;filter:saturate(.35);}
 .vc-pick .vc-chip.on{opacity:1;filter:none;}
-.vc-pick-h{font-size:10px;font-weight:800;color:var(--t3);margin:9px 0 3px;}
+
 
 </style>
 </head>
@@ -4854,7 +4871,7 @@ function renderList(id,mode){
       +(bd.effImputed?'<div class="st-prov" style="text-align:right;margin-top:2px;">暫定値</div>':'')
       +'<div class="q-hr"></div>'
       +'<div class="card-r2">'
-      +'<div class="st-col"><div class="st-lbl">'+ICO.fund+' 調達額<span class="st-lbl-i" onclick="event.stopPropagation();openVcInfo()">i</span></div><div class="st-val">'+fmtFundM(p.fund)+'</div></div>'
+      +'<div class="st-col"><div class="st-lbl">'+ICO.fund+' 調達額<span class="st-lbl-i" onclick="event.stopPropagation();openVcInfo()">🏦 VCリスト</span></div><div class="st-val">'+fmtFundM(p.fund)+'</div></div>'
       +'<div class="st-col st-col-usr"><div class="st-lbl">'+ICO.usr+' 参加者</div><div class="st-val">'+(p.usr?num(p.usr)+'万':'—')+'</div></div>'
       +'<div class="st-col st-col-tvl"><div class="st-lbl">'+ICO.tvl+' '+(p.llamaKind==='perp'?'Vol':'TVL')+'</div>'
         +'<div class="st-val">'+(p.llama?llamaFmt(p.llama.cur):(p.tvl?'$'+num(p.tvl)+'M':'—'))+'</div>'
@@ -5172,86 +5189,157 @@ function jumpToProject(pid,skipExpand){
   },60);
 }
 // ─────────── VC（投資家）マスターリスト ───────────
-// t: ティア（格）  S=最上位 / A=一線級 / B=有力・地域特化 / C=要注意（衰退・実質活動停止）
+// t: ティア（格）  S=最上位 / A=一線級 / B=有力・特化 / C=要注意（衰退・実質活動停止）
 // c: カテゴリ（性格）
-//    lead = リード型（研究主導・デューデリ厳格。質は高いが高FDVになりやすく配分は渋め）
-//    cex  = 取引所系（上場ルートと流動性を持つ。TGE実行力が高い）
-//    liq  = 流動性・マーケットメイク系
-//    eco  = エコシステム／アクセラ／事業会社系
-//    ang  = エンジェル・ファミリーオフィス
-//    dead = 衰退（2021-22年の遺物である可能性を示す警告）
+//    lead=リード型（研究主導。質の担保にはなるが高FDVになりやすく配分は渋め）
+//    cex =取引所系（上場ルートと流動性を持つ。TGE実行力が高い）
+//    liq =流動性・マーケットメイク系（板は厚くなるが売り圧が読みにくい）
+//    eco =エコシステム／アクセラ／事業会社系
+//    tfi =TradFi系（株式志向。トークンを出さない出口もあり得る）
+//    ang =エンジェル・ファミリーオフィス
+//    dead=衰退（2021-22年の遺物である可能性を示す警告）
+// a: エアドロ実績  h=高（投資先が実際にTGE・エアドロを出している）/ m=中 / l=低（株式中心・実績が薄い）
+//    ※ここは公開データからの定性評価であり、確定的な指標ではない。答え合わせで随時見直す前提。
 var VC_LIST=[
   // ── S: 最上位 ──
-  {id:'paradigm',   n:'Paradigm',          t:'S', c:'lead'},
-  {id:'a16z',       n:'a16z crypto',       t:'S', c:'lead'},
-  {id:'pantera',    n:'Pantera Capital',   t:'S', c:'lead'},
-  {id:'polychain',  n:'Polychain Capital', t:'S', c:'lead'},
+  {id:'paradigm',   n:'Paradigm',          t:'S', c:'lead', a:'h'},
+  {id:'a16z',       n:'a16z crypto',       t:'S', c:'lead', a:'h'},
+  {id:'pantera',    n:'Pantera Capital',   t:'S', c:'lead', a:'h'},
+  {id:'polychain',  n:'Polychain Capital', t:'S', c:'lead', a:'h'},
   // ── A: 一線級 ──
-  {id:'dragonfly',  n:'Dragonfly',         t:'A', c:'lead'},
-  {id:'multicoin',  n:'Multicoin Capital', t:'A', c:'lead'},
-  {id:'coinbasev',  n:'Coinbase Ventures', t:'A', c:'cex'},
-  {id:'yzilabs',    n:'YZi Labs (旧Binance Labs)', t:'A', c:'cex'},
-  {id:'galaxy',     n:'Galaxy Digital',    t:'A', c:'lead'},
-  {id:'electric',   n:'Electric Capital',  t:'A', c:'lead'},
-  {id:'framework',  n:'Framework Ventures',t:'A', c:'lead'},
-  {id:'variant',    n:'Variant Fund',      t:'A', c:'lead'},
-  {id:'blockchaincap',n:'Blockchain Capital',t:'A', c:'lead'},
-  {id:'haun',       n:'Haun Ventures',     t:'A', c:'lead'},
-  {id:'hackvc',     n:'Hack VC',           t:'A', c:'lead'},
-  {id:'delphi',     n:'Delphi Ventures',   t:'A', c:'lead'},
-  // ── B: 有力・地域特化・取引所系 ──
-  {id:'okx',        n:'OKX Ventures',      t:'B', c:'cex'},
-  {id:'hashkey',    n:'HashKey Capital',   t:'B', c:'cex'},
-  {id:'mirana',     n:'Mirana Ventures (Bybit)', t:'B', c:'cex'},
-  {id:'gate',       n:'Gate Labs / Gate Ventures', t:'B', c:'cex'},
-  {id:'cdccapital', n:'Crypto.com Capital',t:'B', c:'cex'},
-  {id:'bitget',     n:'Bitget Wallet / Foresight X', t:'B', c:'cex'},
-  {id:'kraken',     n:'Kraken Ventures',   t:'B', c:'cex'},
-  {id:'animoca',    n:'Animoca Brands',    t:'B', c:'eco'},
-  {id:'hashed',     n:'Hashed',            t:'B', c:'eco'},
-  {id:'iosg',       n:'IOSG Ventures',     t:'B', c:'lead'},
-  {id:'spartan',    n:'The Spartan Group', t:'B', c:'lead'},
-  {id:'nascent',    n:'Nascent',           t:'B', c:'lead'},
-  {id:'placeholder',n:'Placeholder',       t:'B', c:'lead'},
-  {id:'1confirm',   n:'1confirmation',     t:'B', c:'lead'},
-  {id:'robot',      n:'Robot Ventures',    t:'B', c:'ang'},
-  {id:'cyberfund',  n:'Cyber Fund',        t:'B', c:'lead'},
-  {id:'borderless', n:'Borderless Capital',t:'B', c:'eco'},
-  {id:'northisland',n:'North Island Ventures', t:'B', c:'lead'},
-  {id:'arrington',  n:'Arrington Capital', t:'B', c:'lead'},
-  {id:'banklessv',  n:'Bankless Ventures', t:'B', c:'eco'},
-  {id:'fenbushi',   n:'Fenbushi Capital',  t:'B', c:'lead'},
-  {id:'sevenx',     n:'SevenX Ventures',   t:'B', c:'lead'},
-  {id:'foresight',  n:'Foresight Ventures',t:'B', c:'eco'},
-  {id:'mapleblock', n:'Mapleblock Capital',t:'B', c:'lead'},
-  {id:'maelstrom',  n:'Maelstrom (Arthur Hayes)', t:'B', c:'ang'},
-  {id:'redstone',   n:'RedStone',          t:'B', c:'eco'},
-  {id:'plasma',     n:'Plasma',            t:'B', c:'eco'},
-  {id:'sky',        n:'Sky Ecosystem (旧MakerDAO)', t:'B', c:'eco'},
-  {id:'dwf',        n:'DWF Labs',          t:'B', c:'liq'},
-  {id:'wintermute', n:'Wintermute Ventures',t:'B', c:'liq'},
-  {id:'gsr',        n:'GSR',               t:'B', c:'liq'},
-  {id:'mh',         n:'MH Ventures',       t:'B', c:'eco'},
-  {id:'kairos',     n:'Kairos Research',   t:'B', c:'eco'},
+  {id:'dragonfly',  n:'Dragonfly',            t:'A', c:'lead', a:'h'},
+  {id:'multicoin',  n:'Multicoin Capital',    t:'A', c:'lead', a:'h'},
+  {id:'coinbasev',  n:'Coinbase Ventures',    t:'A', c:'cex',  a:'h'},
+  {id:'yzilabs',    n:'YZi Labs (旧Binance Labs)', t:'A', c:'cex', a:'h'},
+  {id:'baincrypto', n:'Bain Capital Crypto',  t:'A', c:'lead', a:'m'},
+  {id:'jump',       n:'Jump Crypto',          t:'A', c:'liq',  a:'m'},
+  {id:'galaxy',     n:'Galaxy Digital',       t:'A', c:'lead', a:'m'},
+  {id:'electric',   n:'Electric Capital',     t:'A', c:'lead', a:'h'},
+  {id:'framework',  n:'Framework Ventures',   t:'A', c:'lead', a:'h'},
+  {id:'variant',    n:'Variant Fund',         t:'A', c:'lead', a:'h'},
+  {id:'blockchaincap',n:'Blockchain Capital', t:'A', c:'lead', a:'m'},
+  {id:'haun',       n:'Haun Ventures',        t:'A', c:'lead', a:'m'},
+  {id:'hackvc',     n:'Hack VC',              t:'A', c:'lead', a:'h'},
+  {id:'delphi',     n:'Delphi Ventures',      t:'A', c:'lead', a:'h'},
+  {id:'standardc',  n:'Standard Crypto',      t:'A', c:'lead', a:'m'},
+  {id:'peakxv',     n:'Peak XV Partners (旧Sequoia India)', t:'A', c:'tfi', a:'m'},
+  {id:'lightspeed', n:'Lightspeed Faction',   t:'A', c:'lead', a:'h'},
+  {id:'brevan',     n:'Brevan Howard Digital',t:'A', c:'tfi',  a:'l'},
+  {id:'dcg',        n:'DCG (Digital Currency Group)', t:'A', c:'eco', a:'m'},
+  {id:'coinfund',   n:'CoinFund',             t:'A', c:'lead', a:'h'},
+  {id:'parafi',     n:'ParaFi Capital',       t:'A', c:'lead', a:'m'},
+  {id:'sequoia',    n:'Sequoia Capital',      t:'A', c:'tfi',  a:'l'},
+  {id:'foundersfund',n:'Founders Fund',       t:'A', c:'tfi',  a:'l'},
+  {id:'usv',        n:'Union Square Ventures',t:'A', c:'tfi',  a:'l'},
+  // ── B: 取引所系 ──
+  {id:'okx',        n:'OKX Ventures',         t:'B', c:'cex', a:'h'},
+  {id:'hashkey',    n:'HashKey Capital',      t:'B', c:'cex', a:'h'},
+  {id:'mirana',     n:'Mirana Ventures (Bybit)', t:'B', c:'cex', a:'h'},
+  {id:'gate',       n:'Gate Labs / Gate Ventures', t:'B', c:'cex', a:'h'},
+  {id:'cdccapital', n:'Crypto.com Capital',   t:'B', c:'cex', a:'m'},
+  {id:'bitget',     n:'Bitget Wallet / Foresight X', t:'B', c:'cex', a:'m'},
+  {id:'kraken',     n:'Kraken Ventures',      t:'B', c:'cex', a:'m'},
+  {id:'kucoin',     n:'KuCoin Ventures',      t:'B', c:'cex', a:'m'},
+  {id:'bitfinex',   n:'Bitfinex / USDT0系',   t:'B', c:'cex', a:'m'},
+  // ── B: リード・特化型 ──
+  {id:'bigbrain',   n:'Big Brain Holdings',   t:'B', c:'lead', a:'h'},
+  {id:'mechanism',  n:'Mechanism Capital',    t:'B', c:'lead', a:'h'},
+  {id:'maven11',    n:'Maven 11',             t:'B', c:'lead', a:'h'},
+  {id:'lemniscap',  n:'Lemniscap',            t:'B', c:'lead', a:'h'},
+  {id:'greenfield', n:'Greenfield Capital',   t:'B', c:'lead', a:'h'},
+  {id:'defiance',   n:'DeFiance Capital',     t:'B', c:'lead', a:'h'},
+  {id:'hypersphere',n:'Hypersphere Ventures', t:'B', c:'lead', a:'h'},
+  {id:'nascent',    n:'Nascent',              t:'B', c:'lead', a:'h'},
+  {id:'placeholder',n:'Placeholder',          t:'B', c:'lead', a:'h'},
+  {id:'1confirm',   n:'1confirmation',        t:'B', c:'lead', a:'h'},
+  {id:'robot',      n:'Robot Ventures',       t:'B', c:'ang',  a:'h'},
+  {id:'archetype',  n:'Archetype',            t:'B', c:'lead', a:'h'},
+  {id:'lattice',    n:'Lattice Fund',         t:'B', c:'lead', a:'h'},
+  {id:'portal',     n:'Portal Ventures',      t:'B', c:'lead', a:'h'},
+  {id:'dao5',       n:'dao5',                 t:'B', c:'lead', a:'h'},
+  {id:'6mv',        n:'6th Man Ventures',     t:'B', c:'lead', a:'h'},
+  {id:'anagram',    n:'Anagram',              t:'B', c:'lead', a:'m'},
+  {id:'cyberfund',  n:'Cyber Fund',           t:'B', c:'lead', a:'h'},
+  {id:'iosg',       n:'IOSG Ventures',        t:'B', c:'lead', a:'h'},
+  {id:'spartan',    n:'The Spartan Group',    t:'B', c:'lead', a:'h'},
+  {id:'northisland',n:'North Island Ventures',t:'B', c:'lead', a:'m'},
+  {id:'arrington',  n:'Arrington Capital',    t:'B', c:'lead', a:'h'},
+  {id:'fenbushi',   n:'Fenbushi Capital',     t:'B', c:'lead', a:'m'},
+  {id:'sevenx',     n:'SevenX Ventures',      t:'B', c:'lead', a:'h'},
+  {id:'symbolic',   n:'Symbolic Capital',     t:'B', c:'lead', a:'h'},
+  {id:'longhash',   n:'LongHash Ventures',    t:'B', c:'eco',  a:'h'},
+  {id:'mapleblock', n:'Mapleblock Capital',   t:'B', c:'lead', a:'m'},
+  {id:'fabric',     n:'Fabric Ventures',      t:'B', c:'lead', a:'m'},
+  {id:'whitestar',  n:'White Star Capital',   t:'B', c:'tfi',  a:'l'},
+  {id:'l1d',        n:'L1 Digital',           t:'B', c:'tfi',  a:'l'},
+  {id:'ribbit',     n:'Ribbit Capital',       t:'B', c:'tfi',  a:'l'},
+  {id:'slow',       n:'Slow Ventures',        t:'B', c:'tfi',  a:'l'},
+  {id:'tiger',      n:'Tiger Global',         t:'B', c:'tfi',  a:'l'},
+  {id:'sig',        n:'Susquehanna (SIG)',    t:'B', c:'tfi',  a:'l'},
+  {id:'race',       n:'Race Capital',         t:'B', c:'lead', a:'m'},
+  {id:'nomad',      n:'Nomad Capital',        t:'B', c:'eco',  a:'h'},
+  {id:'generative', n:'Generative Ventures',  t:'B', c:'lead', a:'m'},
+  {id:'snz',        n:'SNZ Capital',          t:'B', c:'eco',  a:'m'},
+  {id:'cventures',  n:'C Ventures',           t:'B', c:'eco',  a:'m'},
+  {id:'cogitent',   n:'Cogitent Ventures',    t:'B', c:'lead', a:'m'},
+  {id:'wise3',      n:'Wise3 Ventures',       t:'B', c:'lead', a:'m'},
+  {id:'karatage',   n:'Karatage',             t:'B', c:'ang',  a:'h'},
+  {id:'dialectic',  n:'Dialectic',            t:'B', c:'lead', a:'m'},
+  {id:'figment',    n:'Figment Capital',      t:'B', c:'eco',  a:'m'},
+  // ── B: エコシステム・アクセラ・事業会社 ──
+  {id:'animoca',    n:'Animoca Brands',       t:'B', c:'eco', a:'h'},
+  {id:'hashed',     n:'Hashed',               t:'B', c:'eco', a:'h'},
+  {id:'borderless', n:'Borderless Capital',   t:'B', c:'eco', a:'h'},
+  {id:'banklessv',  n:'Bankless Ventures',    t:'B', c:'eco', a:'h'},
+  {id:'foresight',  n:'Foresight Ventures',   t:'B', c:'eco', a:'h'},
+  {id:'alliance',   n:'Alliance DAO',         t:'B', c:'eco', a:'h'},
+  {id:'colosseum',  n:'Colosseum (Solana)',   t:'B', c:'eco', a:'h'},
+  {id:'echo',       n:'Echo (Cobie)',         t:'B', c:'eco', a:'h'},
+  {id:'redstone',   n:'RedStone',             t:'B', c:'eco', a:'h'},
+  {id:'plasma',     n:'Plasma',               t:'B', c:'eco', a:'h'},
+  {id:'sky',        n:'Sky Ecosystem (旧MakerDAO)', t:'B', c:'eco', a:'h'},
+  {id:'chorusone',  n:'Chorus One',           t:'B', c:'eco', a:'m'},
+  {id:'mh',         n:'MH Ventures',          t:'B', c:'eco', a:'h'},
+  {id:'kairos',     n:'Kairos Research',      t:'B', c:'eco', a:'m'},
+  {id:'bitkraft',   n:'BITKRAFT Ventures',    t:'B', c:'eco', a:'m'},
+  // ── B: 流動性・マーケットメイク系 ──
+  {id:'dwf',        n:'DWF Labs',             t:'B', c:'liq', a:'m'},
+  {id:'wintermute', n:'Wintermute Ventures',  t:'B', c:'liq', a:'h'},
+  {id:'gsr',        n:'GSR',                  t:'B', c:'liq', a:'m'},
+  {id:'amber',      n:'Amber Group',          t:'B', c:'liq', a:'m'},
+  {id:'selini',     n:'Selini Capital',       t:'B', c:'liq', a:'h'},
+  {id:'flowdesk',   n:'Flowdesk',             t:'B', c:'liq', a:'m'},
+  {id:'presto',     n:'Presto Labs',          t:'B', c:'liq', a:'m'},
+  {id:'manifold',   n:'Manifold Trading',     t:'B', c:'liq', a:'h'},
+  {id:'auros',      n:'Auros',                t:'B', c:'liq', a:'m'},
+  // ── B: エンジェル・ファミリーオフィス ──
+  {id:'maelstrom',  n:'Maelstrom (Arthur Hayes)', t:'B', c:'ang', a:'h'},
+  {id:'winklevoss', n:'Winklevoss Capital',   t:'B', c:'ang', a:'m'},
   // ── C: 要注意（衰退・実質活動停止）──
-  {id:'au21',       n:'AU21 Capital',      t:'C', c:'dead'},
-  {id:'ldcapital',  n:'LD Capital',        t:'C', c:'dead'},
-  {id:'shima',      n:'Shima Capital',     t:'C', c:'dead'}
+  {id:'au21',       n:'AU21 Capital',         t:'C', c:'dead', a:'l'},
+  {id:'ldcapital',  n:'LD Capital',           t:'C', c:'dead', a:'l'},
+  {id:'shima',      n:'Shima Capital',        t:'C', c:'dead', a:'l'}
 ];
 var VC_MAP=(function(){var m={};VC_LIST.forEach(function(v){m[v.id]=v;});return m;})();
 var VC_TIER_DESC={
-  S:'最上位。研究主導でデューデリが厳格。ここが入っていればプロジェクトの質はほぼ担保される。ただし高いバリュエーションが付きやすく、その分TGEも高FDVになりがちで、コミュニティ配分は渋くなる傾向がある。',
-  A:'一線級。Sに次ぐ影響力と資金力を持つ。取引所系（Coinbase Ventures / YZi Labs）はここに含まれ、上場ルートを持つ点でエアドロ確度に効く。',
-  B:'有力・地域特化・取引所系。単独では格の証明にならないが、取引所系（cex）が複数入っていればTGE実行力のシグナルになる。',
+  S:'最上位。研究主導でデューデリが厳格。ここが入っていればプロジェクトの質はほぼ担保される。ただし私募で高いバリュエーションが付きやすく、その分TGEも高FDVになりがちで、コミュニティ配分は渋くなる傾向がある。',
+  A:'一線級。Sに次ぐ影響力と資金力を持つ。取引所系（Coinbase Ventures / YZi Labs）もここに含まれ、上場ルートを持つ点でエアドロ確度に効く。TradFi系はトークンを出さない出口もあり得るので別扱い。',
+  B:'有力・特化型。単独では格の証明にならないが、取引所系（cex）が複数入っていればTGE実行力のシグナルになる。エアドロ実績「高」の常連が並ぶ層でもあるので、数と組み合わせで読む。',
   C:'要注意。2021-22年のブル相場で広く投資し、その後案件数が最大98.9%減少して実質的に影響力を失った層。ここが並んでいる案件は当時の遺物である可能性があり、TGEまで到達しないリスクを見込む。'
 };
 var VC_CAT_DESC={
-  lead:{n:'リード型',   d:'研究主導でリードを取る。質の証明にはなるが、高FDVローンチの動機を持つため配分は渋めになりやすい。'},
-  cex: {n:'取引所系',   d:'上場ルートと流動性を自前で持つ。エアドロ確度という一点では最も効く。複数入っていれば加点材料。'},
-  liq: {n:'流動性系',   d:'マーケットメイクを兼ねる。上場後の板は厚くなるが、売り圧の出方が読みにくい。'},
-  eco: {n:'エコシステム',d:'事業会社・アクセラ・既存プロトコル。配布ノウハウを持つ場合がある。'},
-  ang: {n:'エンジェル', d:'個人・ファミリーオフィス。影響力は人によるが、名前が付くこと自体が集客力になる。'},
-  dead:{n:'衰退',       d:'実質的に活動を停止した層。警告シグナルとして扱う。'}
+  lead:{n:'リード型',   col:'#c4b0ff', d:'研究主導でリードを取る。質の証明にはなるが、高FDVローンチの動機を持つため配分は渋めになりやすい。'},
+  cex: {n:'取引所系',   col:'#3ddc86', d:'上場ルートと流動性を自前で持つ。エアドロ確度という一点では最も効く。複数入っていれば加点材料。'},
+  liq: {n:'流動性系',   col:'#f5c542', d:'マーケットメイクを兼ねる。上場後の板は厚くなるが、売り圧の出方が読みにくい。'},
+  eco: {n:'エコシステム',col:'#7fb8ff', d:'事業会社・アクセラ・既存プロトコル。配布ノウハウを持つ場合があり、エアドロ実績は高めに出やすい。'},
+  tfi: {n:'TradFi系',   col:'#9aa3b5', d:'伝統金融・非クリプト専業。株式志向でM&AやIPOが出口になりやすく、トークンを出さない可能性がある。'},
+  ang: {n:'エンジェル', col:'#ffb3d9', d:'個人・ファミリーオフィス。影響力は人によるが、名前が付くこと自体が集客力になる。'},
+  dead:{n:'衰退',       col:'#ff5c5c', d:'実質的に活動を停止した層。警告シグナルとして扱う。'}
+};
+var VC_AIR_DESC={
+  h:{n:'実績 高', d:'投資先が実際にTGE・エアドロを出している常連。'},
+  m:{n:'実績 中', d:'出す案件もあるが、株式のみの投資も混ざる。'},
+  l:{n:'実績 低', d:'株式中心。エアドロまで届かない案件が多い。'}
 };
 // 案件に紐づくVCを、ティア順（S→A→B→C）に並べて返す
 function projVcs(p){
@@ -5263,40 +5351,55 @@ function projVcs(p){
               return xa-xb; // 0(=Sティア)を ||9 で拾うと偽値扱いで最後に飛ぶので undefined 判定にする
             });
 }
-// 調達額セルの下に出すVCバッジ。ティアで光り方が変わる（点数には影響しない表示専用）
+// 統計行の下に出すVCバッジ。ティアで光り方が、右のラベルでカテゴリが分かる（点数には影響しない表示専用）
 function vcBadgesHtml(p){
   var vs=projVcs(p);
   if(!vs.length)return '';
   return '<div class="vc-row">'+vs.map(function(v){
     return '<span class="vc-chip vc-t'+v.t+' vc-c'+v.c+'" onclick="event.stopPropagation();openVcInfo(\''+v.id+'\')">'
-      +'<span class="vc-tier">'+v.t+'</span>'+esc(v.n)+'</span>';
+      +'<span class="vc-tier">'+v.t+'</span>'+esc(v.n)
+      +'<span class="vc-cat">'+esc(VC_CAT_DESC[v.c].n)+'</span></span>';
   }).join('')+'</div>';
 }
 // ティア表モーダル
 function openVcInfo(focusId){
   var el=document.getElementById('m-vc-body');
   if(!el)return;
-  var tiers=['S','A','B','C'];
-  var h='<p class="vc-note">調達したVCの「格（ティア）」と「性格（カテゴリ）」の一覧です。'
+  var h='<p class="vc-note">調達したVCの<b>格（ティア）</b>と<b>性格（カテゴリ）</b>の一覧です。'
       +'<b>格が高い＝エアドロが来やすい、ではありません。</b>質の担保は格、TGEの実行力は取引所系が効きます。'
       +'現時点でスコアには一切影響しません。</p>';
-  tiers.forEach(function(t){
+  // 凡例
+  h+='<div class="vc-sec"><div class="vc-sec-h2">見方</div>'
+    +'<div class="vc-legend">'
+    +'<div class="vc-leg-row"><span class="vc-chip vc-tS vc-ccex"><span class="vc-tier">S</span>例<span class="vc-cat">取引所系</span></span>'
+    +'<span class="vc-leg-d"><b>左の丸</b>＝ティア（S金／A紫／B青／C赤）。<b>左端の縦線と右のラベル</b>＝カテゴリ。</span></div>'
+    +'</div></div>';
+  h+='<div class="vc-sec"><div class="vc-sec-h2">カテゴリ（縦線の色）</div>';
+  Object.keys(VC_CAT_DESC).forEach(function(k){
+    h+='<div class="vc-cat-row"><span class="vc-legline" style="background:'+VC_CAT_DESC[k].col+'"></span>'
+      +'<span class="vc-cat vc-c'+k+'">'+esc(VC_CAT_DESC[k].n)+'</span>'
+      +'<span class="vc-cat-d">'+esc(VC_CAT_DESC[k].d)+'</span></div>';
+  });
+  h+='</div>';
+  h+='<div class="vc-sec"><div class="vc-sec-h2">エアドロ実績（名前の下の小さな印）</div>';
+  ['h','m','l'].forEach(function(k){
+    h+='<div class="vc-cat-row"><span class="vc-air vc-a'+k+'">'+esc(VC_AIR_DESC[k].n)+'</span>'
+      +'<span class="vc-cat-d">'+esc(VC_AIR_DESC[k].d)+'</span></div>';
+  });
+  h+='<div class="vc-cat-d" style="margin-top:6px;">※公開データからの定性評価であり、確定的な指標ではありません。答え合わせを重ねて見直す前提の暫定値です。</div></div>';
+  // ティア別リスト
+  ['S','A','B','C'].forEach(function(t){
     h+='<div class="vc-sec"><div class="vc-sec-h"><span class="vc-tier vc-t'+t+'">'+t+'</span>'
       +'<span class="vc-sec-d">'+esc(VC_TIER_DESC[t])+'</span></div><div class="vc-sec-list">';
     VC_LIST.filter(function(v){return v.t===t;}).forEach(function(v){
       var on=(focusId&&v.id===focusId)?' vc-focus':'';
       h+='<span class="vc-chip vc-t'+v.t+' vc-c'+v.c+on+'" id="vcrow-'+v.id+'">'
         +'<span class="vc-tier">'+v.t+'</span>'+esc(v.n)
-        +'<span class="vc-cat">'+esc(VC_CAT_DESC[v.c].n)+'</span></span>';
+        +'<span class="vc-cat">'+esc(VC_CAT_DESC[v.c].n)+'</span>'
+        +'<span class="vc-air vc-a'+v.a+'">'+esc(VC_AIR_DESC[v.a].n)+'</span></span>';
     });
     h+='</div></div>';
   });
-  h+='<div class="vc-sec"><div class="vc-sec-h2">カテゴリの意味</div>';
-  Object.keys(VC_CAT_DESC).forEach(function(k){
-    h+='<div class="vc-cat-row"><span class="vc-cat vc-c'+k+'">'+esc(VC_CAT_DESC[k].n)+'</span>'
-      +'<span class="vc-cat-d">'+esc(VC_CAT_DESC[k].d)+'</span></div>';
-  });
-  h+='</div>';
   el.innerHTML=h;
   document.getElementById('m-vc').classList.add('open');
   if(focusId){
