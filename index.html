@@ -1649,14 +1649,50 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
    他の場所で.pj-dvや.pj-burnに色指定が重複していたため、確実に効くよう最後尾に置く */
 .pj-meta2 .pj-dv,.pj-burn{color:var(--t3)!important;}
 /* 収益の実測値も他の統計(調達額・参加者・TVL)と同じ白で統一する */
-/* ─── VC（投資家）バッジ。統計行の下に出す。点数には影響しない表示専用 ─── */
-.vc-row{display:flex;flex-wrap:wrap;gap:4px;margin:7px 0 0;justify-content:center;padding:0 2px;}
-.vc-chip{display:inline-flex;align-items:center;gap:4px;font-size:9.5px;font-weight:700;
-  padding:2px 6px 2px 3px;border-radius:99px;white-space:nowrap;cursor:pointer;
+/* ─── VC欄。既定は1行サマリー、タップで全件展開。点数には影響しない表示専用 ─── */
+.vcx{margin-top:9px;border-radius:12px;background:rgba(255,255,255,.035);
+  border:1px solid rgba(255,255,255,.09);overflow:hidden;transition:border-color .16s,background .16s;}
+.vcx.open{background:rgba(255,255,255,.055);border-color:rgba(255,255,255,.15);}
+.vcx-sum{width:100%;display:flex;align-items:center;gap:7px;padding:7px 9px 7px 8px;
+  background:transparent;border:none;cursor:pointer;text-align:left;}
+.vcx-sum>.vc-chip{flex:0 1 auto;min-width:0;overflow:hidden;}
+.vcx-more{display:inline-flex;align-items:center;gap:4px;flex-shrink:0;margin-left:auto;}
+.vcx-cnt{display:inline-flex;align-items:center;gap:2px;font-size:9.5px;font-weight:800;
+  padding:1.5px 6px 1.5px 4px;border-radius:99px;background:rgba(255,255,255,.06);}
+.vcx-cnt-t{display:inline-flex;align-items:center;justify-content:center;width:11px;height:11px;
+  border-radius:50%;font-size:7.5px;font-weight:800;}
+.vcx-cnt.vc-tS{color:#ffd76a;} .vcx-cnt.vc-tS .vcx-cnt-t{background:linear-gradient(135deg,#ffd76a,#f0a730);color:#241a02;}
+.vcx-cnt.vc-tA{color:#c4b0ff;} .vcx-cnt.vc-tA .vcx-cnt-t{background:linear-gradient(135deg,#cbb8ff,#8c6df0);color:#1a1030;}
+.vcx-cnt.vc-tB{color:#9fc0e8;} .vcx-cnt.vc-tB .vcx-cnt-t{background:rgba(159,192,232,.85);color:#0e1622;}
+.vcx-cnt.vc-tC{color:#ff9d9d;} .vcx-cnt.vc-tC .vcx-cnt-t{background:#ff5c5c;color:#2a0d0d;}
+.vcx-chev{width:13px;height:13px;flex-shrink:0;color:var(--t3);opacity:.75;
+  transition:transform .22s cubic-bezier(.4,0,.2,1),opacity .16s;}
+.vcx.open .vcx-chev{transform:rotate(180deg);opacity:1;}
+.vcx-sum:active{background:rgba(255,255,255,.05);}
+.vcx-body{padding:0 9px 9px;}
+.vcx-list{display:flex;flex-wrap:wrap;gap:5px;padding-top:2px;}
+/* 展開時は先頭のVCも一覧に含まれるので、サマリーと重複して見えないよう境界線で区切る */
+.vcx.open .vcx-sum{border-bottom:1px solid rgba(255,255,255,.08);margin-bottom:8px;}
+/* ティア表へのリンク。内容を包む幅にして、矢印が文字から離れないようにする */
+.vcx-link{display:inline-flex;align-items:center;gap:6px;margin-top:9px;
+  padding:6px 10px;border-radius:9px;cursor:pointer;
+  font-size:11px;font-weight:700;letter-spacing:.02em;
+  color:var(--t3);background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);
+  transition:color .15s,border-color .15s,background .15s;}
+.vcx-link .vc-ico{width:12px;height:12px;opacity:.8;flex-shrink:0;}
+.vcx-arw{width:12px;height:12px;opacity:.6;flex-shrink:0;transition:transform .15s,opacity .15s;}
+.vcx-link:active{color:var(--t1);border-color:rgba(255,255,255,.34);background:rgba(255,255,255,.1);}
+.vcx-link:active .vcx-arw{opacity:1;transform:translateX(2px);}
+/* VC未登録のカードはリンクだけを控えめに置く */
+.vcx-empty{background:transparent;border:none;display:flex;justify-content:center;padding:0;}
+.vcx-empty .vcx-link{margin-top:0;}
+/* バッジ本体 */
+.vc-chip{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;
+  padding:2.5px 7px 2.5px 3px;border-radius:99px;white-space:nowrap;cursor:pointer;
   background:rgba(255,255,255,.05);color:var(--t2);border:1px solid rgba(255,255,255,.12);}
 .vc-chip:active{opacity:.6;}
-.vc-tier{display:inline-flex;align-items:center;justify-content:center;width:13px;height:13px;
-  border-radius:50%;font-size:8.5px;font-weight:800;flex-shrink:0;}
+.vc-tier{display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;
+  border-radius:50%;font-size:9px;font-weight:800;flex-shrink:0;}
 /* ティアごとの光り方。Sほど強く光る */
 .vc-tS{background:rgba(255,199,88,.14);border-color:rgba(255,199,88,.55);color:#ffd76a;
   box-shadow:0 0 9px rgba(255,199,88,.35);}
@@ -1709,23 +1745,6 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
   color:#8fbdff;font-size:9px;font-weight:800;cursor:pointer;vertical-align:middle;
   letter-spacing:.01em;white-space:nowrap;}
 .st-lbl-i:active{background:rgba(90,160,255,.3);}
-.vc-btn-row{display:flex;justify-content:center;margin-top:10px;}
-/* よく使うボタンなので幅と高さをしっかり取り、右の矢印で「押して開く」ことを示す。
-   色はティア(金/紫/青/赤)やカテゴリ色と競合しないよう無彩色のまま、明度とサイズで存在感を出す */
-.vc-list-btn{width:100%;max-width:260px;display:flex;align-items:center;gap:8px;
-  padding:9px 12px;border-radius:11px;cursor:pointer;
-  font-size:12px;font-weight:700;letter-spacing:.02em;
-  color:var(--t2);background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.16);
-  transition:color .15s,border-color .15s,background .15s,transform .12s;}
-.vc-list-btn .vc-ico{width:14px;height:14px;opacity:.85;flex-shrink:0;}
-.vc-btn-txt{flex:1;text-align:left;}
-.vc-arrow{width:13px;height:13px;opacity:.55;flex-shrink:0;transition:transform .15s,opacity .15s;}
-.vc-list-btn:active{color:var(--t1);border-color:rgba(255,255,255,.4);background:rgba(255,255,255,.11);
-  transform:scale(.985);}
-.vc-list-btn:active .vc-ico{opacity:1;}
-.vc-list-btn:active .vc-arrow{opacity:1;transform:translateX(2px);}
-/* ボタンが上に来るので、バッジ側の上余白は詰める */
-.vc-btn-row + .vc-row{margin-top:8px;}
 .vc-ico{width:11px;height:11px;flex-shrink:0;vertical-align:-1px;}
 .modal-title .vc-ico{width:15px;height:15px;vertical-align:-2px;margin-right:2px;}
 .flbl .vc-ico{width:13px;height:13px;vertical-align:-2px;margin-right:2px;}
@@ -5385,27 +5404,57 @@ function projVcs(p){
             });
 }
 // 統計行の下に出すVCバッジ。ティアで光り方が、右のラベルでカテゴリが分かる（点数には影響しない表示専用）
-function vcBadgesHtml(p){
-  var vs=projVcs(p);
-  // 「VCリスト」ボタンは調達額のラベル内に置くと列幅が広がり、
-  // TVL・収益の増減表示を圧迫して桁が重なってしまう。バッジと同じ行に置いて列幅に影響させない。
-  // ボタンはバッジの上に独立した行で中央に置く。ティア色（金/紫/青/赤）やカテゴリ色と競合しないよう
-  // 無彩色にして「データではなく操作ボタン」であることを見た目で分ける。
-  var btn='<div class="vc-btn-row"><button type="button" class="vc-list-btn" onclick="event.stopPropagation();openVcInfo()">'
+// 統計行の下に出すVC欄。1行のサマリー（最上位VC＋残りのティア内訳）で、タップすると全件＋ティア表リンクが開く。
+// VCが増えるとバッジが何行にも膨らんでカードが間延びするため、既定は必ず1行に収める。
+var openVcKeys={}; // {pid:true} 展開状態を案件ID単位で記憶（再描画で勝手に閉じるのを防ぐ）
+function toggleVcx(pid){
+  var body=document.getElementById('vcx-body-'+pid);
+  var wrap=body&&body.closest('.vcx');
+  if(!body||!wrap)return;
+  var open=!openVcKeys[pid];
+  if(open)openVcKeys[pid]=true; else delete openVcKeys[pid];
+  wrap.classList.toggle('open',open);
+  animateFold(body,open);
+}
+function vcChipHtml(v){
+  return '<span class="vc-chip vc-t'+v.t+' vc-c'+v.c+'" onclick="event.stopPropagation();openVcInfo(\''+v.id+'\')">'
+    +'<span class="vc-tier">'+v.t+'</span>'+esc(v.n)
+    +'<span class="vc-cat">'+esc(VC_CAT_DESC[v.c].n)+'</span></span>';
+}
+function vcTierLinkHtml(){
+  return '<button type="button" class="vcx-link" onclick="event.stopPropagation();openVcInfo()">'
     +'<svg class="vc-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">'
     +'<path d="M3.2 9.2L12 4l8.8 5.2"></path><line x1="6.2" y1="11.4" x2="6.2" y2="17"></line>'
     +'<line x1="12" y1="11.4" x2="12" y2="17"></line><line x1="17.8" y1="11.4" x2="17.8" y2="17"></line>'
     +'<line x1="3.6" y1="19.6" x2="20.4" y2="19.6"></line></svg>'
-    +'<span class="vc-btn-txt">VCリストを見る</span>'
-    +'<svg class="vc-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">'
-    +'<line x1="4" y1="12" x2="18" y2="12"></line><polyline points="12.5,6 19,12 12.5,18"></polyline></svg>'
-    +'</button></div>';
-  if(!vs.length)return btn;
-  return btn+'<div class="vc-row">'+vs.map(function(v){
-    return '<span class="vc-chip vc-t'+v.t+' vc-c'+v.c+'" onclick="event.stopPropagation();openVcInfo(\''+v.id+'\')">'
-      +'<span class="vc-tier">'+v.t+'</span>'+esc(v.n)
-      +'<span class="vc-cat">'+esc(VC_CAT_DESC[v.c].n)+'</span></span>';
-  }).join('')+'</div>';
+    +'<span>ティア表を見る</span>'
+    +'<svg class="vcx-arw" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">'
+    +'<line x1="5" y1="12" x2="17" y2="12"></line><polyline points="12,7 17,12 12,17"></polyline></svg>'
+    +'</button>';
+}
+function vcBadgesHtml(p){
+  var vs=projVcs(p);
+  // 未登録なら控えめなリンクだけ置く（カードの高さを増やさない）
+  if(!vs.length)return '<div class="vcx vcx-empty">'+vcTierLinkHtml()+'</div>';
+  var head=vs[0], rest=vs.slice(1);
+  // 残りをティア別に数える（S→A→B→Cの順で並べる）
+  var cnt={},order=['S','A','B','C'];
+  rest.forEach(function(v){cnt[v.t]=(cnt[v.t]||0)+1;});
+  var moreHtml=order.filter(function(t){return cnt[t];}).map(function(t){
+    return '<span class="vcx-cnt vc-t'+t+'"><span class="vcx-cnt-t">'+t+'</span>'+cnt[t]+'</span>';
+  }).join('');
+  var isOpen=!!openVcKeys[p.id];
+  return '<div class="vcx'+(isOpen?' open':'')+'">'
+    +'<button type="button" class="vcx-sum" onclick="event.stopPropagation();toggleVcx('+p.id+')">'
+    +vcChipHtml(head)
+    +(moreHtml?'<span class="vcx-more">'+moreHtml+'</span>':'')
+    +'<svg class="vcx-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="6,9.5 12,15.5 18,9.5"></polyline></svg>'
+    +'</button>'
+    +'<div class="vcx-body" id="vcx-body-'+p.id+'" style="display:'+(isOpen?'block':'none')+';">'
+      +'<div class="vcx-list">'+vs.map(vcChipHtml).join('')+'</div>'
+      +vcTierLinkHtml()
+    +'</div>'
+  +'</div>';
 }
 // ティア表モーダル
 function openVcInfo(focusId){
