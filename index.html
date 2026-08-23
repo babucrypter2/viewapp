@@ -1709,6 +1709,9 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
   color:#8fbdff;font-size:9px;font-weight:800;cursor:pointer;vertical-align:middle;
   letter-spacing:.01em;white-space:nowrap;}
 .st-lbl-i:active{background:rgba(90,160,255,.3);}
+.vc-list-btn{background:rgba(90,160,255,.14);border-color:rgba(90,160,255,.42);color:#8fbdff;
+  padding:2px 8px 2px 5px;gap:3px;}
+.vc-list-btn:active{background:rgba(90,160,255,.28);}
 .vc-ico{width:11px;height:11px;flex-shrink:0;vertical-align:-1px;}
 .modal-title .vc-ico{width:15px;height:15px;vertical-align:-2px;margin-right:2px;}
 .flbl .vc-ico{width:13px;height:13px;vertical-align:-2px;margin-right:2px;}
@@ -4874,7 +4877,7 @@ function renderList(id,mode){
       +(bd.effImputed?'<div class="st-prov" style="text-align:right;margin-top:2px;">暫定値</div>':'')
       +'<div class="q-hr"></div>'
       +'<div class="card-r2">'
-      +'<div class="st-col"><div class="st-lbl">'+ICO.fund+' 調達額<span class="st-lbl-i" onclick="event.stopPropagation();openVcInfo()"><svg class="vc-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M3.2 9.2L12 4l8.8 5.2"></path><line x1="6.2" y1="11.4" x2="6.2" y2="17"></line><line x1="12" y1="11.4" x2="12" y2="17"></line><line x1="17.8" y1="11.4" x2="17.8" y2="17"></line><line x1="3.6" y1="19.6" x2="20.4" y2="19.6"></line></svg>VCリスト</span></div><div class="st-val">'+fmtFundM(p.fund)+'</div></div>'
+      +'<div class="st-col"><div class="st-lbl">'+ICO.fund+' 調達額</div><div class="st-val">'+fmtFundM(p.fund)+'</div></div>'
       +'<div class="st-col st-col-usr"><div class="st-lbl">'+ICO.usr+' 参加者</div><div class="st-val">'+(p.usr?num(p.usr)+'万':'—')+'</div></div>'
       +'<div class="st-col st-col-tvl"><div class="st-lbl">'+ICO.tvl+' '+(p.llamaKind==='perp'?'Vol':'TVL')+'</div>'
         +'<div class="st-val">'+(p.llama?llamaFmt(p.llama.cur):(p.tvl?'$'+num(p.tvl)+'M':'—'))+'</div>'
@@ -5316,6 +5319,12 @@ var VC_LIST=[
   {id:'manifold',   n:'Manifold Trading',     t:'B', c:'liq', a:'h'},
   {id:'auros',      n:'Auros',                t:'B', c:'liq', a:'m'},
   {id:'falconx',    n:'FalconX',              t:'B', c:'liq', a:'m'}, // 機関向けプライムブローカー(falconx.io)。同名の一般テックVC falconx.vc とは別会社
+  {id:'cms',        n:'CMS Holdings',         t:'B', c:'liq', a:'h'},
+  {id:'distglobal', n:'Distributed Global',   t:'B', c:'lead', a:'h'},
+  {id:'craft',      n:'Craft Ventures',       t:'B', c:'tfi', a:'m'},
+  {id:'tribe',      n:'Tribe Capital',        t:'B', c:'lead', a:'m'},
+  {id:'samsungnext',n:'Samsung Next',         t:'B', c:'tfi', a:'l'},
+  {id:'laserdigital',n:'Laser Digital (Nomura)', t:'B', c:'tfi', a:'m'},
   // ── B: エンジェル・ファミリーオフィス ──
   {id:'maelstrom',  n:'Maelstrom (Arthur Hayes)', t:'B', c:'ang', a:'h'},
   {id:'winklevoss', n:'Winklevoss Capital',   t:'B', c:'ang', a:'m'},
@@ -5364,12 +5373,19 @@ function projVcs(p){
 // 統計行の下に出すVCバッジ。ティアで光り方が、右のラベルでカテゴリが分かる（点数には影響しない表示専用）
 function vcBadgesHtml(p){
   var vs=projVcs(p);
-  if(!vs.length)return '';
+  // 「VCリスト」ボタンは調達額のラベル内に置くと列幅が広がり、
+  // TVL・収益の増減表示を圧迫して桁が重なってしまう。バッジと同じ行に置いて列幅に影響させない。
+  var btn='<span class="vc-chip vc-list-btn" onclick="event.stopPropagation();openVcInfo()">'
+    +'<svg class="vc-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">'
+    +'<path d="M3.2 9.2L12 4l8.8 5.2"></path><line x1="6.2" y1="11.4" x2="6.2" y2="17"></line>'
+    +'<line x1="12" y1="11.4" x2="12" y2="17"></line><line x1="17.8" y1="11.4" x2="17.8" y2="17"></line>'
+    +'<line x1="3.6" y1="19.6" x2="20.4" y2="19.6"></line></svg>'
+    +(vs.length?'VCリスト':'調達VCを見る')+'</span>';
   return '<div class="vc-row">'+vs.map(function(v){
     return '<span class="vc-chip vc-t'+v.t+' vc-c'+v.c+'" onclick="event.stopPropagation();openVcInfo(\''+v.id+'\')">'
       +'<span class="vc-tier">'+v.t+'</span>'+esc(v.n)
       +'<span class="vc-cat">'+esc(VC_CAT_DESC[v.c].n)+'</span></span>';
-  }).join('')+'</div>';
+  }).join('')+btn+'</div>';
 }
 // ティア表モーダル
 function openVcInfo(focusId){
