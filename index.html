@@ -1672,10 +1672,10 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .vce-stat:first-child{flex:1 1 auto;justify-content:center;}
 .vce-slbl{font-size:11px;color:var(--t3);font-weight:600;white-space:nowrap;flex-shrink:0;}
 .vce-cnts{display:flex;flex-wrap:wrap;align-items:center;gap:3px;min-width:0;}
-.vce-cnt{display:inline-flex;align-items:center;gap:1px;font-size:9.5px;font-weight:800;
-  padding:1px 4px 1px 1px;border-radius:99px;background:rgba(255,255,255,.06);white-space:nowrap;}
-.vce-cnt-t{display:inline-flex;align-items:center;justify-content:center;width:11px;height:11px;
-  border-radius:50%;font-size:7.5px;font-weight:800;flex-shrink:0;}
+.vce-cnt{display:inline-flex;align-items:center;gap:3px;font-size:12px;font-weight:800;
+  padding:2px 7px 2px 2px;border-radius:99px;background:rgba(255,255,255,.07);white-space:nowrap;}
+.vce-cnt-t{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;
+  border-radius:50%;font-size:10px;font-weight:800;flex-shrink:0;}
 .vce-cnt.vc-tS{color:#ffd76a;} .vce-cnt.vc-tS .vce-cnt-t{background:linear-gradient(135deg,#ffd76a,#f0a730);color:#241a02;}
 .vce-cnt.vc-tA{color:#c4b0ff;} .vce-cnt.vc-tA .vce-cnt-t{background:linear-gradient(135deg,#cbb8ff,#8c6df0);color:#1a1030;}
 .vce-cnt.vc-tB{color:#9fc0e8;} .vce-cnt.vc-tB .vce-cnt-t{background:rgba(159,192,232,.9);color:#0e1622;}
@@ -1689,10 +1689,12 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .vc-tS-tx{color:#ffd76a;} .vc-tA-tx{color:#c4b0ff;}
 .vc-tB-tx{color:#9fc0e8;} .vc-tC-tx{color:#ff9d9d;}
 /* 集約グレード */
+/* VCの質／TGEの確度のグレード配色は、上のVCチップのティア色（S金/A紫/B青/C赤）と完全に揃える。
+   以前は緑系の独自配色だったため、同じA判定でも見た目の色が違って見えていた */
 .vce-g{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:20px;padding:0 5px;
   border-radius:6px;font-size:13px;font-weight:800;flex-shrink:0;}
 .vce-gS{background:rgba(255,199,88,.2);color:#ffd76a;box-shadow:inset 0 0 0 1px rgba(255,199,88,.5);}
-.vce-gA{background:rgba(61,220,134,.16);color:#5ce89b;box-shadow:inset 0 0 0 1px rgba(61,220,134,.42);}
+.vce-gA{background:rgba(160,140,255,.18);color:#c4b0ff;box-shadow:inset 0 0 0 1px rgba(160,140,255,.5);}
 .vce-gB{background:rgba(120,160,220,.16);color:#9fc0e8;box-shadow:inset 0 0 0 1px rgba(120,160,220,.4);}
 .vce-gC{background:rgba(255,92,92,.15);color:#ff9d9d;box-shadow:inset 0 0 0 1px rgba(255,92,92,.42);}
 .vce-body{overflow:hidden;}
