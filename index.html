@@ -5526,7 +5526,7 @@ function vcBadgesHtml(p){
     +'</div>'
     // 「ラベル：値」を横並びにして1行で完結させる（縦積みだと結果が見出しから離れて見づらいため）
     +'<div class="vce-stats">'
-      +'<div class="vce-stat"><span class="vce-slbl">内訳</span><span class="vce-cnts">'
+      +'<div class="vce-stat"><span class="vce-slbl">調達数</span><span class="vce-cnts">'
         +['S','A','B','C'].filter(function(t){return cnt[t];}).map(function(t){
             return '<span class="vce-cnt vc-t'+t+'"><span class="vce-cnt-t">'+t+'</span>'+cnt[t]+'</span>';
           }).join('')+'</span></div>'
