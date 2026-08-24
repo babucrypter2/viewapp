@@ -1661,15 +1661,25 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .vce-top-in{display:inline-flex;align-items:center;gap:5px;margin-left:auto;min-width:0;}
 .vce-tro{width:12px;height:12px;color:#ffd76a;flex-shrink:0;}
 .vce-name{font-size:12px;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;}
-/* 2行目：ラベルと値を横並びにして1行で完結させる */
-.vce-row{display:flex;align-items:center;justify-content:space-between;gap:12px;}
-.vce-col{flex:0 1 auto;min-width:0;display:flex;align-items:center;gap:5px;position:relative;height:18px;}
-.vce-col:not(:last-child)::after{content:'';position:absolute;right:-6px;top:1px;bottom:1px;
-  width:1px;background:rgba(255,255,255,.14);}
-.vce-k{font-size:10px;color:var(--t3);font-weight:600;white-space:nowrap;line-height:1;flex-shrink:0;}
-.vce-v{display:inline-flex;align-items:center;gap:1px;
-  font-size:13.5px;font-weight:800;color:var(--t1);line-height:1;font-variant-numeric:tabular-nums;}
-.vce-unit{font-size:9.5px;font-weight:700;color:var(--t3);}
+/* 2行目：3項目を等幅に割り、各項目の中でラベルと値を横並びにする。
+   幅を等分することで区切り線の位置が揃い、文字がバラつかない */
+.vce-row{display:flex;align-items:stretch;gap:9px;}
+/* 内訳はティア数によって幅が変わるので、内訳だけ可変・右2つは内容ぴったりにする。
+   等幅で固定すると、内訳が長い案件で隣の項目に重なってしまう */
+.vce-col{display:flex;align-items:center;gap:5px;position:relative;height:20px;flex-shrink:0;}
+.vce-col-cnt{flex:1 1 auto;min-width:0;}
+.vce-col:not(:last-child){padding-right:9px;border-right:1px solid rgba(255,255,255,.13);}
+.vce-k{font-size:9.5px;color:var(--t3);font-weight:600;white-space:nowrap;line-height:1;flex-shrink:0;}
+/* 内訳（ティア別の件数） */
+.vce-cnts{display:inline-flex;align-items:center;gap:3px;min-width:0;overflow:hidden;}
+.vce-cnt{display:inline-flex;align-items:center;gap:2px;font-size:10px;font-weight:800;
+  padding:1px 5px 1px 2px;border-radius:99px;background:rgba(255,255,255,.06);}
+.vce-cnt-t{display:inline-flex;align-items:center;justify-content:center;width:12px;height:12px;
+  border-radius:50%;font-size:8px;font-weight:800;flex-shrink:0;}
+.vce-cnt.vc-tS{color:#ffd76a;} .vce-cnt.vc-tS .vce-cnt-t{background:linear-gradient(135deg,#ffd76a,#f0a730);color:#241a02;}
+.vce-cnt.vc-tA{color:#c4b0ff;} .vce-cnt.vc-tA .vce-cnt-t{background:linear-gradient(135deg,#cbb8ff,#8c6df0);color:#1a1030;}
+.vce-cnt.vc-tB{color:#9fc0e8;} .vce-cnt.vc-tB .vce-cnt-t{background:rgba(159,192,232,.9);color:#0e1622;}
+.vce-cnt.vc-tC{color:#ff9d9d;} .vce-cnt.vc-tC .vce-cnt-t{background:#ff5c5c;color:#2a0d0d;}
 .vce-tier{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;
   border-radius:50%;font-size:9px;font-weight:800;flex-shrink:0;}
 .vce-tier.vc-tS{background:linear-gradient(135deg,#ffd76a,#f0a730);color:#241a02;}
@@ -1679,8 +1689,8 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .vc-tS-tx{color:#ffd76a;} .vc-tA-tx{color:#c4b0ff;}
 .vc-tB-tx{color:#9fc0e8;} .vc-tC-tx{color:#ff9d9d;}
 /* 集約グレード */
-.vce-g{display:inline-flex;align-items:center;justify-content:center;min-width:19px;height:18px;padding:0 4px;
-  border-radius:5px;font-size:12px;font-weight:800;}
+.vce-g{display:inline-flex;align-items:center;justify-content:center;min-width:19px;height:17px;padding:0 4px;
+  border-radius:5px;font-size:11.5px;font-weight:800;flex-shrink:0;}
 .vce-gS{background:rgba(255,199,88,.2);color:#ffd76a;box-shadow:inset 0 0 0 1px rgba(255,199,88,.5);}
 .vce-gA{background:rgba(61,220,134,.16);color:#5ce89b;box-shadow:inset 0 0 0 1px rgba(61,220,134,.42);}
 .vce-gB{background:rgba(120,160,220,.16);color:#9fc0e8;box-shadow:inset 0 0 0 1px rgba(120,160,220,.4);}
@@ -5495,6 +5505,7 @@ function vcBadgesHtml(p){
   var vs=projVcs(p);
   if(!vs.length)return ''; // 調達VCが未登録の案件では何も出さない
   var head=vs[0], g=vcGrades(vs);
+  var cnt={}; vs.forEach(function(v){cnt[v.t]=(cnt[v.t]||0)+1;}); // ティア別の件数
   var isOpen=!!openVcKeys[p.id];
   var trophy='<svg class="vce-tro" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'
     +'<path d="M7 4h10v5a5 5 0 0 1-10 0z"></path><path d="M7 5.5H4.5A2.5 2.5 0 0 0 7 9.5"></path>'
@@ -5502,17 +5513,21 @@ function vcBadgesHtml(p){
     +'<line x1="8.5" y1="20" x2="15.5" y2="20"></line><path d="M9.5 20c0-1.4 1-2.5 2.5-2.5s2.5 1.1 2.5 2.5"></path></svg>';
   return '<div class="vce'+(isOpen?' open':'')+'">'
     // 縦を詰めるため2行構成にする。
-    // 1行目＝見出し「VC評価」の右に最高ティアVC、2行目＝3項目をラベルと値を横並びで1行に収める
+    // 1行目＝見出し「VC評価」の右に最高ティアVC、2行目＝内訳と2つのグレード
     +'<div class="vce-head">'+vcTierIconHtml()+'<span class="vce-ttl">VC評価</span>'
       +'<span class="vce-top-in">'+trophy
+        +'<span class="vce-k">最高ティアVC</span>'
         +'<span class="vce-name vc-t'+head.t+'-tx">'+esc(head.n)+'</span>'
         +'<span class="vce-tier vc-t'+head.t+'">'+head.t+'</span>'
       +'</span>'
     +'</div>'
     +'<div class="vce-row">'
-      +'<div class="vce-col"><span class="vce-k">件数</span><span class="vce-v">'+vs.length+'<span class="vce-unit">社</span></span></div>'
-      +'<div class="vce-col"><span class="vce-k">VCの質</span><span class="vce-v"><span class="vce-g vce-g'+g.q+'">'+g.q+'</span></span></div>'
-      +'<div class="vce-col"><span class="vce-k">TGEの確度</span><span class="vce-v"><span class="vce-g vce-g'+g.t+'">'+g.t+'</span></span></div>'
+      +'<div class="vce-col vce-col-cnt"><span class="vce-k">内訳</span>'
+        +'<span class="vce-cnts">'+['S','A','B','C'].filter(function(t){return cnt[t];}).map(function(t){
+            return '<span class="vce-cnt vc-t'+t+'"><span class="vce-cnt-t">'+t+'</span>'+cnt[t]+'</span>';
+          }).join('')+'</span></div>'
+      +'<div class="vce-col"><span class="vce-k">VCの質</span><span class="vce-g vce-g'+g.q+'">'+g.q+'</span></div>'
+      +'<div class="vce-col"><span class="vce-k">TGEの確度</span><span class="vce-g vce-g'+g.t+'">'+g.t+'</span></div>'
     +'</div>'
     +'<div class="vce-body" id="vcx-body-'+p.id+'" style="display:'+(isOpen?'block':'none')+';">'
       +'<div class="vcx-list">'+vs.map(vcChipHtml).join('')+'</div>'
