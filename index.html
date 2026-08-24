@@ -1663,15 +1663,41 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .vce-tro{width:12px;height:12px;color:#ffd76a;flex-shrink:0;}
 .vce-name{font-size:12px;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;flex:0 1 auto;}
 /* 統計行は「調達額／参加者／TVL」と全く同じ .st-col を使い回して統一する（下でラップだけ用意） */
-/* ラベルと結果値を横並びで1行に収める。内訳はティア数で幅が伸びるため、
-   その列だけ縮んでよいことにし、他の2項目（VCの質／TGEの確度）は常に一定の見やすさを保つ */
-.vce-stats{display:flex;align-items:baseline;flex-wrap:wrap;row-gap:7px;column-gap:14px;}
-.vce-stat{display:flex;align-items:center;gap:7px;min-width:0;position:relative;padding-right:14px;}
+/* この行は何があっても1行に収める。折り返しは禁止し、入りきらない場合は
+   fitVceRows() が .fit1〜.fit3 を付けて段階的に詰める（調達数のティアが増えても崩れない） */
+.vce-stats{display:flex;align-items:center;flex-wrap:nowrap;gap:12px;overflow:hidden;}
+.vce-stat{display:flex;align-items:center;gap:7px;min-width:0;position:relative;padding-right:12px;
+  flex-shrink:0;white-space:nowrap;height:22px;}
 .vce-stat:not(:last-child)::after{content:'';position:absolute;right:0;top:1px;bottom:1px;
   width:1px;background:rgba(255,255,255,.16);}
 .vce-stat:first-child{flex:1 1 auto;justify-content:center;}
 .vce-slbl{font-size:11px;color:var(--t3);font-weight:600;white-space:nowrap;flex-shrink:0;}
-.vce-cnts{display:flex;flex-wrap:wrap;align-items:center;gap:3px;min-width:0;}
+/* ── 自動縮小の段階 ── */
+.vce-stats.fit1{gap:9px;}
+.vce-stats.fit1 .vce-stat{gap:5px;padding-right:9px;}
+.vce-stats.fit1 .vce-slbl{font-size:10px;}
+.vce-stats.fit1 .vce-cnt{font-size:11px;padding:2px 5px 2px 2px;gap:2px;}
+.vce-stats.fit1 .vce-cnt-t,.vce-stats.fit1 .vce-tier,.vce-stats.fit1 .vce-g{width:17px;height:17px;font-size:10.5px;}
+.vce-stats.fit2{gap:7px;}
+.vce-stats.fit2 .vce-stat{gap:4px;padding-right:7px;}
+.vce-stats.fit2 .vce-slbl{font-size:9.5px;}
+.vce-stats.fit2 .vce-cnts{gap:2px;}
+.vce-stats.fit2 .vce-cnt{font-size:10px;padding:1px 4px 1px 1px;gap:1px;}
+.vce-stats.fit2 .vce-cnt-t,.vce-stats.fit2 .vce-tier,.vce-stats.fit2 .vce-g{width:15px;height:15px;font-size:9.5px;}
+.vce-stats.fit3{gap:5px;}
+.vce-stats.fit3 .vce-stat{gap:3px;padding-right:5px;}
+.vce-stats.fit3 .vce-slbl{font-size:9px;}
+.vce-stats.fit3 .vce-cnts{gap:1px;}
+.vce-stats.fit3 .vce-cnt{font-size:8.5px;padding:0 2px 0 0;gap:1px;background:transparent;}
+.vce-stats.fit3 .vce-cnt-t,.vce-stats.fit3 .vce-tier,.vce-stats.fit3 .vce-g{width:13px;height:13px;font-size:8px;}
+/* fit4：ここまで詰めても入らない極端な組み合わせ向けの最終段階 */
+.vce-stats.fit4{gap:4px;}
+.vce-stats.fit4 .vce-stat{gap:2px;padding-right:4px;}
+.vce-stats.fit4 .vce-slbl{font-size:8.5px;}
+.vce-stats.fit4 .vce-cnts{gap:1px;}
+.vce-stats.fit4 .vce-cnt{font-size:8px;padding:0 1px 0 0;gap:0;background:transparent;}
+.vce-stats.fit4 .vce-cnt-t,.vce-stats.fit4 .vce-tier,.vce-stats.fit4 .vce-g{width:12px;height:12px;font-size:7.5px;}
+.vce-cnts{display:flex;flex-wrap:nowrap;align-items:center;gap:3px;min-width:0;}
 .vce-cnt{display:inline-flex;align-items:center;gap:3px;font-size:12px;font-weight:800;
   padding:2px 7px 2px 2px;border-radius:99px;background:rgba(255,255,255,.07);white-space:nowrap;}
 /* この枠内に出る丸バッジ（調達数の内訳・最高ティアVC・VCの質・TGEの確度）は
@@ -1749,24 +1775,39 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .vc-am{background:rgba(245,197,66,.16);color:#f5c542;}
 .vc-al{background:rgba(255,255,255,.08);color:var(--t3);}
 /* ティア表モーダルの中身 */
-.vc-note{font-size:11.5px;color:var(--t2);line-height:1.65;margin:0 0 14px;}
+/* ティア表モーダル。スマホで読むので全体的に一段大きめの文字にする */
+.vc-note{font-size:13px;color:var(--t2);line-height:1.7;margin:0 0 10px;}
 .vc-note b{color:#ffd76a;}
-.vc-sec{margin-bottom:16px;}
-.vc-sec-h{display:flex;align-items:flex-start;gap:8px;margin-bottom:8px;}
-.vc-sec-h .vc-tier{width:20px;height:20px;font-size:11px;margin-top:1px;}
-.vc-sec-d{font-size:11px;color:var(--t3);line-height:1.6;flex:1;min-width:0;}
-.vc-sec-h2{font-size:12px;font-weight:800;color:var(--t1);margin-bottom:8px;}
-.vc-sec-list{display:flex;flex-wrap:wrap;gap:5px;}
-.vc-sec-list .vc-chip{font-size:10.5px;padding:3px 7px 3px 4px;}
-.vc-legend{background:rgba(255,255,255,.035);border-radius:10px;padding:9px 10px;}
-.vc-leg-row{display:flex;align-items:center;gap:9px;flex-wrap:wrap;}
-.vc-leg-d{font-size:10.5px;color:var(--t3);line-height:1.6;flex:1;min-width:150px;}
+.vc-note-sm{font-size:11.5px;color:var(--t3);margin:8px 0 0;}
+.vc-sec{margin-bottom:20px;}
+.vc-sec-h{display:flex;align-items:flex-start;gap:9px;margin-bottom:9px;}
+.vc-sec-h .vc-tier{width:22px;height:22px;font-size:12px;margin-top:1px;}
+.vc-sec-d{font-size:12.5px;color:var(--t3);line-height:1.7;flex:1;min-width:0;}
+.vc-sec-h2{font-size:14px;font-weight:800;color:var(--t1);margin-bottom:8px;}
+.vc-sec-list{display:flex;flex-wrap:wrap;gap:6px;}
+.vc-sec-list .vc-chip{font-size:12px;padding:4px 9px 4px 5px;}
+.vc-sec-list .vc-tier{width:17px;height:17px;font-size:10.5px;}
+.vc-sec-list .vc-cat{font-size:10px;}
+.vc-sec-list .vc-air{font-size:9.5px;}
+/* 判定基準の表 */
+.vc-crit{background:rgba(255,255,255,.04);border-radius:10px;padding:9px 11px;}
+.vc-crit-mt{margin-top:8px;}
+.vc-crit-row{display:flex;align-items:center;gap:10px;font-size:12.5px;color:var(--t2);
+  line-height:1.6;padding:3px 0;}
+.vc-crit-row .vce-g{width:22px;height:22px;font-size:12.5px;}
+.vc-crit-op{display:inline-flex;align-items:center;justify-content:center;min-width:44px;
+  font-size:12px;font-weight:800;padding:2px 6px;border-radius:6px;flex-shrink:0;}
+.vc-crit-plus{background:rgba(61,220,134,.16);color:#5ce89b;}
+.vc-crit-minus{background:rgba(255,92,92,.14);color:#ff9d9d;}
+.vc-legend{background:rgba(255,255,255,.04);border-radius:10px;padding:10px 11px;}
+.vc-leg-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.vc-leg-d{font-size:12px;color:var(--t3);line-height:1.65;flex:1;min-width:150px;}
 .vc-leg-d b{color:var(--t2);}
-.vc-legline{width:4px;height:16px;border-radius:2px;flex-shrink:0;}
-.vc-cat-row{display:flex;align-items:center;gap:7px;margin-bottom:7px;}
-.vc-cat-row .vc-cat{border:none;padding:2px 8px;border-radius:99px;flex-shrink:0;margin:0;
-  background:rgba(255,255,255,.07);font-size:10px;opacity:1;}
-.vc-cat-d{font-size:10.5px;color:var(--t3);line-height:1.55;flex:1;min-width:0;}
+.vc-legline{width:4px;height:18px;border-radius:2px;flex-shrink:0;}
+.vc-cat-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.vc-cat-row .vc-cat{border:none;padding:3px 9px;border-radius:99px;flex-shrink:0;margin:0;
+  background:rgba(255,255,255,.07);font-size:11.5px;opacity:1;}
+.vc-cat-d{font-size:12px;color:var(--t3);line-height:1.6;flex:1;min-width:0;}
 .vc-focus{outline:2px solid var(--acc);outline-offset:2px;}
 /* 調達額ラベルの「VCリスト」ボタン */
 .st-lbl-i{display:inline-flex;align-items:center;gap:2px;padding:1px 7px;margin-left:5px;
@@ -4999,6 +5040,7 @@ function renderAll(){
   renderList('list-active','active');
   renderList('list-all','all');
   renderList('list-ended','ended');
+  fitVceRows(); // 調達先VCの行が折り返さないよう、描画のたびに収まりを整える
 }
 function renderListSkeleton(){
   ['list-active','list-all','list-ended'].forEach(function(id){
@@ -5274,7 +5316,7 @@ function jumpToProject(pid,skipExpand){
 }
 // ─────────── VC（投資家）マスターリスト ───────────
 // t: ティア（格）  S=最上位 / A=一線級 / B=有力・特化 / C=要注意（衰退・実質活動停止）
-// c: カテゴリ（性格）
+// c: カテゴリ（性質）
 //    lead=リード型（研究主導。質の担保にはなるが高FDVになりやすく配分は渋め）
 //    cex =取引所系（上場ルートと流動性を持つ。TGE実行力が高い）
 //    liq =流動性・マーケットメイク系（板は厚くなるが売り圧が読みにくい）
@@ -5413,30 +5455,30 @@ var VC_LIST=[
 ];
 var VC_MAP=(function(){var m={};VC_LIST.forEach(function(v){m[v.id]=v;});return m;})();
 var VC_TIER_DESC={
-  S:'最上位。運用資産・調達力・影響力のすべてで突出した4社に限定（a16z crypto=5本のファンドで累計98億ドル・2026年に22億ドルの新ファンド／Paradigm=累計85億ドル超・Kalshiの10億ドルラウンドを主導／Pantera=2013年からのOG・2025年にCircleとBitGoを含む5社が上場／Polychain=運用50億ドル超・BerachainへL1/L2主導投資）。ここが入っていればプロジェクトの質はほぼ担保される。ただし私募で高いバリュエーションが付きやすく、その分TGEも高FDVになりがちで、コミュニティ配分は渋くなる傾向がある。',
-  A:'一線級。Sに次ぐ影響力と資金力を持つ。Sに最も近いのはDragonfly（第4号ファンド6.5億ドル）とHaun Ventures（2026年Q2に第2号10億ドル・主要ファンドで唯一運用資産が3割増）。ただしHaunの実績はBridgeのStripe買収・BVNKのMastercard買収という株式のExitであり、TGEではない点に注意。取引所系（Coinbase Ventures / YZi Labs）もここに含まれ、上場ルートを持つ点でエアドロ確度に効く。TradFi系はトークンを出さない出口もあり得るので別扱い。',
-  B:'有力・特化型。単独では格の証明にならないが、取引所系（cex）が複数入っていればTGE実行力のシグナルになる。エアドロ実績「高」の常連が並ぶ層でもあるので、数と組み合わせで読む。',
-  C:'要注意。2021-22年のブル相場で広く投資し、その後案件数が最大98.9%減少して実質的に影響力を失った層。ここが並んでいる案件は当時の遺物である可能性があり、TGEまで到達しないリスクを見込む。'
+  S:'運用資産・調達力ともに突出した最上位4社（a16z crypto／Paradigm／Pantera／Polychain）。ここが入っていれば質はほぼ担保される。ただし私募の評価額が高くなりやすく、TGEも高FDVになりがちでコミュニティ配分は渋くなる傾向。',
+  A:'Sに次ぐ影響力と資金力を持つ一線級。取引所系のCoinbase Ventures・YZi Labsもここに含まれる。',
+  B:'有力・特化型。単独では格の証明にならないが、取引所系が複数入っていればTGE実行力のシグナルになる。',
+  C:'要注意。2021-22年に広く投資したあと案件数が最大98.9%減り、実質的に活動を停止した層。当時の遺物である可能性があり、TGEまで到達しないリスクを見込む。'
 };
 var VC_CAT_DESC={
-  lead:{n:'リード型',   col:'#c4b0ff', d:'研究主導でリードを取る。質の証明にはなるが、高FDVローンチの動機を持つため配分は渋めになりやすい。'},
-  cex: {n:'取引所系',   col:'#3ddc86', d:'上場ルートと流動性を自前で持つ。エアドロ確度という一点では最も効く。複数入っていれば加点材料。'},
-  liq: {n:'流動性系',   col:'#f5c542', d:'マーケットメイクを兼ねる。上場後の板は厚くなるが、売り圧の出方が読みにくい。'},
-  eco: {n:'エコシステム',col:'#7fb8ff', d:'事業会社・アクセラ・既存プロトコル。配布ノウハウを持つ場合があり、エアドロ実績は高めに出やすい。'},
-  tfi: {n:'TradFi系',   col:'#9aa3b5', d:'伝統金融・非クリプト専業。株式志向でM&AやIPOが出口になりやすく、トークンを出さない可能性がある。'},
-  ang: {n:'エンジェル', col:'#ffb3d9', d:'個人・ファミリーオフィス。影響力は人によるが、名前が付くこと自体が集客力になる。'},
-  dead:{n:'衰退',       col:'#ff5c5c', d:'実質的に活動を停止した層。警告シグナルとして扱う。'}
+  lead:{n:'リード型',   col:'#c4b0ff', d:'研究主導でラウンドを主導する。質の証明にはなるが、高FDVローンチの動機を持つため配分は渋めになりやすい。'},
+  cex: {n:'取引所系',   col:'#3ddc86', d:'上場ルートと流動性を自前で持つ。TGE確度に最も効く。'},
+  liq: {n:'流動性系',   col:'#f5c542', d:'マーケットメイクを兼ねる。上場後の板は厚くなるが、売り圧の出方は読みにくい。'},
+  eco: {n:'エコシステム',col:'#7fb8ff', d:'事業会社・アクセラ・既存プロトコル。配布ノウハウを持つ場合が多い。'},
+  tfi: {n:'TradFi系',   col:'#9aa3b5', d:'伝統金融・非クリプト専業。M&AやIPOが出口になりやすく、トークンを出さない可能性がある。'},
+  ang: {n:'エンジェル', col:'#ffb3d9', d:'個人・ファミリーオフィス。名前が付くこと自体が集客力になる。'},
+  dead:{n:'衰退',       col:'#ff5c5c', d:'実質的に活動を停止した層。警告として扱う。'}
 };
 var VC_AIR_DESC={
   h:{n:'実績 高', d:'投資先が実際にTGE・エアドロを出している常連。'},
   m:{n:'実績 中', d:'出す案件もあるが、株式のみの投資も混ざる。'},
   l:{n:'実績 低', d:'株式中心。エアドロまで届かない案件が多い。'}
 };
-// ティア内をアルファベット順（記号・数字始まりが先）に並べて返す。一覧から探しやすくするため
+// ティア内をアルファベット順に並べて返す。一覧から探しやすくするため
 function vcSortedByTier(t){
   return VC_LIST.filter(function(v){return v.t===t;})
                 .slice()
-                .sort(function(a,b){return a.n.toLowerCase()<b.n.toLowerCase()?-1:(a.n.toLowerCase()>b.n.toLowerCase()?1:0);});
+                .sort(function(a,b){var x=a.n.toLowerCase(),y=b.n.toLowerCase();return x<y?-1:(x>y?1:0);});
 }
 // 案件に紐づくVCを、ティア順（S→A→B→C）に並べて返す
 function projVcs(p){
@@ -5502,6 +5544,39 @@ function vcGrades(vs){
   var tg=t>=3.2?'S':t>=2.6?'A':t>=1.9?'B':'C';
   return {q:qg,t:tg};
 }
+// 「調達先VC」の統計行は絶対に折り返さない。入りきらなければ段階的に詰めて必ず1行に収める
+function fitVceRows(root){
+  var rows=(root||document).querySelectorAll('.vce-stats');
+  Array.prototype.forEach.call(rows,function(r){
+    // overflow:hidden だと scrollWidth が当てにならないので、
+    // 子要素の実寸の合計と gap から必要幅を自前で求めて判定する
+    function needed(){
+      var kids=Array.prototype.slice.call(r.children);
+      if(!kids.length)return 0;
+      var gap=parseFloat(getComputedStyle(r).columnGap||getComputedStyle(r).gap)||0;
+      var sum=0;
+      kids.forEach(function(k){
+        // 中身が縮んでいても本来必要な幅を測るため、いったん幅の制限を外して測る
+        var prev=k.style.cssText;
+        k.style.flexShrink='0'; k.style.width='auto';
+        sum+=k.getBoundingClientRect().width;
+        k.style.cssText=prev;
+      });
+      return sum+gap*(kids.length-1);
+    }
+    var steps=['','fit1','fit2','fit3','fit4'];
+    for(var i=0;i<steps.length;i++){
+      r.classList.remove('fit1','fit2','fit3','fit4');
+      if(steps[i])r.classList.add(steps[i]);
+      if(needed()<=r.clientWidth+0.5)return; // 収まったらそこで確定
+    }
+    // fit3でも足りない極端な幅では fit3 のままにする
+  });
+}
+try{
+  window.addEventListener('resize',function(){ fitVceRows(); });
+  window.addEventListener('orientationchange',function(){ setTimeout(fitVceRows,120); });
+}catch(e){}
 function vcBadgesHtml(p){
   var vs=projVcs(p);
   if(!vs.length)return ''; // 調達VCが未登録の案件では何も出さない
@@ -5556,29 +5631,44 @@ function vcTierIconHtml(){
 function openVcInfo(focusId){
   var el=document.getElementById('m-vc-body');
   if(!el)return;
-  var h='<p class="vc-note">調達したVCの<b>格（ティア）</b>と<b>性格（カテゴリ）</b>の一覧です。'
-      +'<b>格が高い＝エアドロが来やすい、ではありません。</b>質の担保は格、TGEの実行力は取引所系が効きます。'
-      +'現時点でスコアには一切影響しません。</p>';
-  // 凡例
-  h+='<div class="vc-sec"><div class="vc-sec-h2">見方</div>'
-    +'<div class="vc-legend">'
-    +'<div class="vc-leg-row"><span class="vc-chip vc-tS vc-ccex"><span class="vc-tier">S</span>例<span class="vc-cat">取引所系</span></span>'
-    +'<span class="vc-leg-d"><b>左の丸</b>＝ティア（S金／A紫／B青／C赤）。<b>左端の縦線と右のラベル</b>＝カテゴリ。</span></div>'
+  var h='';
+  // ── 肝である2つのランクの判定基準を最初に示す ──
+  h+='<div class="vc-sec"><div class="vc-sec-h2">VCの質</div>'
+    +'<p class="vc-note">最上位ティアがそのままランクになる。衰退VC（C）が1社いるごとに1ランク下がる。</p>'
+    +'<div class="vc-crit">'
+      +'<div class="vc-crit-row"><span class="vce-g vce-gS">S</span><span>Sティアが1社でも入っている</span></div>'
+      +'<div class="vc-crit-row"><span class="vce-g vce-gA">A</span><span>Aティアが最上位</span></div>'
+      +'<div class="vc-crit-row"><span class="vce-g vce-gB">B</span><span>Bティアが最上位</span></div>'
+      +'<div class="vc-crit-row"><span class="vce-g vce-gC">C</span><span>Cティアのみ、または減点で下がった場合</span></div>'
     +'</div></div>';
-  h+='<div class="vc-sec"><div class="vc-sec-h2">カテゴリ（縦線の色）</div>';
+  h+='<div class="vc-sec"><div class="vc-sec-h2">TGEの確度</div>'
+    +'<p class="vc-note">各VCのエアドロ実績（高3・中2・低1）の平均に、性質による加減点を足して判定する。</p>'
+    +'<div class="vc-crit">'
+      +'<div class="vc-crit-row"><span class="vc-crit-op vc-crit-plus">＋0.4</span><span>取引所系1社ごと（最大3社まで）</span></div>'
+      +'<div class="vc-crit-row"><span class="vc-crit-op vc-crit-minus">－0.3</span><span>TradFi系1社ごと</span></div>'
+      +'<div class="vc-crit-row"><span class="vc-crit-op vc-crit-minus">－0.5</span><span>衰退VC1社ごと</span></div>'
+    +'</div>'
+    +'<div class="vc-crit vc-crit-mt">'
+      +'<div class="vc-crit-row"><span class="vce-g vce-gS">S</span><span>3.2以上</span></div>'
+      +'<div class="vc-crit-row"><span class="vce-g vce-gA">A</span><span>2.6以上</span></div>'
+      +'<div class="vc-crit-row"><span class="vce-g vce-gB">B</span><span>1.9以上</span></div>'
+      +'<div class="vc-crit-row"><span class="vce-g vce-gC">C</span><span>1.9未満</span></div>'
+    +'</div>'
+    +'<p class="vc-note vc-note-sm">※公開データからの目安であり、スコアには一切影響しない。</p></div>';
+  // ── 見方（バッジの読み方）──
+  h+='<div class="vc-sec"><div class="vc-sec-h2">バッジの見方</div>'
+    +'<div class="vc-legend"><div class="vc-leg-row">'
+    +'<span class="vc-chip vc-tS vc-ccex"><span class="vc-tier">S</span>例<span class="vc-cat">取引所系</span></span>'
+    +'<span class="vc-leg-d"><b>丸＝ティア</b>（S金／A紫／B青／C赤）、<b>左の縦線と右のラベル＝性質</b>。</span>'
+    +'</div></div></div>';
+  h+='<div class="vc-sec"><div class="vc-sec-h2">性質</div>';
   Object.keys(VC_CAT_DESC).forEach(function(k){
     h+='<div class="vc-cat-row"><span class="vc-legline" style="background:'+VC_CAT_DESC[k].col+'"></span>'
       +'<span class="vc-cat vc-c'+k+'">'+esc(VC_CAT_DESC[k].n)+'</span>'
       +'<span class="vc-cat-d">'+esc(VC_CAT_DESC[k].d)+'</span></div>';
   });
   h+='</div>';
-  h+='<div class="vc-sec"><div class="vc-sec-h2">エアドロ実績（名前の下の小さな印）</div>';
-  ['h','m','l'].forEach(function(k){
-    h+='<div class="vc-cat-row"><span class="vc-air vc-a'+k+'">'+esc(VC_AIR_DESC[k].n)+'</span>'
-      +'<span class="vc-cat-d">'+esc(VC_AIR_DESC[k].d)+'</span></div>';
-  });
-  h+='<div class="vc-cat-d" style="margin-top:6px;">※公開データからの定性評価であり、確定的な指標ではありません。答え合わせを重ねて見直す前提の暫定値です。</div></div>';
-  // ティア別リスト
+  // ── ティア別の一覧 ──
   ['S','A','B','C'].forEach(function(t){
     h+='<div class="vc-sec"><div class="vc-sec-h"><span class="vc-tier vc-t'+t+'">'+t+'</span>'
       +'<span class="vc-sec-d">'+esc(VC_TIER_DESC[t])+'</span></div><div class="vc-sec-list">';
@@ -5600,7 +5690,6 @@ function openVcInfo(focusId){
     },60);
   }
 }
-
 function cm(id){document.getElementById(id).classList.remove('open');}
 document.querySelectorAll('.modal-overlay').forEach(function(el){
   el.addEventListener('click',function(e){if(e.target===this)this.classList.remove('open');});
