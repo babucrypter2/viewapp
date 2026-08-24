@@ -1663,16 +1663,19 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .vce-tro{width:12px;height:12px;color:#ffd76a;flex-shrink:0;}
 .vce-name{font-size:12px;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;flex:0 1 auto;}
 /* 統計行は「調達額／参加者／TVL」と全く同じ .st-col を使い回して統一する（下でラップだけ用意） */
-.vce-stats{display:flex;justify-content:space-between;gap:6px;}
-/* 内訳はティア数が増えると横に伸びるため、他の2項目を巻き込んで詰まらないよう
-   内訳側の列だけ縮んでよいことにし、必要なら折り返して縦に積む */
-.vce-stats .st-col{flex:1 1 0;min-width:0;}
-.vce-stats .st-col:first-child{flex:1.3 1 0;}
-.vce-cnts{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:3px;min-width:0;}
-.vce-cnt{display:inline-flex;align-items:center;gap:2px;font-size:10px;font-weight:800;
-  padding:1px 5px 1px 2px;border-radius:99px;background:rgba(255,255,255,.06);white-space:nowrap;}
-.vce-cnt-t{display:inline-flex;align-items:center;justify-content:center;width:12px;height:12px;
-  border-radius:50%;font-size:8px;font-weight:800;flex-shrink:0;}
+/* ラベルと結果値を横並びで1行に収める。内訳はティア数で幅が伸びるため、
+   その列だけ縮んでよいことにし、他の2項目（VCの質／TGEの確度）は常に一定の見やすさを保つ */
+.vce-stats{display:flex;align-items:baseline;flex-wrap:wrap;row-gap:7px;column-gap:14px;}
+.vce-stat{display:flex;align-items:center;gap:7px;min-width:0;position:relative;padding-right:14px;}
+.vce-stat:not(:last-child)::after{content:'';position:absolute;right:0;top:1px;bottom:1px;
+  width:1px;background:rgba(255,255,255,.16);}
+.vce-stat:first-child{flex:1 1 auto;}
+.vce-slbl{font-size:11px;color:var(--t3);font-weight:600;white-space:nowrap;flex-shrink:0;}
+.vce-cnts{display:flex;flex-wrap:wrap;align-items:center;gap:3px;min-width:0;}
+.vce-cnt{display:inline-flex;align-items:center;gap:1px;font-size:9.5px;font-weight:800;
+  padding:1px 4px 1px 1px;border-radius:99px;background:rgba(255,255,255,.06);white-space:nowrap;}
+.vce-cnt-t{display:inline-flex;align-items:center;justify-content:center;width:11px;height:11px;
+  border-radius:50%;font-size:7.5px;font-weight:800;flex-shrink:0;}
 .vce-cnt.vc-tS{color:#ffd76a;} .vce-cnt.vc-tS .vce-cnt-t{background:linear-gradient(135deg,#ffd76a,#f0a730);color:#241a02;}
 .vce-cnt.vc-tA{color:#c4b0ff;} .vce-cnt.vc-tA .vce-cnt-t{background:linear-gradient(135deg,#cbb8ff,#8c6df0);color:#1a1030;}
 .vce-cnt.vc-tB{color:#9fc0e8;} .vce-cnt.vc-tB .vce-cnt-t{background:rgba(159,192,232,.9);color:#0e1622;}
@@ -1686,8 +1689,8 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .vc-tS-tx{color:#ffd76a;} .vc-tA-tx{color:#c4b0ff;}
 .vc-tB-tx{color:#9fc0e8;} .vc-tC-tx{color:#ff9d9d;}
 /* 集約グレード */
-.vce-g{display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:22px;padding:0 5px;
-  border-radius:6px;font-size:14px;font-weight:800;flex-shrink:0;}
+.vce-g{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:20px;padding:0 5px;
+  border-radius:6px;font-size:13px;font-weight:800;flex-shrink:0;}
 .vce-gS{background:rgba(255,199,88,.2);color:#ffd76a;box-shadow:inset 0 0 0 1px rgba(255,199,88,.5);}
 .vce-gA{background:rgba(61,220,134,.16);color:#5ce89b;box-shadow:inset 0 0 0 1px rgba(61,220,134,.42);}
 .vce-gB{background:rgba(120,160,220,.16);color:#9fc0e8;box-shadow:inset 0 0 0 1px rgba(120,160,220,.4);}
@@ -5519,13 +5522,14 @@ function vcBadgesHtml(p){
         +'<span class="vce-tier vc-t'+head.t+'">'+head.t+'</span>'
       +'</span>'
     +'</div>'
+    // 「ラベル：値」を横並びにして1行で完結させる（縦積みだと結果が見出しから離れて見づらいため）
     +'<div class="vce-stats">'
-      +'<div class="st-col"><div class="st-lbl">内訳</div><div class="st-val vce-cnts">'
+      +'<div class="vce-stat"><span class="vce-slbl">内訳</span><span class="vce-cnts">'
         +['S','A','B','C'].filter(function(t){return cnt[t];}).map(function(t){
             return '<span class="vce-cnt vc-t'+t+'"><span class="vce-cnt-t">'+t+'</span>'+cnt[t]+'</span>';
-          }).join('')+'</div></div>'
-      +'<div class="st-col"><div class="st-lbl">VCの質</div><div class="st-val"><span class="vce-g vce-g'+g.q+'">'+g.q+'</span></div></div>'
-      +'<div class="st-col"><div class="st-lbl">TGEの確度</div><div class="st-val"><span class="vce-g vce-g'+g.t+'">'+g.t+'</span></div></div>'
+          }).join('')+'</span></div>'
+      +'<div class="vce-stat"><span class="vce-slbl">VCの質</span><span class="vce-g vce-g'+g.q+'">'+g.q+'</span></div>'
+      +'<div class="vce-stat"><span class="vce-slbl">TGEの確度</span><span class="vce-g vce-g'+g.t+'">'+g.t+'</span></div>'
     +'</div>'
     +'<div class="vce-body" id="vcx-body-'+p.id+'" style="display:'+(isOpen?'block':'none')+';">'
       +'<div class="vcx-list">'+vs.map(vcChipHtml).join('')+'</div>'
