@@ -1650,41 +1650,61 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
    他の場所で.pj-dvや.pj-burnに色指定が重複していたため、確実に効くよう最後尾に置く */
 .pj-meta2 .pj-dv,.pj-burn{color:var(--t3)!important;}
 /* 収益の実測値も他の統計(調達額・参加者・TVL)と同じ白で統一する */
-/* ─── VC欄。既定は1行サマリー、タップで全件展開。点数には影響しない表示専用 ─── */
-.vcx{margin-top:7px;border-radius:12px;background:rgba(255,255,255,.035);
-  border:1px solid rgba(255,255,255,.09);overflow:hidden;transition:border-color .16s,background .16s;}
-.vcx.open{background:rgba(255,255,255,.055);border-color:rgba(255,255,255,.15);}
-.vcx-sum{width:100%;display:flex;align-items:center;gap:7px;padding:7px 9px 7px 8px;
-  background:transparent;border:none;cursor:pointer;text-align:left;}
-.vcx-sum>.vc-chip{flex:0 1 auto;min-width:0;overflow:hidden;}
-.vcx-more{display:inline-flex;align-items:center;gap:4px;flex-shrink:0;margin-left:auto;}
-.vcx-cnt{display:inline-flex;align-items:center;gap:2px;font-size:9.5px;font-weight:800;
-  padding:1.5px 6px 1.5px 4px;border-radius:99px;background:rgba(255,255,255,.06);}
-.vcx-cnt-t{display:inline-flex;align-items:center;justify-content:center;width:11px;height:11px;
-  border-radius:50%;font-size:7.5px;font-weight:800;}
-.vcx-cnt.vc-tS{color:#ffd76a;} .vcx-cnt.vc-tS .vcx-cnt-t{background:linear-gradient(135deg,#ffd76a,#f0a730);color:#241a02;}
-.vcx-cnt.vc-tA{color:#c4b0ff;} .vcx-cnt.vc-tA .vcx-cnt-t{background:linear-gradient(135deg,#cbb8ff,#8c6df0);color:#1a1030;}
-.vcx-cnt.vc-tB{color:#9fc0e8;} .vcx-cnt.vc-tB .vcx-cnt-t{background:rgba(159,192,232,.85);color:#0e1622;}
-.vcx-cnt.vc-tC{color:#ff9d9d;} .vcx-cnt.vc-tC .vcx-cnt-t{background:#ff5c5c;color:#2a0d0d;}
-.vcx-chev{width:13px;height:13px;flex-shrink:0;color:var(--t3);opacity:.75;
-  transition:transform .22s cubic-bezier(.4,0,.2,1),opacity .16s;}
-.vcx.open .vcx-chev{transform:rotate(180deg);opacity:1;}
-.vcx-sum:active{background:rgba(255,255,255,.05);}
-.vcx-body{padding:0 9px 9px;}
-.vcx-list{display:flex;flex-wrap:wrap;gap:5px;padding-top:2px;}
-
-/* 開閉できない（1社のみ）ときはカーソルも変えない */
-.vcx-solo .vcx-sum{cursor:default;}
-/* ティア表リンクはVC枠の"外"に置き、展開しなくても常に押せるようにする。
-   内容を包む幅にして、矢印が文字から離れて間延びしないようにする */
-.vcx-top{display:flex;justify-content:center;margin-top:10px;}
-.vcx-link{display:inline-flex;align-items:center;gap:6px;
-  padding:6px 11px;border-radius:9px;cursor:pointer;
-  font-size:11px;font-weight:700;letter-spacing:.02em;
+/* ─── VC評価ブロック（プロジェクトの質の直下）。表示専用でスコアには影響しない ─── */
+.vce{margin:8px 0 0;border-radius:12px;padding:9px 11px 8px;
+  background:linear-gradient(180deg,rgba(140,120,255,.07),rgba(140,120,255,.02));
+  border:1px solid rgba(150,130,255,.26);}
+.vce-head{display:flex;align-items:center;gap:6px;margin-bottom:7px;}
+.vce-ico{width:14px;height:14px;color:#c4b0ff;flex-shrink:0;}
+.vce-ttl{font-size:12px;font-weight:800;color:var(--t1);letter-spacing:.02em;}
+/* 1行目：最高ティアVC */
+.vce-top-row{display:flex;align-items:center;gap:6px;margin-bottom:9px;min-width:0;}
+.vce-tro{width:13px;height:13px;color:#ffd76a;flex-shrink:0;}
+.vce-top-row .vce-k{flex-shrink:0;}
+.vce-name{font-size:12.5px;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;}
+/* 2行目：3項目を等幅で並べる（カード内の他の統計行と同じ見た目に揃える） */
+.vce-row{display:flex;justify-content:space-between;gap:14px;}
+.vce-col{flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:center;
+  text-align:center;position:relative;}
+.vce-col:not(:last-child)::after{content:'';position:absolute;right:-7px;top:2px;bottom:2px;
+  width:1px;background:rgba(255,255,255,.14);}
+.vce-k{font-size:10px;color:var(--t3);font-weight:600;white-space:nowrap;line-height:1;}
+.vce-col .vce-k{margin-bottom:6px;}
+.vce-v{display:inline-flex;align-items:center;justify-content:center;gap:2px;
+  font-size:15px;font-weight:800;color:var(--t1);line-height:1;font-variant-numeric:tabular-nums;}
+.vce-unit{font-size:10px;font-weight:700;color:var(--t3);}
+.vce-tier{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;
+  border-radius:50%;font-size:9px;font-weight:800;flex-shrink:0;}
+.vce-tier.vc-tS{background:linear-gradient(135deg,#ffd76a,#f0a730);color:#241a02;}
+.vce-tier.vc-tA{background:linear-gradient(135deg,#cbb8ff,#8c6df0);color:#1a1030;}
+.vce-tier.vc-tB{background:rgba(159,192,232,.9);color:#0e1622;}
+.vce-tier.vc-tC{background:#ff5c5c;color:#2a0d0d;}
+.vc-tS-tx{color:#ffd76a;} .vc-tA-tx{color:#c4b0ff;}
+.vc-tB-tx{color:#9fc0e8;} .vc-tC-tx{color:#ff9d9d;}
+/* 集約グレード */
+.vce-g{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:20px;padding:0 5px;
+  border-radius:6px;font-size:13px;font-weight:800;}
+.vce-gS{background:rgba(255,199,88,.2);color:#ffd76a;box-shadow:inset 0 0 0 1px rgba(255,199,88,.5);}
+.vce-gA{background:rgba(61,220,134,.16);color:#5ce89b;box-shadow:inset 0 0 0 1px rgba(61,220,134,.42);}
+.vce-gB{background:rgba(120,160,220,.16);color:#9fc0e8;box-shadow:inset 0 0 0 1px rgba(120,160,220,.4);}
+.vce-gC{background:rgba(255,92,92,.15);color:#ff9d9d;box-shadow:inset 0 0 0 1px rgba(255,92,92,.42);}
+.vce-body{overflow:hidden;}
+.vce-body .vcx-list{display:flex;flex-wrap:wrap;gap:5px;padding-top:9px;}
+.vce-hr{height:1px;background:rgba(255,255,255,.09);margin:8px 0 0;}
+.vce-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;padding-top:7px;}
+.vce-more{display:inline-flex;align-items:center;gap:3px;background:transparent;border:none;cursor:pointer;
+  font-size:11px;font-weight:700;color:var(--t2);padding:3px 2px;}
+.vce-more:active{color:var(--t1);}
+.vce-chev{width:12px;height:12px;opacity:.65;transition:transform .22s cubic-bezier(.4,0,.2,1);}
+.vce.open .vce-chev{transform:rotate(90deg);}
+/* ティア表リンク */
+.vcx-link{display:inline-flex;align-items:center;gap:5px;
+  padding:5px 10px;border-radius:8px;cursor:pointer;
+  font-size:10.5px;font-weight:700;letter-spacing:.02em;
   color:var(--t2);background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.18);
   transition:color .15s,border-color .15s,background .15s;}
-.vcx-link .vc-ico{width:12px;height:12px;opacity:.8;flex-shrink:0;}
-.vcx-arw{width:12px;height:12px;opacity:.6;flex-shrink:0;transition:transform .15s,opacity .15s;}
+.vcx-link .vc-ico{width:11px;height:11px;opacity:.8;flex-shrink:0;}
+.vcx-arw{width:11px;height:11px;opacity:.6;flex-shrink:0;transition:transform .15s,opacity .15s;}
 .vcx-link:active{color:var(--t1);border-color:rgba(255,255,255,.34);background:rgba(255,255,255,.1);}
 .vcx-link:active .vcx-arw{opacity:1;transform:translateX(2px);}
 /* バッジ本体 */
@@ -4913,6 +4933,7 @@ function renderList(id,mode){
       +'</div>'
       +'<div class="q-avs">'+smAvsHtml+'</div>'
       +'</div>'
+      +vcBadgesHtml(p)
 
       // ── 報酬パイの競争期待値：調達効率の統計＋減点3項目 ──
       // 見出し右のスコアは調達効率+パイシェアの加重後スコア(bd.eff/W.w_ef)。
@@ -4934,7 +4955,6 @@ function renderList(id,mode){
         +llamaDeltaHtml(p)+'</div>'
       +llamaFeeCol(p)
       +'</div>'
-      +vcBadgesHtml(p)
       +'<div class="q-hr"></div>'
       +'<div class="q-deduct-row">'
       +'<span class="pl-txt">リファ影響度の低さ：'+msym(p.refa)+' <span class="pv pv-white">'+fmtPtR(rPt)+'</span></span>'
@@ -5426,11 +5446,13 @@ function projVcs(p){
 var openVcKeys={}; // {pid:true} 展開状態を案件ID単位で記憶（再描画で勝手に閉じるのを防ぐ）
 function toggleVcx(pid){
   var body=document.getElementById('vcx-body-'+pid);
-  var wrap=body&&body.closest('.vcx');
+  var wrap=body&&body.closest('.vce');
   if(!body||!wrap)return;
   var open=!openVcKeys[pid];
   if(open)openVcKeys[pid]=true; else delete openVcKeys[pid];
   wrap.classList.toggle('open',open);
+  var lbl=wrap.querySelector('.vce-more-t');
+  if(lbl)lbl.textContent=open?'閉じる':'詳細を見る';
   animateFold(body,open);
 }
 function vcChipHtml(v){
@@ -5449,34 +5471,71 @@ function vcTierLinkHtml(){
     +'<line x1="5" y1="12" x2="17" y2="12"></line><polyline points="12,7 17,12 12,17"></polyline></svg>'
     +'</button>';
 }
+// ── VC評価ブロック（プロジェクトの質の直下に置く要約カード） ──
+// ティア（格）とエアドロ実績（h/m/l）を集約して、2つのグレードに落とす。
+// あくまで表示用の目安で、期待値スコアには一切影響しない。
+function vcGrades(vs){
+  if(!vs.length)return null;
+  var TV={S:4,A:3,B:2,C:0};
+  // ── VCの質：最上位のティアを基準に、同格が複数いれば少し上げ、衰退VCがいれば下げる ──
+  var best=Math.max.apply(null,vs.map(function(v){return TV[v.t];}));
+  var sameTop=vs.filter(function(v){return TV[v.t]===best;}).length;
+  var nC=vs.filter(function(v){return v.t==='C';}).length;
+  // 同格が並んでもワンランク上げるまではせず、あくまで最上位ティアを基準にする
+  // （A級が3社いてもSにはしない。Sは実際にSティアが入っている案件だけ）
+  var q=best+(sameTop>=3?0.5:sameTop>=2?0.25:0)-nC;
+  var qg=q>=4?'S':q>=3?'A':q>=2?'B':'C';
+  // ── TGEの確度：エアドロ実績の平均に、取引所系を加点・TradFi系と衰退を減点 ──
+  var AV={h:3,m:2,l:1};
+  var avg=vs.reduce(function(s,v){return s+AV[v.a];},0)/vs.length;
+  var nCex=vs.filter(function(v){return v.c==='cex';}).length;
+  var nTfi=vs.filter(function(v){return v.c==='tfi';}).length;
+  var t=avg+Math.min(nCex,3)*0.4-nTfi*0.3-nC*0.5;
+  var tg=t>=3.2?'S':t>=2.6?'A':t>=1.9?'B':'C';
+  return {q:qg,t:tg};
+}
 function vcBadgesHtml(p){
   var vs=projVcs(p);
   if(!vs.length)return ''; // 調達VCが未登録の案件では何も出さない
-  var head=vs[0], rest=vs.slice(1);
-  // 件数は「合計」で数える（先頭に出しているVCも含む）
-  var cnt={},order=['S','A','B','C'];
-  vs.forEach(function(v){cnt[v.t]=(cnt[v.t]||0)+1;});
-  var moreHtml=order.filter(function(t){return cnt[t];}).map(function(t){
-    return '<span class="vcx-cnt vc-t'+t+'"><span class="vcx-cnt-t">'+t+'</span>'+cnt[t]+'</span>';
-  }).join('');
+  var head=vs[0], g=vcGrades(vs);
   var isOpen=!!openVcKeys[p.id];
-  var hasRest=rest.length>0;
-  return '<div class="vcx-top">'+vcTierLinkHtml()+'</div>'
-    +'<div class="vcx'+(isOpen?' open':'')+(hasRest?'':' vcx-solo')+'">'
-    +(hasRest
-      ? '<button type="button" class="vcx-sum" onclick="event.stopPropagation();toggleVcx('+p.id+')">'
-      : '<div class="vcx-sum">')
-    +vcChipHtml(head)
-    +'<span class="vcx-more">'+moreHtml+'</span>'
-    +(hasRest?'<svg class="vcx-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="6,9.5 12,15.5 18,9.5"></polyline></svg>':'')
-    +(hasRest?'</button>':'</div>')
-    +(hasRest
-      ? '<div class="vcx-body" id="vcx-body-'+p.id+'" style="display:'+(isOpen?'block':'none')+';">'
-        // サマリー行に出ている先頭のVCとは重複させず、残りだけをそのまま下に連続表示する
-        +'<div class="vcx-list">'+rest.map(vcChipHtml).join('')+'</div>'
-        +'</div>'
-      : '')
+  var trophy='<svg class="vce-tro" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'
+    +'<path d="M7 4h10v5a5 5 0 0 1-10 0z"></path><path d="M7 5.5H4.5A2.5 2.5 0 0 0 7 9.5"></path>'
+    +'<path d="M17 5.5h2.5A2.5 2.5 0 0 1 17 9.5"></path><line x1="12" y1="14" x2="12" y2="17.5"></line>'
+    +'<line x1="8.5" y1="20" x2="15.5" y2="20"></line><path d="M9.5 20c0-1.4 1-2.5 2.5-2.5s2.5 1.1 2.5 2.5"></path></svg>';
+  return '<div class="vce'+(isOpen?' open':'')+'">'
+    +'<div class="vce-head">'+vcTierIconHtml()+'<span class="vce-ttl">VC評価</span></div>'
+    // 1行目は最高ティアVCだけ。2行目は3項目を等幅の列に並べて、
+    // 折り返しで不揃いになるのを防ぐ（カード内の「強者の言及/Xスコア/…」と同じ形に揃える）
+    +'<div class="vce-top-row">'+trophy
+      +'<span class="vce-k">最高ティアVC</span>'
+      +'<span class="vce-name vc-t'+head.t+'-tx">'+esc(head.n)+'</span>'
+      +'<span class="vce-tier vc-t'+head.t+'">'+head.t+'</span>'
+    +'</div>'
+    +'<div class="vce-row">'
+      +'<div class="vce-col"><div class="vce-k">件数</div><div class="vce-v">'+vs.length+'<span class="vce-unit">社</span></div></div>'
+      +'<div class="vce-col"><div class="vce-k">VCの質</div><div class="vce-v"><span class="vce-g vce-g'+g.q+'">'+g.q+'</span></div></div>'
+      +'<div class="vce-col"><div class="vce-k">TGEの確度</div><div class="vce-v"><span class="vce-g vce-g'+g.t+'">'+g.t+'</span></div></div>'
+    +'</div>'
+    +'<div class="vce-body" id="vcx-body-'+p.id+'" style="display:'+(isOpen?'block':'none')+';">'
+      +'<div class="vcx-list">'+vs.map(vcChipHtml).join('')+'</div>'
+    +'</div>'
+    +'<div class="vce-hr"></div>'
+    +'<div class="vce-foot">'
+      +vcTierLinkHtml()
+      +'<button type="button" class="vce-more" onclick="event.stopPropagation();toggleVcx('+p.id+')">'
+        +'<span class="vce-more-t">'+(isOpen?'閉じる':'詳細を見る')+'</span>'
+        +'<svg class="vce-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="9,5.5 15.5,12 9,18.5"></polyline></svg>'
+      +'</button>'
+    +'</div>'
   +'</div>';
+}
+// ティア表アイコン（見出し用）
+function vcTierIconHtml(){
+  return '<svg class="vce-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">'
+    +'<path d="M3.2 9.2L12 4l8.8 5.2"></path><line x1="6.2" y1="11.4" x2="6.2" y2="17"></line>'
+    +'<line x1="12" y1="11.4" x2="12" y2="17"></line><line x1="17.8" y1="11.4" x2="17.8" y2="17"></line>'
+    +'<line x1="3.6" y1="19.6" x2="20.4" y2="19.6"></line></svg>';
 }
 // ティア表モーダル
 function openVcInfo(focusId){
