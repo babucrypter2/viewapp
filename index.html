@@ -5502,7 +5502,7 @@ function toggleVcx(pid){
   if(open)openVcKeys[pid]=true; else delete openVcKeys[pid];
   wrap.classList.toggle('open',open);
   var lbl=wrap.querySelector('.vce-more-t');
-  if(lbl)lbl.textContent=open?'閉じる':'詳細を見る';
+  if(lbl)lbl.textContent=open?'閉じる':'調達先VCを全表示';
   animateFold(body,open);
 }
 function vcChipHtml(v){
@@ -5617,7 +5617,7 @@ function vcBadgesHtml(p){
     +'<div class="vce-foot">'
       +vcTierLinkHtml()
       +'<button type="button" class="vce-more" onclick="event.stopPropagation();toggleVcx('+p.id+')">'
-        +'<span class="vce-more-t">'+(isOpen?'閉じる':'詳細を見る')+'</span>'
+        +'<span class="vce-more-t">'+(isOpen?'閉じる':'調達先VCを全表示')+'</span>'
         +'<svg class="vce-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="9,5.5 15.5,12 9,18.5"></polyline></svg>'
       +'</button>'
     +'</div>'
@@ -5636,7 +5636,7 @@ function openVcInfo(focusId){
   if(!el)return;
   var h='';
   // ── 肝である2つのランクの判定基準を最初に示す ──
-  h+='<div class="vc-sec"><div class="vc-sec-h2">VCの質</div>'
+  h+='<div class="vc-sec"><div class="vc-sec-h2">VCの質の評価基準</div>'
     +'<p class="vc-note">最上位ティアがそのままランクになる。衰退VC（C）が1社いるごとに1ランク下がる。</p>'
     +'<div class="vc-crit">'
       +'<div class="vc-crit-row"><span class="vce-g vce-gS">S</span><span>Sティアが1社でも入っている</span></div>'
@@ -5644,7 +5644,7 @@ function openVcInfo(focusId){
       +'<div class="vc-crit-row"><span class="vce-g vce-gB">B</span><span>Bティアが最上位</span></div>'
       +'<div class="vc-crit-row"><span class="vce-g vce-gC">C</span><span>Cティアのみ、または減点で下がった場合</span></div>'
     +'</div></div>';
-  h+='<div class="vc-sec"><div class="vc-sec-h2">TGEの確度</div>'
+  h+='<div class="vc-sec"><div class="vc-sec-h2">TGEの確度の評価基準</div>'
     +'<p class="vc-note">各VCのエアドロ実績（高3・中2・低1）の平均に、性質による加減点を足して判定する。</p>'
     +'<div class="vc-crit">'
       +'<div class="vc-crit-row"><span class="vc-crit-op vc-crit-plus">＋0.4</span><span>取引所系1社ごと（最大3社まで）</span></div>'
