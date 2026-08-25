@@ -5332,8 +5332,8 @@ var VC_LIST=[
   {id:'a16z',       n:'a16z crypto',       t:'S', c:'lead', a:'h'},
   {id:'pantera',    n:'Pantera Capital',   t:'S', c:'lead', a:'h'},
   {id:'polychain',  n:'Polychain Capital', t:'S', c:'lead', a:'h'},
+  {id:'dragonfly',  n:'Dragonfly',         t:'S', c:'lead', a:'h'}, // 2026年2月に第4号6.5億ドルを目標超で調達、運用40億ドル超（Fortune Crypto 100）
   // ── A: 一線級 ──
-  {id:'dragonfly',  n:'Dragonfly',            t:'A', c:'lead', a:'h'},
   {id:'multicoin',  n:'Multicoin Capital',    t:'A', c:'lead', a:'h'},
   {id:'coinbasev',  n:'Coinbase Ventures',    t:'A', c:'cex',  a:'h'},
   {id:'yzilabs',    n:'YZi Labs (旧Binance Labs)', t:'A', c:'cex', a:'h'},
@@ -5527,20 +5527,33 @@ function vcTierLinkHtml(){
 function vcGrades(vs){
   if(!vs.length)return null;
   var TV={S:4,A:3,B:2,C:0};
-  // ── VCの質：最上位のティアを基準に、同格が複数いれば少し上げ、衰退VCがいれば下げる ──
+  var nC=vs.filter(function(v){return v.t==='C';}).length;
+  // ── VCの質 ──
+  // 最上位ティアを基準に、同格が複数いれば加点する。
+  // 以前は加点幅(+0.25/+0.5)が次のランクまでの距離(1.0)に届かず、
+  // 何社いてもランクが変わらない死にコードだったため、実効のある幅に直した。
   var best=Math.max.apply(null,vs.map(function(v){return TV[v.t];}));
   var sameTop=vs.filter(function(v){return TV[v.t]===best;}).length;
-  var nC=vs.filter(function(v){return v.t==='C';}).length;
-  // 同格が並んでもワンランク上げるまではせず、あくまで最上位ティアを基準にする
-  // （A級が3社いてもSにはしない。Sは実際にSティアが入っている案件だけ）
-  var q=best+(sameTop>=3?0.5:sameTop>=2?0.25:0)-nC;
+  // 衰退VCの扱い：名簿の隅に残っているだけで格が落ちるのは過剰なので、
+  // 「衰退VCが過半数を占める」ときだけ減点する（有力VCがいれば影響させない）
+  var deadPenalty=(nC/vs.length>0.5)?1:0;
+  var q=best+(sameTop>=3?0.5:sameTop>=2?0.25:0)-deadPenalty;
   var qg=q>=4?'S':q>=3?'A':q>=2?'B':'C';
-  // ── TGEの確度：エアドロ実績の平均に、取引所系を加点・TradFi系と衰退を減点 ──
+  // Sは「実際にSティアが入っている案件」だけに限定する。
+  // A級が何社並んでもSには上げない（最上位の格が本質であり、社数はその代替にならない）
+  if(qg==='S'&&best<TV.S)qg='A';
+  // ── TGEの確度 ──
+  // 以前は「平均」に「社数比例の加点」を混ぜていたため、取引所系がいる事実は同じでも
+  // 他のVCが増えるだけで薄まって確度が下がる不整合があった。
+  // 加減点を社数ではなく「有無・構成比」で判定し、母数に左右されないようにする。
   var AV={h:3,m:2,l:1};
   var avg=vs.reduce(function(s,v){return s+AV[v.a];},0)/vs.length;
   var nCex=vs.filter(function(v){return v.c==='cex';}).length;
   var nTfi=vs.filter(function(v){return v.c==='tfi';}).length;
-  var t=avg+Math.min(nCex,3)*0.4-nTfi*0.3-nC*0.5;
+  var t=avg
+    +(nCex>=2?0.8:nCex>=1?0.5:0)        // 取引所系は「いるかどうか」で見る
+    -(nTfi/vs.length>0.5?0.6:0)         // TradFi系が過半数のときだけ減点
+    -(nC/vs.length>0.5?0.5:0);          // 衰退VCが過半数のときだけ減点
   var tg=t>=3.2?'S':t>=2.6?'A':t>=1.9?'B':'C';
   return {q:qg,t:tg};
 }
@@ -5637,7 +5650,7 @@ function openVcInfo(focusId){
   var h='';
   // ── 肝である2つのランクの判定基準を最初に示す ──
   h+='<div class="vc-sec"><div class="vc-sec-h2">VCの質の評価基準</div>'
-    +'<p class="vc-note">最上位ティアがそのままランクになる。衰退VC（C）が1社いるごとに1ランク下がる。</p>'
+    +'<p class="vc-note">最上位ティアがそのままランクになる。同格が2社以上いれば少し上がり、衰退VC（C）が過半数を占めると1ランク下がる。SはSティアが実際に入っている案件のみ。</p>'
     +'<div class="vc-crit">'
       +'<div class="vc-crit-row"><span class="vce-g vce-gS">S</span><span>Sティアが1社でも入っている</span></div>'
       +'<div class="vc-crit-row"><span class="vce-g vce-gA">A</span><span>Aティアが最上位</span></div>'
@@ -5647,9 +5660,10 @@ function openVcInfo(focusId){
   h+='<div class="vc-sec"><div class="vc-sec-h2">TGEの確度の評価基準</div>'
     +'<p class="vc-note">各VCのエアドロ実績（高3・中2・低1）の平均に、性質による加減点を足して判定する。</p>'
     +'<div class="vc-crit">'
-      +'<div class="vc-crit-row"><span class="vc-crit-op vc-crit-plus">＋0.4</span><span>取引所系1社ごと（最大3社まで）</span></div>'
-      +'<div class="vc-crit-row"><span class="vc-crit-op vc-crit-minus">－0.3</span><span>TradFi系1社ごと</span></div>'
-      +'<div class="vc-crit-row"><span class="vc-crit-op vc-crit-minus">－0.5</span><span>衰退VC1社ごと</span></div>'
+      +'<div class="vc-crit-row"><span class="vc-crit-op vc-crit-plus">＋0.5</span><span>取引所系が1社いる</span></div>'
+      +'<div class="vc-crit-row"><span class="vc-crit-op vc-crit-plus">＋0.8</span><span>取引所系が2社以上いる</span></div>'
+      +'<div class="vc-crit-row"><span class="vc-crit-op vc-crit-minus">－0.6</span><span>TradFi系が過半数</span></div>'
+      +'<div class="vc-crit-row"><span class="vc-crit-op vc-crit-minus">－0.5</span><span>衰退VCが過半数</span></div>'
     +'</div>'
     +'<div class="vc-crit vc-crit-mt">'
       +'<div class="vc-crit-row"><span class="vce-g vce-gS">S</span><span>3.2以上</span></div>'
@@ -5657,7 +5671,7 @@ function openVcInfo(focusId){
       +'<div class="vc-crit-row"><span class="vce-g vce-gB">B</span><span>1.9以上</span></div>'
       +'<div class="vc-crit-row"><span class="vce-g vce-gC">C</span><span>1.9未満</span></div>'
     +'</div>'
-    +'<p class="vc-note vc-note-sm">※公開データからの目安であり、スコアには一切影響しない。</p></div>';
+    +'<p class="vc-note vc-note-sm">※加減点は社数比例ではなく「有無・構成比」で判定するため、VCが増えても薄まらない。<br>※公開データからの目安であり、スコアには一切影響しない。トークンを前提としない設計の案件（手数料をステーブルで払うL1など）はVC構成だけでは判別できないので、別途確認が必要。</p></div>';
   // ── 見方（バッジの読み方）──
   h+='<div class="vc-sec"><div class="vc-sec-h2">バッジの見方</div>'
     +'<div class="vc-legend"><div class="vc-leg-row">'
