@@ -4342,8 +4342,12 @@ function _effMedianCache(){
     if(q&&q.fund){
       var parts=[];
       if(q.usr)parts.push(Math.min((q.fund/q.usr)/(W.ef_full||25),1));
-      if(q.tvl)parts.push(Math.min((q.fund/q.tvl)/(W.et_full||3),1));
-      var n=parts.length?parts.reduce(function(a,b){return a+b;},0)/parts.length:0;
+      var tv=effTvl(q);   // 表示・スコアと同じ「最新TVL優先」の値を使う（基準を揃える）
+      if(tv)parts.push(Math.min((q.fund/tv)/(W.et_full||3),1));
+      // 参加者もTVLも無い案件は「効率0」ではなく「算出不能」。
+      // 0点として混ぜると中央値が実態より低く引きずられ、暫定値が不当に低くなる
+      if(!parts.length)return;
+      var n=parts.reduce(function(a,b){return a+b;},0)/parts.length;
       vals.push(n*(W.w_ef||0));
     }
   });
@@ -5560,34 +5564,33 @@ function vcTierLinkHtml(){
 function vcGrades(vs){
   if(!vs.length)return null;
   var TV={S:4,A:3,B:2,C:0};
+  var n=vs.length;
   var nC=vs.filter(function(v){return v.t==='C';}).length;
   // ── VCの質 ──
-  // 最上位ティアを基準に、同格が複数いれば加点する。
-  // 以前は加点幅(+0.25/+0.5)が次のランクまでの距離(1.0)に届かず、
-  // 何社いてもランクが変わらない死にコードだったため、実効のある幅に直した。
   var best=Math.max.apply(null,vs.map(function(v){return TV[v.t];}));
   var sameTop=vs.filter(function(v){return TV[v.t]===best;}).length;
-  // 衰退VCの扱い：名簿の隅に残っているだけで格が落ちるのは過剰なので、
-  // 「衰退VCが過半数を占める」ときだけ減点する（有力VCがいれば影響させない）
-  var deadPenalty=(nC/vs.length>0.5)?1:0;
+  var deadPenalty=(nC/n>0.5)?1:0;
   var q=best+(sameTop>=3?0.5:sameTop>=2?0.25:0)-deadPenalty;
   var qg=q>=4?'S':q>=3?'A':q>=2?'B':'C';
-  // Sは「実際にSティアが入っている案件」だけに限定する。
-  // A級が何社並んでもSには上げない（最上位の格が本質であり、社数はその代替にならない）
-  if(qg==='S'&&best<TV.S)qg='A';
+  if(qg==='S'&&best<TV.S)qg='A'; // SはSティアが実在する案件だけ
   // ── TGEの確度 ──
-  // 以前は「平均」に「社数比例の加点」を混ぜていたため、取引所系がいる事実は同じでも
-  // 他のVCが増えるだけで薄まって確度が下がる不整合があった。
-  // 加減点を社数ではなく「有無・構成比」で判定し、母数に左右されないようにする。
+  // 「平均」を基礎にすると、VCが増えるほど薄まって確度が下がるという致命的な不整合が起きる
+  // （実際にVariationalは4社でA・2社に減らすとSになっていた）。
+  // TGEは"最も強い推進役が1社いれば起こる"ものなので、平均ではなく最大値を基礎にし、
+  // 厚み・取引所系・上位ティアを加点、トークンを出しにくい構成のときだけ減点する。
   var AV={h:3,m:2,l:1};
-  var avg=vs.reduce(function(s,v){return s+AV[v.a];},0)/vs.length;
+  var best2=Math.max.apply(null,vs.map(function(v){return AV[v.a];}));   // 最も強い推進役
+  var hN=vs.filter(function(v){return v.a==='h';}).length;               // 実績「高」の厚み
   var nCex=vs.filter(function(v){return v.c==='cex';}).length;
   var nTfi=vs.filter(function(v){return v.c==='tfi';}).length;
-  var t=avg
-    +(nCex>=2?0.8:nCex>=1?0.5:0)        // 取引所系は「いるかどうか」で見る
-    -(nTfi/vs.length>0.5?0.6:0)         // TradFi系が過半数のときだけ減点
-    -(nC/vs.length>0.5?0.5:0);          // 衰退VCが過半数のときだけ減点
-  var tg=t>=3.2?'S':t>=2.6?'A':t>=1.9?'B':'C';
+  var topH=vs.some(function(v){return v.a==='h'&&(v.t==='S'||v.t==='A');});
+  var t=best2
+    +(hN>=3?0.4:hN>=2?0.25:0)          // 実績「高」が複数いる厚み
+    +(nCex>=2?0.5:nCex>=1?0.3:0)       // 取引所系（上場ルート）
+    +(topH?0.3:0)                      // 上位ティアが実績「高」を持つ
+    -((nTfi/n>0.5)?0.8:0)              // TradFi系が過半数（トークンを出さない出口）
+    -((nC/n>0.5)?0.8:0);               // 衰退VCが過半数
+  var tg=t>=3.9?'S':t>=3.3?'A':t>=2.4?'B':'C';
   return {q:qg,t:tg};
 }
 // 「調達先VC」の統計行は絶対に折り返さない。入りきらなければ段階的に詰めて必ず1行に収める
