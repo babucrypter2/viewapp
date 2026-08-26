@@ -1746,6 +1746,9 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
   padding:2.5px 7px 2.5px 3px;border-radius:99px;white-space:nowrap;cursor:pointer;
   background:rgba(255,255,255,.05);color:var(--t2);border:1px solid rgba(255,255,255,.12);}
 .vc-chip:active{opacity:.6;}
+/* 強者の「対象外（休止中）」。満点からも除くので、減点ではないことが分かる薄い見た目にする */
+.sm-item.av-x{opacity:.4;filter:saturate(.25);}
+.sm-badge-x{font-size:12px;font-weight:800;color:var(--t3);line-height:1;}
 .vc-tier{display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;
   border-radius:50%;font-size:9px;font-weight:800;flex-shrink:0;}
 /* ティアごとの光り方。Sほど強く光る */
@@ -3911,6 +3914,21 @@ function bootFromCache(){
 // クラウドから読み込み（GETのみ。書き込みは一切行わない）
 var _lastUpdated=null; // クラウドデータの最終更新日時
 function cloudLoad(){
+  // まず更新日時だけを取りに行く。本体（画像込みで数MB）を毎回落とすと待ち時間が長いので、
+  // 前回から変化が無ければ本体の取得自体をやめる（キャッシュ起動と組み合わせて体感を最速にする）
+  var pre=(!_cacheWasLite && _lastUpdated)
+    ? fetch(SB_URL+'/rest/v1/app_data?id=eq.1&select=updated_at',{
+        method:'GET',
+        headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}
+      }).then(function(r){return r.ok?r.json():null;}).then(function(rows){
+        if(rows&&rows.length&&rows[0].updated_at&&rows[0].updated_at===_lastUpdated){
+          _cloudOK=true; return true; // 変化なし → 本体は取りに行かない
+        }
+        return false;
+      }).catch(function(){return false;})
+    : Promise.resolve(false);
+  return pre.then(function(skip){
+    if(skip)return 'same';
   return fetch(SB_URL+'/rest/v1/app_data?id=eq.1&select=data,updated_at',{
     method:'GET',
     headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}
@@ -3929,6 +3947,7 @@ function cloudLoad(){
     saveCache(d,ts);
     return true;
   }).catch(function(){return false;});
+  });
 }
 // 最終更新日時を「○月○日 HH:MM」形式で表示（相対表現も添える）
 function fmtUpdated(iso){
@@ -4111,7 +4130,7 @@ function sanDep(o){
   if(!/^\d{4}-\d{2}-\d{2}$/.test(date))date=today();
   return {date:date,cur:clampStr(o.cur,12),amt:num(o.amt),usd:num(o.usd),note:clampStr(o.note,120)};
 }
-function sanMark(v){return (v==='g'||v==='m'||v==='b')?v:'b';}
+function sanMark(v){return (v==='g'||v==='m'||v==='b'||v==='x')?v:'b';} // 'x'=対象外（休止中）
 // 報酬パイ・シェア率用：未判断（空文字）をそのまま残す。従来のsanMarkは''を✕に変えてしまうため別関数にした
 function sanMark3(v){return (v==='g'||v==='m'||v==='b')?v:'';}
 function sanFrozen(f){
@@ -4338,6 +4357,18 @@ function smFullAuto(){
   var t=(Array.isArray(SP)?SP:[]).reduce(function(a,q){return a+(q&&q.ptG?q.ptG:0);},0);
   return t>0?t:12; // 誰も登録されていない時の保険
 }
+// 案件ごとの満点ライン。'x'（対象外＝休止中）にした人はその案件の満点からも除く。
+// こうすると残った人の比重が自動的に上がり、休止者を外してもスコアが不当に下がらない。
+// 評価は案件ごとに持っているので、過去の終了案件の記録は一切変わらない。
+function smFullFor(p){
+  var sm=(p&&p.sm)||[];
+  var t=(Array.isArray(SP)?SP:[]).reduce(function(a,q,j){
+    if(!q)return a;
+    if(sm[j]==='x')return a;
+    return a+(q.ptG||0);
+  },0);
+  return t>0?t:smFullAuto();
+}
 // ○△✕を点数に変換（○=満点／△=半分／✕=0）
 function markScore(v,full){ return v==='g'?full:(v==='m'?full/2:0); }
 // 報酬パイ・シェア率は同じ25点枠の指標なので、効率スコアの真下に記号だけ小さく添える。
@@ -4372,9 +4403,11 @@ function scoreBreakdown(p){
     var fz=p.frozen;
     return {total:fz.total, sm:fz.sm||0, eff:fz.eff||0, deduct:fz.deduct||0, smPts:fz.smPts||0, effImputed:!!fz.effImputed, frozen:true};
   }
-  var smPts=(p.sm||[]).reduce(function(a,v,j){var q=SP[j];if(!q)return a;return a+(v==='g'?q.ptG:v==='m'?q.ptM:(q.ptB||0));},0);
+  var smPts=(p.sm||[]).reduce(function(a,v,j){var q=SP[j];if(!q)return a;
+    if(v==='x')return a;          // 対象外（休止中）は加点も減点もしない
+    return a+(v==='g'?q.ptG:v==='m'?q.ptM:(q.ptB||0));},0);
   // 満点ラインは「登録者全員が○だった場合の合計pt」から毎回自動算出（配点を変えてもズレない）
-  var smFull=smFullAuto();
+  var smFull=smFullFor(p);
   // 「プロジェクトの質」は 強者の言及＋Xスコア＋スマートフォロワー の3要素を合算する。
   // 旧「運営の質」が担っていた配点(w_sm_bonus)を、後者2つに割り振っている
   var smBaseScore=Math.max(0,Math.min(smPts/smFull,1))*(W.w_sm||0);
@@ -4817,7 +4850,7 @@ function projAvHtml(p,sz){
 
 function smAvHtml(per,v,sz){
   sz=sz||26;
-  var cls=v==='g'?'av-g':v==='m'?'av-m':'av-b';
+  var cls=v==='g'?'av-g':v==='m'?'av-m':v==='x'?'av-x':'av-b';
   var hasName=!!(per&&per.name&&String(per.name).trim());
   var hdl=safeHandle(per&&per.handle);
   var isAnon=!hasName&&!hdl;
@@ -4831,7 +4864,7 @@ function smAvHtml(per,v,sz){
   var tip=isAnon?'匿名':(hdl?('@'+esc(hdl)):esc(per.name));
   return '<div class="sm-item '+cls+'" title="'+tip+'">'
     +'<div class="sm-av '+cls+'" style="'+avStyle+'">'+inner+'</div>'
-    +'<span class="sm-badge sm-badge-svg">'+symIconSvg(v)+'</span>'
+    +'<span class="sm-badge'+(v==='x'?' sm-badge-x':' sm-badge-svg')+'">'+(v==='x'?'—':symIconSvg(v))+'</span>'
     +'</div>';
 }
 
@@ -4939,7 +4972,7 @@ function renderList(id,mode){
     if(effTxt_)stakeHtml='<span class="pj-dv">'+esc(effTxt_)+'</span>';
 
     // ALL SM avatars — no truncation
-    var smRank={g:0,m:1,b:2};
+    var smRank={g:0,m:1,b:2,x:3}; // 対象外（休止中）は末尾へ
     var smAvsHtml=SP.map(function(per,j){
       return {per:per,v:(p.sm&&p.sm[j])||'b'};
     }).sort(function(a,b){return smRank[a.v]-smRank[b.v];})
