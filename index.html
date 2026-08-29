@@ -3964,21 +3964,6 @@ function bootFromCache(){
   return !!c;
 }
 
-// 別行に分けて保存された画像を、文字データへ戻す（書込アプリの splitData と対）
-function mergeImages(text,imgs){
-  if(!text||!imgs)return text;
-  if(Array.isArray(text.PROJ))text.PROJ.forEach(function(p){
-    if(!p)return;
-    if(imgs.proj&&imgs.proj[p.id])p.img=imgs.proj[p.id];
-    if(imgs.task&&imgs.task[p.id])p.taskImg=imgs.task[p.id];
-  });
-  if(Array.isArray(text.SP))text.SP.forEach(function(s,i){
-    if(s&&imgs.sp&&imgs.sp[i])s.img=imgs.sp[i];
-  });
-  if(Array.isArray(imgs.secProof)&&imgs.secProof.length)text.secProof=imgs.secProof;
-  if(imgs.infoImg&&Object.keys(imgs.infoImg).length)text.infoImg=imgs.infoImg;
-  return text;
-}
 // クラウドから読み込み（GETのみ。書き込みは一切行わない）
 var _lastUpdated=null; // クラウドデータの最終更新日時
 function cloudLoad(){
