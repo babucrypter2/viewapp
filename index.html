@@ -3873,25 +3873,66 @@ function setCloudStatus(s){ // 'ok' | 'loading' | 'err'
 // ─────────── ローカルキャッシュ（起動を一瞬にするため）───────────
 // 前回表示したデータを端末内に保存しておき、次回起動時はまずそれを即描画する。
 // その裏でクラウドから最新を取得し、変化があった時だけ差し替える（読み込み待ちを見せない）。
+// ─────── 起動を速くするためのキャッシュ（IndexedDB） ───────
+// localStorageは約5MBしかなく、画像込みのデータ（4MB超）はほぼ入らないため
+// 「軽量版（画像なし）」でしか保存できず、結局毎回クラウドから画像を取り直していた。
+// IndexedDBは容量が桁違いに大きいので、画像ごと丸ごとキャッシュして初回描画を即座に行う。
+var IDB_NAME='babuAirdropCache', IDB_STORE='kv', _idbP=null;
+function idbOpen(){
+  if(_idbP)return _idbP;
+  _idbP=new Promise(function(res,rej){
+    try{
+      var q=indexedDB.open(IDB_NAME,1);
+      q.onupgradeneeded=function(e){
+        var db=e.target.result;
+        if(!db.objectStoreNames.contains(IDB_STORE))db.createObjectStore(IDB_STORE);
+      };
+      q.onsuccess=function(){res(q.result);};
+      q.onerror=function(){rej(q.error);};
+    }catch(e){rej(e);}
+  }).catch(function(){return null;});
+  return _idbP;
+}
+function idbGet(key){
+  return idbOpen().then(function(db){
+    if(!db)return null;
+    return new Promise(function(res){
+      try{
+        var t=db.transaction(IDB_STORE,'readonly').objectStore(IDB_STORE).get(key);
+        t.onsuccess=function(){res(t.result||null);};
+        t.onerror=function(){res(null);};
+      }catch(e){res(null);}
+    });
+  }).catch(function(){return null;});
+}
+function idbSet(key,val){
+  return idbOpen().then(function(db){
+    if(!db)return false;
+    return new Promise(function(res){
+      try{
+        var t=db.transaction(IDB_STORE,'readwrite').objectStore(IDB_STORE).put(val,key);
+        t.onsuccess=function(){res(true);};
+        t.onerror=function(){res(false);};
+      }catch(e){res(false);}
+    });
+  }).catch(function(){return false;});
+}
+
 var CACHE_KEY='babu_viewer_cache_v1';
 var _cacheWasLite=false; // 画像を省いた軽量キャッシュから起動したか
 function saveCache(d,updatedAt){
-  try{
-    localStorage.setItem(CACHE_KEY,JSON.stringify({data:d,updated_at:updatedAt||null,at:Date.now()}));
-    return;
-  }catch(e){}
-  // 容量制限（約5MB）を超えた場合：重い画像を省いた軽量版で再挑戦。
-  // 文字・スコアは即表示でき、画像は直後のクラウド取得で埋まる。
+  // まずIndexedDBへ画像ごと丸ごと保存する（容量が大きいのでこれが本命）
+  idbSet(CACHE_KEY,{data:d,updated_at:updatedAt||null,at:Date.now()});
+  // IndexedDBが使えない環境向けに、localStorageへは軽量版だけ保険で置く
   try{
     var lite=JSON.parse(JSON.stringify(d));
-    if(Array.isArray(lite.PROJ))lite.PROJ.forEach(function(p){ if(p&&p.taskImg)p.taskImg=[]; });
-    lite.secProof=[];
+    if(Array.isArray(lite.PROJ))lite.PROJ.forEach(function(p){ if(p){ p.taskImg=[]; p.img=''; } });
+    if(Array.isArray(lite.SP))lite.SP.forEach(function(s){ if(s)s.img=''; });
+    lite.secProof=[]; lite.infoImg={};
     localStorage.setItem(CACHE_KEY,JSON.stringify({data:lite,updated_at:updatedAt||null,at:Date.now(),lite:true}));
-  }catch(e2){
-    try{ localStorage.removeItem(CACHE_KEY); }catch(_){}
-  }
+  }catch(e){ try{ localStorage.removeItem(CACHE_KEY); }catch(_){} }
 }
-function loadCache(){
+function loadCacheLS(){
   try{
     var raw=localStorage.getItem(CACHE_KEY);
     if(!raw)return null;
@@ -3901,16 +3942,43 @@ function loadCache(){
   }catch(e){ return null; }
 }
 // 起動時：キャッシュがあれば即座に画面を作る（ネットワークを待たない）
+// ① localStorageの軽量版で一瞬で描画 → ② IndexedDBの完全版（画像込み）で差し替え
+var _idbReady=null;   // IndexedDBの完全キャッシュ読み込みの完了を待つためのPromise
 function bootFromCache(){
-  var c=loadCache();
-  if(!c)return false;
-  _lastUpdated=c.updated_at||null;
-  _cacheWasLite=!!c.lite;
-  // 軽量キャッシュ（画像なし）の場合は更新判定をスキップ。判定は直後のクラウド完全データで行う
-  applyLoadedData(c.data,{skipDiff:_cacheWasLite});
-  return true;
+  var c=loadCacheLS();
+  if(c){
+    _lastUpdated=c.updated_at||null;
+    _cacheWasLite=!!c.lite;
+    applyLoadedData(c.data,{skipDiff:_cacheWasLite});
+  }
+  _idbReady=idbGet(CACHE_KEY).then(function(full){
+    if(!full||!full.data)return;
+    // 画像込みの完全なキャッシュが取れたら、そちらで上書きして画像を復元する。
+    // 完全版が手元にある＝もう本体を取り直す必要がないので、
+    // 軽量フラグを下ろして「更新日時だけ確認する」経路に乗せる（毎回数MB落とさない）
+    _lastUpdated=full.updated_at||_lastUpdated;
+    _cacheWasLite=false;
+    applyLoadedData(full.data,{skipDiff:true});
+    renderTabs(); renderAll(); renderUpdated();
+  }).catch(function(){});
+  return !!c;
 }
 
+// 別行に分けて保存された画像を、文字データへ戻す（書込アプリの splitData と対）
+function mergeImages(text,imgs){
+  if(!text||!imgs)return text;
+  if(Array.isArray(text.PROJ))text.PROJ.forEach(function(p){
+    if(!p)return;
+    if(imgs.proj&&imgs.proj[p.id])p.img=imgs.proj[p.id];
+    if(imgs.task&&imgs.task[p.id])p.taskImg=imgs.task[p.id];
+  });
+  if(Array.isArray(text.SP))text.SP.forEach(function(s,i){
+    if(s&&imgs.sp&&imgs.sp[i])s.img=imgs.sp[i];
+  });
+  if(Array.isArray(imgs.secProof)&&imgs.secProof.length)text.secProof=imgs.secProof;
+  if(imgs.infoImg&&Object.keys(imgs.infoImg).length)text.infoImg=imgs.infoImg;
+  return text;
+}
 // クラウドから読み込み（GETのみ。書き込みは一切行わない）
 var _lastUpdated=null; // クラウドデータの最終更新日時
 function cloudLoad(){
@@ -3929,22 +3997,34 @@ function cloudLoad(){
     : Promise.resolve(false);
   return pre.then(function(skip){
     if(skip)return 'same';
-  return fetch(SB_URL+'/rest/v1/app_data?id=eq.1&select=data,updated_at',{
-    method:'GET',
-    headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}
-  }).then(function(r){return r.ok?r.json():null;}).then(function(rows){
+  var H={'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY};
+  // 文字(id=1)と画像(id=2)を同時に取りに行く。
+  // 文字は数十KBしかないので先に届く → その時点で即描画し、
+  // 画像は届き次第あとから差し込む（初回の待ち時間を体感で最小にする）
+  var pText=fetch(SB_URL+'/rest/v1/app_data?id=eq.1&select=data,updated_at',{method:'GET',headers:H})
+    .then(function(r){return r.ok?r.json():null;});
+  var pImg=fetch(SB_URL+'/rest/v1/app_data?id=eq.2&select=data',{method:'GET',headers:H})
+    .then(function(r){return r.ok?r.json():null;}).catch(function(){return null;});
+  return pText.then(function(rows){
     if(!rows||!rows.length||!rows[0].data)return false;
     var d=rows[0].data;
     if(!d.PROJ&&!d.SP)return false;
     var ts=rows[0].updated_at||null;
     _cloudOK=true;
-    // 表示中の内容と同じなら描画し直さない（ちらつき防止）
-    // ただし軽量キャッシュ起動時は画像が欠けているので必ず取り込む
     if(!_cacheWasLite && _lastUpdated && ts && ts===_lastUpdated)return 'same';
     _cacheWasLite=false;
     _lastUpdated=ts;
-    applyLoadedData(d);
-    saveCache(d,ts);
+    applyLoadedData(d);          // ← ここで文字だけの状態を即表示
+    renderTabs(); renderAll(); renderUpdated();
+    // 画像が届いたら差し込んで描き直す
+    pImg.then(function(irows){
+      var imgs=(irows&&irows.length&&irows[0].data)?irows[0].data:null;
+      if(!imgs)return;
+      var merged=mergeImages(d,imgs);
+      applyLoadedData(merged,{skipDiff:true});
+      renderTabs(); renderAll(); renderUpdated();
+      saveCache(merged,ts);      // キャッシュには画像込みの完全な形で残す
+    });
     return true;
   }).catch(function(){return false;});
   });
@@ -6105,7 +6185,11 @@ if(_hadCache){
 }else{
   renderListSkeleton(); // 初回のみ：まだ何も持っていないので読み込み表示
 }
-initData(_hadCache).then(function(res){
+// IndexedDBの完全キャッシュ（画像込み）の読み込み完了を待ってからクラウドへ問い合わせる。
+// 待たずに走らせると「完全版を持っていない」と判定され、毎回数MBの本体を落としてしまう
+(_idbReady||Promise.resolve()).then(function(){
+return initData(_hadCache);
+}).then(function(res){
   if(res===true){ renderTabs(); renderAll(); renderCalendar(); } // 内容が変わっていた時だけ描き直す
   // 自動再起動から復帰した場合、開いていたタブへ戻す
   try{
