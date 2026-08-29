@@ -3997,15 +3997,11 @@ function cloudLoad(){
     : Promise.resolve(false);
   return pre.then(function(skip){
     if(skip)return 'same';
-  var H={'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY};
-  // 文字(id=1)と画像(id=2)を同時に取りに行く。
-  // 文字は数十KBしかないので先に届く → その時点で即描画し、
-  // 画像は届き次第あとから差し込む（初回の待ち時間を体感で最小にする）
-  var pText=fetch(SB_URL+'/rest/v1/app_data?id=eq.1&select=data,updated_at',{method:'GET',headers:H})
-    .then(function(r){return r.ok?r.json():null;});
-  var pImg=fetch(SB_URL+'/rest/v1/app_data?id=eq.2&select=data',{method:'GET',headers:H})
-    .then(function(r){return r.ok?r.json():null;}).catch(function(){return null;});
-  return pText.then(function(rows){
+  // 全データは id=1 の1行にまとまっている（分割方式は書込側の事故により撤回）
+  return fetch(SB_URL+'/rest/v1/app_data?id=eq.1&select=data,updated_at',{
+    method:'GET',
+    headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}
+  }).then(function(r){return r.ok?r.json():null;}).then(function(rows){
     if(!rows||!rows.length||!rows[0].data)return false;
     var d=rows[0].data;
     if(!d.PROJ&&!d.SP)return false;
@@ -4014,17 +4010,8 @@ function cloudLoad(){
     if(!_cacheWasLite && _lastUpdated && ts && ts===_lastUpdated)return 'same';
     _cacheWasLite=false;
     _lastUpdated=ts;
-    applyLoadedData(d);          // ← ここで文字だけの状態を即表示
-    renderTabs(); renderAll(); renderUpdated();
-    // 画像が届いたら差し込んで描き直す
-    pImg.then(function(irows){
-      var imgs=(irows&&irows.length&&irows[0].data)?irows[0].data:null;
-      if(!imgs)return;
-      var merged=mergeImages(d,imgs);
-      applyLoadedData(merged,{skipDiff:true});
-      renderTabs(); renderAll(); renderUpdated();
-      saveCache(merged,ts);      // キャッシュには画像込みの完全な形で残す
-    });
+    applyLoadedData(d);
+    saveCache(d,ts);
     return true;
   }).catch(function(){return false;});
   });
