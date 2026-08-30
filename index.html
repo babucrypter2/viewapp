@@ -3959,7 +3959,14 @@ function bootFromCache(){
     _lastUpdated=full.updated_at||_lastUpdated;
     _cacheWasLite=false;
     applyLoadedData(full.data,{skipDiff:true});
+    // ★画像を復元したら、画像を使う画面も必ず描き直す★
+    // ここで renderAll だけ呼んでいたため、強者リスト(renderStrongList)と
+    // セキュリティチェック(renderSecProof)、情報タブの写真だけが
+    // 軽量キャッシュ（画像なし）で描かれた状態のまま残っていた。
     renderTabs(); renderAll(); renderUpdated();
+    renderStrongList(); renderSecProof(); renderInfoText();
+    renderAchv(); renderScoreCheck(); renderFundAlloc();
+    renderStrategy(); renderTaskList(); renderCalendar();
   }).catch(function(){});
   return !!c;
 }
@@ -6162,7 +6169,14 @@ if(_hadCache){
 (_idbReady||Promise.resolve()).then(function(){
 return initData(_hadCache);
 }).then(function(res){
-  if(res===true){ renderTabs(); renderAll(); renderCalendar(); } // 内容が変わっていた時だけ描き直す
+  // 内容が変わっていた時だけ描き直す。
+  // 画像を使う画面（強者リスト・セキュリティチェック・情報タブ）も必ず含める
+  if(res===true){
+    renderTabs(); renderAll(); renderCalendar();
+    renderStrongList(); renderSecProof(); renderInfoText();
+    renderAchv(); renderScoreCheck(); renderFundAlloc();
+    renderStrategy(); renderTaskList(); renderUpdated();
+  }
   // 自動再起動から復帰した場合、開いていたタブへ戻す
   try{
     var rv=sessionStorage.getItem('extview');
