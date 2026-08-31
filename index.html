@@ -1665,9 +1665,12 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 /* 統計行は「調達額／参加者／TVL」と全く同じ .st-col を使い回して統一する（下でラップだけ用意） */
 /* この行は何があっても1行に収める。折り返しは禁止し、入りきらない場合は
    fitVceRows() が .fit1〜.fit3 を付けて段階的に詰める（調達数のティアが増えても崩れない） */
-.vce-stats{display:flex;align-items:center;flex-wrap:nowrap;gap:12px;overflow:hidden;}
-.vce-stat{display:flex;align-items:center;gap:7px;min-width:0;position:relative;padding-right:12px;
-  flex-shrink:0;white-space:nowrap;height:22px;}
+.vce-stats{display:flex;align-items:center;flex-wrap:nowrap;gap:10px;overflow:hidden;}
+/* 幅が足りないときは各項目が自然に縮む（JSでの実測をやめ、CSSだけで1行を保つ） */
+.vce-stat{display:flex;align-items:center;gap:6px;min-width:0;position:relative;padding-right:10px;
+  flex:0 1 auto;white-space:nowrap;height:22px;overflow:hidden;}
+.vce-stat>*{flex-shrink:0;}
+.vce-stat .vce-cnts{flex:0 1 auto;min-width:0;overflow:hidden;}
 .vce-stat:not(:last-child)::after{content:'';position:absolute;right:0;top:1px;bottom:1px;
   width:1px;background:rgba(255,255,255,.16);}
 .vce-stat:first-child{flex:1 1 auto;justify-content:center;}
@@ -4911,7 +4914,19 @@ function projAvHtml(p,sz){
   return '<div class="pj-av" style="width:'+sz+'px;height:'+sz+'px;background:'+bg+';">'+esc((p&&p.name?p.name[0]:'?'))+'</div>';
 }
 
-function smAvHtml(per,v,sz){
+// 強者アイコンは全カード共通なので、画像URLをCSS変数として1回だけ定義し、
+// 各カードからは class 参照だけにする（同じbase64を何百回も複製しない）。
+// これをやらないと案件25件でHTMLが6MB超になり、描画に200ms以上かかる。
+function ensureSpIconStyle(){
+  var el=document.getElementById('sp-icon-style');
+  if(!el){ el=document.createElement('style'); el.id='sp-icon-style'; document.head.appendChild(el); }
+  var css=(Array.isArray(SP)?SP:[]).map(function(s,j){
+    var im=safeImg(s&&s.img);
+    return im?('.sm-av-'+j+'{background-image:url("'+im.replace(/"/g,'%22')+'");background-size:cover;background-position:center;}'):'';
+  }).join('');
+  if(el.textContent!==css)el.textContent=css;
+}
+function smAvHtml(per,v,sz,idx){
   sz=sz||26;
   var cls=v==='g'?'av-g':v==='m'?'av-m':v==='x'?'av-x':'av-b';
   var hasName=!!(per&&per.name&&String(per.name).trim());
@@ -4919,14 +4934,20 @@ function smAvHtml(per,v,sz){
   var isAnon=!hasName&&!hdl;
   var bg=safeColor(per&&per.bg);
   var img=safeImg(per&&per.img);
+  // 画像はCSS側（.sm-av-N）で1回だけ定義済みなので、ここではクラス名だけを書く。
+  // 各カードにbase64を埋め込むとHTMLが数MBに膨らみ描画が重くなるため。
+  var useCss=(img&&typeof idx==='number');
   var inner=isAnon
     ?'<span style="font-size:'+(sz*.44)+'px;font-weight:700;color:var(--t3);">?</span>'
-    :(img?'<img src="'+esc(img)+'" style="width:100%;height:100%;object-fit:cover;">':
-      '<span style="font-size:'+(sz*.38)+'px;font-weight:700;color:#fff;">'+esc(ini(per.name||per.handle))+'</span>');
-  var avStyle='background:'+(isAnon?'var(--card2)':bg)+';width:'+sz+'px;height:'+sz+'px;'+(isAnon?'border:1.5px dashed var(--bb);':'');
+    :(useCss?'':(img?'<img src="'+esc(img)+'" style="width:100%;height:100%;object-fit:cover;">':
+      '<span style="font-size:'+(sz*.38)+'px;font-weight:700;color:#fff;">'+esc(ini(per.name||per.handle))+'</span>'));
+  // CSSクラスで画像を出す場合、インラインの background 一括指定が
+  // background-image を打ち消してしまうので background-color だけを指定する
+  var avStyle=(useCss?'background-color:':'background:')+(isAnon?'var(--card2)':bg)
+    +';width:'+sz+'px;height:'+sz+'px;'+(isAnon?'border:1.5px dashed var(--bb);':'');
   var tip=isAnon?'匿名':(hdl?('@'+esc(hdl)):esc(per.name));
   return '<div class="sm-item '+cls+'" title="'+tip+'">'
-    +'<div class="sm-av '+cls+'" style="'+avStyle+'">'+inner+'</div>'
+    +'<div class="sm-av '+cls+(useCss?(' sm-av-'+idx):'')+'" style="'+avStyle+'">'+inner+'</div>'
     +'<span class="sm-badge'+(v==='x'?' sm-badge-x':' sm-badge-svg')+'">'+(v==='x'?'—':symIconSvg(v))+'</span>'
     +'</div>';
 }
@@ -5001,6 +5022,7 @@ function flist(mode){
 
 function renderList(id,mode){
   var el=document.getElementById(id);if(!el)return;
+  ensureSpIconStyle(); // 強者アイコンをCSSで1回だけ定義しておく
   var list=flist(mode);
   if(!list.length){el.innerHTML='<div style="text-align:center;color:var(--t3);padding:30px 0;font-size:14px;">案件がありません</div>';return;}
   if(SIMPLE_VIEW){ el.innerHTML=renderSimpleListHtml(list,mode); return; }
@@ -5037,9 +5059,9 @@ function renderList(id,mode){
     // ALL SM avatars — no truncation
     var smRank={g:0,m:1,b:2,x:3}; // 対象外（休止中）は末尾へ
     var smAvsHtml=SP.map(function(per,j){
-      return {per:per,v:(p.sm&&p.sm[j])||'b'};
+      return {per:per,v:(p.sm&&p.sm[j])||'b',j:j};
     }).sort(function(a,b){return smRank[a.v]-smRank[b.v];})
-      .map(function(o){return smAvHtml(o.per,o.v,26);}).join('');
+      .map(function(o){return smAvHtml(o.per,o.v,26,o.j);}).join('');
 
     var isOpen=!!openDetailKeys[mode+':'+p.id]; // 再描画（保存・同期・並び替え等）の後も開いた状態を維持する
     return '<div class="proj-card'+(p.endDate?' ended-card':'')+(earlyIsOver(p)?' early-over':'')+(isRecentProj(p)&&!isPassedProj(p)?' proj-card-new':updatedPids[p.id]?' proj-card-upd':'')+(isOpen?' dt-open':'')+'" data-pid="'+p.id+'" onclick="cardTapOpen(\''+mode+'\','+idx+')">'
@@ -5132,11 +5154,18 @@ function renderList(id,mode){
   }).join('');
 }
 
+// 3タブすべてを毎回描き直すと案件が増えるほど重くなる（大半は見えていない画面）。
+// 表示中のタブだけ即描画し、残りは印を付けてタブを開いたときに描く。
+var _needRender={active:false,all:false,ended:false};
 function renderAll(){
-  renderList('list-active','active');
-  renderList('list-all','all');
-  renderList('list-ended','ended');
-  fitVceRows(); // 調達先VCの行が折り返さないよう、描画のたびに収まりを整える
+  ['active','all','ended'].forEach(function(m){
+    if(m===curTab){ renderList('list-'+m,m); _needRender[m]=false; }
+    else _needRender[m]=true;
+  });
+}
+// タブを開いたときに、後回しにしていた描画を済ませる
+function renderTabIfNeeded(mode){
+  if(_needRender[mode]){ _needRender[mode]=false; renderList('list-'+mode,mode); }
 }
 function renderListSkeleton(){
   ['list-active','list-all','list-ended'].forEach(function(id){
@@ -5653,37 +5682,12 @@ function vcGrades(vs){
   return {q:qg,t:tg};
 }
 // 「調達先VC」の統計行は絶対に折り返さない。入りきらなければ段階的に詰めて必ず1行に収める
-function fitVceRows(root){
-  var rows=(root||document).querySelectorAll('.vce-stats');
-  Array.prototype.forEach.call(rows,function(r){
-    // overflow:hidden だと scrollWidth が当てにならないので、
-    // 子要素の実寸の合計と gap から必要幅を自前で求めて判定する
-    function needed(){
-      var kids=Array.prototype.slice.call(r.children);
-      if(!kids.length)return 0;
-      var gap=parseFloat(getComputedStyle(r).columnGap||getComputedStyle(r).gap)||0;
-      var sum=0;
-      kids.forEach(function(k){
-        // 中身が縮んでいても本来必要な幅を測るため、いったん幅の制限を外して測る
-        var prev=k.style.cssText;
-        k.style.flexShrink='0'; k.style.width='auto';
-        sum+=k.getBoundingClientRect().width;
-        k.style.cssText=prev;
-      });
-      return sum+gap*(kids.length-1);
-    }
-    // 非表示のタブは幅が0になり「入りきらない」と誤判定してしまうため、
-    // 表示されるまで判定しない（タブ切替時に改めて呼び直す）
-    if(!r.clientWidth)return;
-    var steps=['','fit1','fit2','fit3','fit4'];
-    for(var i=0;i<steps.length;i++){
-      r.classList.remove('fit1','fit2','fit3','fit4');
-      if(steps[i])r.classList.add(steps[i]);
-      if(needed()<=r.clientWidth+0.5)return; // 収まったらそこで確定
-    }
-    // fit3でも足りない極端な幅では fit3 のままにする
-  });
-}
+// 「調達先VC」の統計行は絶対に折り返さない。
+// 以前は各行で子要素の幅を実測して段階クラスを付け替えていたが、
+// スタイル変更と測定を交互に行うためレイアウト再計算が何度も走り、
+// 案件が増えると描画に200ms以上かかっていた（体感のカクつきの主因）。
+// いまはCSS側で最初から縮む設計（flex-shrinkと省略）にしてあるので、JSでの実測は不要。
+function fitVceRows(root){ /* CSSで完結するため処理不要。呼び出し互換のため関数だけ残す */ }
 try{
   window.addEventListener('resize',function(){ fitVceRows(); });
   window.addEventListener('orientationchange',function(){ setTimeout(fitVceRows,120); });
@@ -5817,7 +5821,11 @@ function renderTabs(){
 }
 function setSort(v){
   SORT_STATE[curTab].by=v;
-  renderAll();
+  // 並び替えは今見ているタブだけ描き直せば十分（他タブは開いたときに描かれる）
+  renderList('list-'+curTab,curTab);
+  if(typeof _needRender==='object'){
+    ['active','all','ended'].forEach(function(m){ if(m!==curTab)_needRender[m]=true; });
+  }
 }
 function toggleSortDir(){
   var st=SORT_STATE[curTab];
@@ -5857,6 +5865,7 @@ function sv(name,el,type){
   // タブごとに独立した並び替え設定を、切り替えた先のタブの内容に合わせて表示へ反映する
   if(showListCtrl){
     curTab=name;
+    renderTabIfNeeded(name);   // 後回しにしていた描画をここで済ませる
     var st=SORT_STATE[name];
     var sel=document.getElementById('sort-sel');
     if(sel&&st)sel.value=st.by;
