@@ -4579,7 +4579,7 @@ function safeImg(u){
   // 写真は data:image のbase64で埋め込み。外部URL(https)は画像ビーコン防止のため不許可（未該当はアイコンを頭文字表示にフォールバック）。
   // ※このファイル内には同名の定義がもう1つあり、JSの仕様で「後の定義」が有効になる。
   //   片方だけ直すと直したつもりで効いていない事故が起きるため、両方を同じ内容に揃えてある。
-  return /^data:image\/[a-zA-Z0-9.+-]+;base64,[A-Za-z0-9+/=\s]*$/.test(u)?u:'';
+  return /^data:image\/(png|jpe?g|gif|webp|avif|bmp);base64,[A-Za-z0-9+/=\s]*$/i.test(u)?u:'';
 }
 // Xハンドルとして安全化（英数・_ のみ、最大32字）
 function safeHandle(h){
