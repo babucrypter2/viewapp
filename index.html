@@ -4921,7 +4921,9 @@ function ensureSpIconStyle(){
   var el=document.getElementById('sp-icon-style');
   if(!el){ el=document.createElement('style'); el.id='sp-icon-style'; document.head.appendChild(el); }
   var css=(Array.isArray(SP)?SP:[]).map(function(s,j){
-    var im=safeImg(s&&s.img);
+    // 匿名（名前も@IDも無い）の人は画像を隠す仕様なので、CSSにも出さない
+    var anon=!(s&&s.name&&String(s.name).trim())&&!safeHandle(s&&s.handle);
+    var im=anon?'':safeImg(s&&s.img);
     return im?('.sm-av-'+j+'{background-image:url("'+im.replace(/"/g,'%22')+'");background-size:cover;background-position:center;}'):'';
   }).join('');
   if(el.textContent!==css)el.textContent=css;
@@ -4936,7 +4938,9 @@ function smAvHtml(per,v,sz,idx){
   var img=safeImg(per&&per.img);
   // 画像はCSS側（.sm-av-N）で1回だけ定義済みなので、ここではクラス名だけを書く。
   // 各カードにbase64を埋め込むとHTMLが数MBに膨らみ描画が重くなるため。
-  var useCss=(img&&typeof idx==='number');
+  // 匿名（名前も@IDも無い人）は画像を出さず「?」で隠す仕様。
+  // ここで isAnon を見ないと、?を表示しつつ背景に画像が透けてしまう
+  var useCss=(!isAnon&&img&&typeof idx==='number');
   var inner=isAnon
     ?'<span style="font-size:'+(sz*.44)+'px;font-weight:700;color:var(--t3);">?</span>'
     :(useCss?'':(img?'<img src="'+esc(img)+'" style="width:100%;height:100%;object-fit:cover;">':
