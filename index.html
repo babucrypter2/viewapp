@@ -4620,7 +4620,11 @@ function catTag(c){
   var pal=CAT_PALETTE[catHash(String(c))%CAT_PALETTE.length];
   return '<span class="tag" style="background:'+pal[0]+';color:'+pal[1]+';">'+esc(c)+'</span>';
 }
-function fmtU(n){return n>=1000?'$'+(n/1000).toFixed(1)+'K':'$'+n;}
+// 金額表示。平均値などで小数が出ることがあるため必ず切り捨て、1000未満は桁区切りを付ける
+function fmtU(n){
+  n=Math.floor(Number(n)||0);
+  return n>=1000?'$'+(n/1000).toFixed(1)+'K':'$'+n.toLocaleString('en-US');
+}
 // エアドロ結果フォーマット（1件分）
 
 // 受取履歴の合計
