@@ -3273,6 +3273,7 @@ function precisionFactors(){
     if(win.indexOf(p)>=0)totalWinV+=v;
   });
   var stats=SP.map(function(q,j){
+    if(q&&q.paused)return null;                    // 休止中の人は集計から外す
     var nm=(q.name||'').trim(), hd=(q.handle||'').trim();
     if(!nm&&!hd)return null;                       // 匿名の人は名指しできないので対象外
     var w={},wsum=0;
@@ -3667,6 +3668,7 @@ function renderStrongList(){
   if(!el)return;
   if(!Array.isArray(SP)||!SP.length){el.style.display='none';return;}
   var itemsHtml=SP.map(function(per){
+    if(per&&per.paused)return '';   // 休止中の人はこのリストに出さない（解除すれば戻る）
     var img=safeImg(per.img),bg=safeColor(per.bg),hdl=safeHandle(per.handle);
     if(!hdl)return ''; // ハンドル未設定＝匿名扱いなので、このリストには出さない（紐づく案件のカードには引き続き表示される）
     var dispName=(per.name&&String(per.name).trim())?per.name:hdl;
@@ -4183,7 +4185,10 @@ function sanPerson(o){
     img:safeImg(o.img),
     ptG:num(o.ptG),
     ptM:num(o.ptM),
-    ptB:num(o.ptB)
+    ptB:num(o.ptB),
+    // 休止中フラグ。trueの間は全案件で対象外扱いになり、表示からも消える。
+    // 各案件が持つ評価(sm)は消さないので、解除すればそのまま復活する
+    paused:!!o.paused
   };
 }
 function sanDep(o){
@@ -4420,7 +4425,9 @@ function _effMedianCache(){
 }
 // 「全員が○だった場合の合計pt」＝強者の言及の満点ライン。配点を変えても自動で追従する
 function smFullAuto(){
-  var t=(Array.isArray(SP)?SP:[]).reduce(function(a,q){return a+(q&&q.ptG?q.ptG:0);},0);
+  var t=(Array.isArray(SP)?SP:[]).reduce(function(a,q){
+    if(q&&q.paused)return a;   // 休止中は満点の母数に入れない
+    return a+(q&&q.ptG?q.ptG:0);},0);
   return t>0?t:12; // 誰も登録されていない時の保険
 }
 // 案件ごとの満点ライン。'x'（対象外＝休止中）にした人はその案件の満点からも除く。
@@ -4430,10 +4437,20 @@ function smFullFor(p){
   var sm=(p&&p.sm)||[];
   var t=(Array.isArray(SP)?SP:[]).reduce(function(a,q,j){
     if(!q)return a;
-    if(sm[j]==='x')return a;
+    if(q.paused)return a;      // 休止中は全案件で満点から除く（残った人の比重が自動的に上がる）
+    if(sm[j]==='x')return a;   // 案件ごとの手動「—」も除く
     return a+(q.ptG||0);
   },0);
   return t>0?t:smFullAuto();
+}
+// その案件で実際にカウント対象になる人数（休止中と手動「—」を除く）
+function smCountActive(p){
+  var sm=(p&&p.sm)||[];
+  return (Array.isArray(SP)?SP:[]).reduce(function(a,q,j){
+    if(!q||q.paused)return a;
+    if(sm[j]==='x')return a;
+    return a+1;
+  },0);
 }
 // ○△✕を点数に変換（○=満点／△=半分／✕=0）
 function markScore(v,full){ return v==='g'?full:(v==='m'?full/2:0); }
@@ -4470,13 +4487,17 @@ function scoreBreakdown(p){
     return {total:fz.total, sm:fz.sm||0, eff:fz.eff||0, deduct:fz.deduct||0, smPts:fz.smPts||0, effImputed:!!fz.effImputed, frozen:true};
   }
   var smPts=(p.sm||[]).reduce(function(a,v,j){var q=SP[j];if(!q)return a;
-    if(v==='x')return a;          // 対象外（休止中）は加点も減点もしない
+    if(q.paused)return a;         // 休止中は計算に入れない（評価データ自体は残す）
+    if(v==='x')return a;          // 案件ごとの手動「—」も加点も減点もしない
     return a+(v==='g'?q.ptG:v==='m'?q.ptM:(q.ptB||0));},0);
   // 満点ラインは「登録者全員が○だった場合の合計pt」から毎回自動算出（配点を変えてもズレない）
   var smFull=smFullFor(p);
   // 「プロジェクトの質」は 強者の言及＋Xスコア＋スマートフォロワー の3要素を合算する。
   // 旧「運営の質」が担っていた配点(w_sm_bonus)を、後者2つに割り振っている
-  var smBaseScore=Math.max(0,Math.min(smPts/smFull,1))*(W.w_sm||0);
+  // 対象者が1人もいない（全員休止など）ときは、評価しようがないので満点扱いにする。
+  // ここで0点にすると、人を休止させただけでスコアが落ちてしまう
+  var smRatio=(smFull>0&&smCountActive(p)>0)?Math.min(smPts/smFull,1):1;
+  var smBaseScore=Math.max(0,smRatio)*(W.w_sm||0);
   var xBonus=xScoreBonus(p.xScore);
   var sfBonus=smartFollowerBonus(p.smartFollowers);
   var smScore=smBaseScore+xBonus+sfBonus;
@@ -5068,7 +5089,8 @@ function renderList(id,mode){
     var smRank={g:0,m:1,b:2,x:3}; // 対象外（休止中）は末尾へ
     var smAvsHtml=SP.map(function(per,j){
       return {per:per,v:(p.sm&&p.sm[j])||'b',j:j};
-    }).sort(function(a,b){return smRank[a.v]-smRank[b.v];})
+    }).filter(function(o){return o.per&&!o.per.paused;})  // 休止中の人はカードから消す
+      .sort(function(a,b){return smRank[a.v]-smRank[b.v];})
       .map(function(o){return smAvHtml(o.per,o.v,26,o.j);}).join('');
 
     var isOpen=!!openDetailKeys[mode+':'+p.id]; // 再描画（保存・同期・並び替え等）の後も開いた状態を維持する
