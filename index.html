@@ -4188,7 +4188,16 @@ function sanPerson(o){
     ptB:num(o.ptB),
     // 休止中フラグ。trueの間は全案件で対象外扱いになり、表示からも消える。
     // 各案件が持つ評価(sm)は消さないので、解除すればそのまま復活する
-    paused:!!o.paused
+    paused:!!o.paused,
+    // 優先レベル（1〜5）。絶対点ではなく「比重」なので、誰が休止しても
+    // 残った人の比率が自動調整され、強者の言及は常に配点どおりの満点になる。
+    // 未設定の既存データは、それまでの○の点数(ptG)から近いレベルへ自動変換する
+    weight:(function(w,g){
+      var n=Math.round(num(w));
+      if(n>=1&&n<=5)return n;
+      var pg=num(g);
+      return pg>=7?5:pg>=5?4:pg>=3?3:pg>=2?2:pg>0?1:3;
+    })(o.weight,o.ptG)
   };
 }
 function sanDep(o){
@@ -4434,14 +4443,16 @@ function smFullAuto(){
 // こうすると残った人の比重が自動的に上がり、休止者を外してもスコアが不当に下がらない。
 // 評価は案件ごとに持っているので、過去の終了案件の記録は一切変わらない。
 function smFullFor(p){
+  // 比重（優先レベル1〜5）の合計＝その案件での満点ライン。
+  // 誰かが休止しても残った人の比重合計に置き換わるので、比率は必ず0〜1に収まり
+  // 「強者の言及」は常に配点(w_sm)どおりの満点になる
   var sm=(p&&p.sm)||[];
-  var t=(Array.isArray(SP)?SP:[]).reduce(function(a,q,j){
+  return (Array.isArray(SP)?SP:[]).reduce(function(a,q,j){
     if(!q)return a;
-    if(q.paused)return a;      // 休止中は全案件で満点から除く（残った人の比重が自動的に上がる）
+    if(q.paused)return a;      // 休止中は満点から除く
     if(sm[j]==='x')return a;   // 案件ごとの手動「—」も除く
-    return a+(q.ptG||0);
+    return a+(q.weight||3);
   },0);
-  return t>0?t:smFullAuto();
 }
 // その案件で実際にカウント対象になる人数（休止中と手動「—」を除く）
 function smCountActive(p){
@@ -4486,10 +4497,13 @@ function scoreBreakdown(p){
     var fz=p.frozen;
     return {total:fz.total, sm:fz.sm||0, eff:fz.eff||0, deduct:fz.deduct||0, smPts:fz.smPts||0, effImputed:!!fz.effImputed, frozen:true};
   }
+  // 比重方式：○=その人の比重ぶん満点 / △=半分 / ✕=0。
+  // 絶対点の合算だと人の増減で満点がズレるが、比重なら常に満点=比重合計に一致する
   var smPts=(p.sm||[]).reduce(function(a,v,j){var q=SP[j];if(!q)return a;
     if(q.paused)return a;         // 休止中は計算に入れない（評価データ自体は残す）
     if(v==='x')return a;          // 案件ごとの手動「—」も加点も減点もしない
-    return a+(v==='g'?q.ptG:v==='m'?q.ptM:(q.ptB||0));},0);
+    var w=q.weight||3;
+    return a+(v==='g'?w:v==='m'?w/2:0);},0);
   // 満点ラインは「登録者全員が○だった場合の合計pt」から毎回自動算出（配点を変えてもズレない）
   var smFull=smFullFor(p);
   // 「プロジェクトの質」は 強者の言及＋Xスコア＋スマートフォロワー の3要素を合算する。
