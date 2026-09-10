@@ -4495,7 +4495,8 @@ function achieveRate(v){ return v==='g'?1:(v==='m'?0.5:0); }
 function scoreBreakdown(p){
   if(USE_FROZEN_SCORE&&p&&p.frozen&&typeof p.frozen.total==='number'){
     var fz=p.frozen;
-    return {total:fz.total, sm:fz.sm||0, eff:fz.eff||0, deduct:fz.deduct||0, smPts:fz.smPts||0, effImputed:!!fz.effImputed, frozen:true};
+    return {total:fz.total, sm:fz.sm||0, eff:fz.eff||0, deduct:fz.deduct||0, smPts:fz.smPts||0,
+            smBase:(typeof fz.smBase==='number'?fz.smBase:(fz.sm||0)), effImputed:!!fz.effImputed, frozen:true};
   }
   // 比重方式：○=その人の比重ぶん満点 / △=半分 / ✕=0。
   // 絶対点の合算だと人の増減で満点がズレるが、比重なら常に満点=比重合計に一致する
@@ -5138,7 +5139,7 @@ function renderList(id,mode){
       +'</div>'
       +'<div class="q-hr"></div>'
       +'<div class="q-row">'
-      +'<div class="q-col"><div class="q-lbl">強者の言及</div><div class="q-val">'+fmtPtR(bd.smPts)+'<span class="q-val-max">/'+Math.round(smFullAuto())+'</span></div></div>'
+      +'<div class="q-col"><div class="q-lbl">強者の言及</div><div class="q-val">'+fmtPtR(bd.smBase)+'<span class="q-val-max">/'+Math.round(W.w_sm||0)+'</span></div></div>'
       +(p.xScore?'<div class="q-col"><div class="q-lbl">Xスコア<span class="q-lbl-w">'+fmtPtR(xScoreBonus(p.xScore))+'/'+Math.round(W.w_sm_x||0)+'</span></div><div class="q-val">'+num(p.xScore).toLocaleString('en-US')+'<span class="q-val-max">/1000</span></div></div>':'')
       +(p.smartFollowers?'<div class="q-col"><div class="q-lbl">スマートフォロワー<span class="q-lbl-w">'+fmtPtR(smartFollowerBonus(p.smartFollowers))+'/'+Math.round(W.w_sm_sf||0)+'</span></div><div class="q-val">'+num(p.smartFollowers).toLocaleString('en-US')+'</div></div>':'')
       +'</div>'
