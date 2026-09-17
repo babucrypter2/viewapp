@@ -4468,6 +4468,19 @@ function smFullAuto(){
 // 案件ごとの満点ライン。'x'（対象外＝休止中）にした人はその案件の満点からも除く。
 // こうすると残った人の比重が自動的に上がり、休止者を外してもスコアが不当に下がらない。
 // 評価は案件ごとに持っているので、過去の終了案件の記録は一切変わらない。
+// 優先レベル(1〜5)を実際の比重に変換する。
+// 線形(1,2,3,4,5)だと最重要(5)と標準(3)の差が1.7倍しかなく、
+// 最重要の人の評価を変えてもスコアがほとんど動かなかったため差を広げた。
+var W_SCALE={1:1,2:2,3:3,4:5,5:8};
+function spWeight(q){ return W_SCALE[q&&q.weight]||W_SCALE[3]; }
+// △（軽い言及）が○に対して何割の評価になるか。
+// 以前は一律50%で、最重要の人が△でも半分もらえてしまい差がつかなかった。
+// 旧方式の「○7点に対し△1点」に近い厳しさへ寄せる（既定30%）。
+function smMidRate(){
+  var v=Number(typeof W!=='undefined'&&W?W.sm_mid_pct:NaN);
+  if(!isFinite(v)||v<0||v>100)v=30;
+  return v/100;
+}
 function smFullFor(p){
   // 比重（優先レベル1〜5）の合計＝その案件での満点ライン。
   // 誰かが休止しても残った人の比重合計に置き換わるので、比率は必ず0〜1に収まり
@@ -4477,7 +4490,7 @@ function smFullFor(p){
     if(!q)return a;
     if(q.paused)return a;      // 休止中は満点から除く
     if(sm[j]==='x')return a;   // 案件ごとの手動「—」も除く
-    return a+(q.weight||3);
+    return a+spWeight(q);
   },0);
 }
 // その案件で実際にカウント対象になる人数（休止中と手動「—」を除く）
@@ -4529,8 +4542,8 @@ function scoreBreakdown(p){
   var smPts=(p.sm||[]).reduce(function(a,v,j){var q=SP[j];if(!q)return a;
     if(q.paused)return a;         // 休止中は計算に入れない（評価データ自体は残す）
     if(v==='x')return a;          // 案件ごとの手動「—」も加点も減点もしない
-    var w=q.weight||3;
-    return a+(v==='g'?w:v==='m'?w/2:0);},0);
+    var w=spWeight(q);
+    return a+(v==='g'?w:v==='m'?w*smMidRate():0);},0);
   // 満点ラインは「登録者全員が○だった場合の合計pt」から毎回自動算出（配点を変えてもズレない）
   var smFull=smFullFor(p);
   // 「プロジェクトの質」は 強者の言及＋Xスコア＋スマートフォロワー の3要素を合算する。
