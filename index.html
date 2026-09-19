@@ -2069,7 +2069,7 @@ var W={refa_g:2,refa_m:0,refa_b:0,low_g:1.5,low_m:0,low_b:0,qual_g:0,qual_m:0,qu
 function mergeW(src){
   if(!src||typeof src!=='object')return;
   ['refa_g','refa_m','refa_b','low_g','low_m','low_b','qual_g','qual_m','qual_b',
-   'w_sm','sm_full','w_ef','ef_full','et_full','w_deduct','d_m','d_b','w_sm_x','w_sm_sf','wSchemaVer',
+   'w_sm','sm_full','sm_mid_pct','w_ef','ef_full','et_full','w_deduct','d_m','d_b','w_sm_x','w_sm_sf','wSchemaVer',
    'goalApr','goalHourly','goalMinUsd'].forEach(function(k){
     if(src[k]!==undefined&&src[k]!==null&&src[k]!=='')W[k]=num(src[k]);
   });
@@ -2332,6 +2332,16 @@ function loadTaskChecks(){
     var raw=localStorage.getItem(TASK_CHECK_KEY);
     var obj=raw?JSON.parse(raw):null;
     if(!obj||typeof obj.done!=='object')return {done:{}};
+    // ★旧形式(done[n]===true)の掃除★
+    // 真偽値だと「いつチェックしたか」が分からず、判定のたびに今日扱いになるため
+    // 永久にリセットされないタスクが生まれていた。日付が入っていない項目は破棄して、
+    // 未チェックに戻す（以後は日付で正しくリセットされる）。
+    var fixed=false;
+    Object.keys(obj.done).forEach(function(k){
+      var v=obj.done[k];
+      if(typeof v!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(v)){ delete obj.done[k]; fixed=true; }
+    });
+    if(fixed){ try{ localStorage.setItem(TASK_CHECK_KEY,JSON.stringify(obj)); }catch(e){} }
     return obj;
   }catch(e){ return {done:{}}; }
 }
@@ -2344,10 +2354,11 @@ function saveTaskChecks(st){
 function isTaskCheckedNow(n){
   var st=loadTaskChecks();
   var d=st.done[n];
-  if(!d)return false;
-  if(d===true)d=taskCheckToday();
+  // 日付が入っていない値は信用できないので未チェック扱い（旧形式の永久チェック対策）
+  if(typeof d!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(d))return false;
   var freq=(TASK_FREQ&&TASK_FREQ[n])||1;
   var diff=daysBetween(d,taskCheckToday());
+  // 頻度1なら当日だけ済み扱い＝翌日0時に必ず未チェックへ戻る
   return diff>=0&&diff<freq;
 }
 // タスク番号nの「次にリセットされるまでの進捗」を、アーリー度と同じ横帯で可視化する。
@@ -2356,8 +2367,7 @@ function taskFreqBarHtml(n){
   var freq=(TASK_FREQ&&TASK_FREQ[n])||1;
   var st=loadTaskChecks();
   var d=st.done[n];
-  if(!d)return '';
-  if(d===true)d=taskCheckToday();
+  if(typeof d!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(d))return '';
   var diff=daysBetween(d,taskCheckToday());
   if(diff<0||diff>=freq)return ''; // 期限切れ・異常値ならバーは出さない（頻度行だけ残る）
   var pct=Math.round(((diff+1)/freq)*100); // 「今日の分」を含めた進み具合として+1日で計算
