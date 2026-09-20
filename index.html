@@ -80,6 +80,12 @@
 }
 
 html,body{height:100%;height:100dvh;height:var(--app-h,100dvh);overflow:hidden;overscroll-behavior:none;position:fixed;width:100%;-webkit-text-size-adjust:100%;font-size:15px;}
+/* iOSのPWAで外部リンクから戻った直後、visualViewport.height が実際より小さい値を
+   返すことがあり、--app-h も小さいまま＝画面下に地の色（黒帯）が露出していた。
+   画面全体に背景を固定で敷き、高さがズレている一瞬でも黒く見えないようにする。 */
+html{background:var(--bg);}
+body::before{content:'';position:fixed;left:0;right:0;top:0;bottom:0;
+  height:100vh;height:100dvh;background:var(--bg);z-index:-1;pointer-events:none;}
 body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 /* 数字を等幅に（一覧でビシッと揃う） */
 .sc-val,.st-val,.pj-dv,.pl-txt,.dep-hist-amt,.dep-hist-usd,.dep-hist-date{font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1;}
@@ -6085,6 +6091,16 @@ function vhNow(){return Math.round((window.visualViewport&&window.visualViewport
 function setAppH(){
   var h=vhNow();
   if(h>_vhMax)_vhMax=h;
+  // 外部リンクから戻った直後、iOSは実際より小さい高さを返すことがある。
+  // そのまま入れると画面下に黒帯が残るため、キーボードが出ていない場面では
+  // これまでの最大値まで引き上げる（縮んだ値を採用しない）。
+  // 画面回転時は _vhMax を 0 に戻すので、正しく小さくなるケースは妨げない。
+  // キーボードは「入力欄にフォーカスがあるか」で判定する。
+  // 高さの差だけで見ると、外部リンクから戻った直後の縮みもキーボード扱いになり
+  // この復旧処理が素通りしてしまう（黒帯が残る原因だった）。
+  var a=document.activeElement,tg=(a&&a.tagName||'').toLowerCase();
+  var typing=(tg==='input'||tg==='textarea'||tg==='select');
+  if(!typing&&_vhMax-h>2&&_vhMax-h<400)h=_vhMax;
   document.documentElement.style.setProperty('--app-h',h+'px');
 }
 function vhKeyboardOpen(){
