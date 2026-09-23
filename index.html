@@ -79,7 +79,13 @@
   --shadow:0 1px 4px rgba(0,0,0,.08),0 4px 12px rgba(0,0,0,.05);
 }
 
-html,body{height:100%;height:100dvh;height:var(--app-h,100dvh);overflow:hidden;overscroll-behavior:none;position:fixed;width:100%;-webkit-text-size-adjust:100%;font-size:15px;}
+/* html/body は高さを数値で持たず、四辺を0に固定して常に画面いっぱいにする。
+   以前は JS 実測の --app-h を高さに入れていたが、iOSのPWAで外部リンクから戻った直後に
+   実際より小さい値が返り、body が縮む→position:fixed の下部ナビも一緒に上へズレて
+   画面下に黒帯が残っていた。四辺固定ならブラウザが常に正しい高さで描くのでズレない。 */
+html,body{position:fixed;top:0;right:0;bottom:0;left:0;width:auto;height:auto;
+  overflow:hidden;overscroll-behavior:none;-webkit-text-size-adjust:100%;font-size:15px;}
+html{background:var(--bg);}
 /* iOSのPWAで外部リンクから戻った直後、visualViewport.height が実際より小さい値を
    返すことがあり、--app-h も小さいまま＝画面下に地の色（黒帯）が露出していた。
    画面全体に背景を固定で敷き、高さがズレている一瞬でも黒く見えないようにする。 */
@@ -89,10 +95,10 @@ body::before{content:'';position:fixed;left:0;right:0;top:0;bottom:0;
 body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 /* 数字を等幅に（一覧でビシッと揃う） */
 .sc-val,.st-val,.pj-dv,.pl-txt,.dep-hist-amt,.dep-hist-usd,.dep-hist-date{font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1;}
-.shell{display:flex;height:100vh;height:var(--app-h,100vh);overflow:hidden;}
+.shell{display:flex;height:100%;overflow:hidden;}
 
 /* ── SIDEBAR ── */
-.sidebar{width:188px;flex-shrink:0;background:var(--card);border-right:1px solid var(--b);display:flex;flex-direction:column;height:100vh;height:var(--app-h,100vh);}
+.sidebar{width:188px;flex-shrink:0;background:var(--card);border-right:1px solid var(--b);display:flex;flex-direction:column;height:100%;}
 .logo{padding:14px 13px 12px;border-bottom:1px solid var(--b);}
 .logo-title{font-size:13px;font-weight:700;color:var(--t1);line-height:1.4;}
 .logo-sub{font-size:var(--fs-sm);color:var(--t3);margin-top:2px;}
@@ -107,7 +113,7 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .theme-btn{width:100%;background:var(--card2);color:var(--t1);border:1px solid var(--b);border-radius:8px;padding:8px;font-size:var(--fs-md);font-weight:600;cursor:pointer;}
 
 /* ── MAIN ── */
-.main{flex:1;display:flex;flex-direction:column;height:100vh;height:var(--app-h,100vh);overflow:hidden;min-width:0;}
+.main{flex:1;display:flex;flex-direction:column;height:100%;overflow:hidden;min-width:0;}
 .topbar{position:sticky;top:0;z-index:50;height:46px;background:var(--card);border-bottom:1px solid var(--b);display:flex;align-items:center;gap:6px;padding:0 10px;flex-shrink:0;}
 .topbar-title{font-size:14px;font-weight:700;color:var(--t1);flex:0 0 auto;white-space:nowrap;}
 .ttl-svg{width:17px;height:17px;flex-shrink:0;}
@@ -6154,21 +6160,12 @@ window.addEventListener('pageshow',vhRecover);
 window.addEventListener('focus',vhRecover);
 document.addEventListener('visibilitychange',function(){if(!document.hidden)vhRecover();});
 if(window.visualViewport){window.visualViewport.addEventListener('resize',setAppH);}
+// 高さは CSS(四辺固定)で常に正しく決まるので、JSで数値を入れる必要はない。
+// ただし iOS は外部リンクから戻ったあと、合成レイヤが古いまま残って
+// 描画だけズレることがあるため、復帰時に軽く再レイアウトを促す。
 setInterval(function(){
-  setAppH();
-  if(vhKeyboardOpen()){_vhStuck=0;return;}
-  if(_vhMax-vhNow()>120||vhOffsetBug()){
-    _vhStuck++;
-    if(_vhStuck===3)vhJiggle();          // 約1秒: 再レイアウト強制
-    if(_vhStuck===9&&!vhModalOpen()){    // 約3秒: 最終手段=リロード（連続実行はガード）
-      var ok=true;
-      try{
-        var ts=+(sessionStorage.getItem('vhfix')||0);
-        if(Date.now()-ts<15000)ok=false;else sessionStorage.setItem('vhfix',String(Date.now()));
-      }catch(e){ if(_vhReloadedOnce)ok=false;_vhReloadedOnce=true; }
-      if(ok)location.reload();
-    }
-  }else{_vhStuck=0;}
+  if(vhKeyboardOpen())return;          // 入力中は触らない
+  if(vhOffsetBug())vhJiggle();         // ビューポートが浮いていたら再レイアウト
 },350);
 
 // ── 入力中のカーソル位置を実測して、キーボードに隠れないようスクロールする ──
