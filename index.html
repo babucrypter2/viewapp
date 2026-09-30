@@ -2,7 +2,9 @@
 <html lang="ja" data-theme="dark">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<!-- viewport-fit=cover が無いと、iPhoneのPWAで表示領域がセーフエリア内に制限され、
+     外部リンクから戻ったときなどに画面下へ黒帯が出る。cover で画面全体を使う -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self' https://mtagkmxkbsedagjmvcij.supabase.co; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none';">
 <title>ばぶのエアドロ分析🪂</title>
 <!-- ▼▼▼ OGP設定：Xやラインでこのアプリのリンクを貼った時に、画像付きカードとして表示されるようにする設定です。
@@ -86,12 +88,12 @@
 html,body{position:fixed;top:0;right:0;bottom:0;left:0;width:auto;height:auto;
   overflow:hidden;overscroll-behavior:none;-webkit-text-size-adjust:100%;font-size:15px;}
 html{background:var(--bg);}
-/* iOSのPWAで外部リンクから戻った直後、visualViewport.height が実際より小さい値を
-   返すことがあり、--app-h も小さいまま＝画面下に地の色（黒帯）が露出していた。
-   画面全体に背景を固定で敷き、高さがズレている一瞬でも黒く見えないようにする。 */
-html{background:var(--bg);}
-body::before{content:'';position:fixed;left:0;right:0;top:0;bottom:0;
-  height:100vh;height:100dvh;background:var(--bg);z-index:-1;pointer-events:none;}
+/* viewport-fit=cover で画面全体を使うため、セーフエリアぶんも含めて
+   背景色を敷いておく。iOSの描画が一瞬ズレても黒地が見えない */
+body::before{content:'';position:fixed;left:0;right:0;
+  top:calc(-1 * env(safe-area-inset-top,0px));
+  bottom:calc(-1 * env(safe-area-inset-bottom,0px));
+  background:var(--bg);z-index:-1;pointer-events:none;}
 body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 /* 数字を等幅に（一覧でビシッと揃う） */
 .sc-val,.st-val,.pj-dv,.pl-txt,.dep-hist-amt,.dep-hist-usd,.dep-hist-date{font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1;}
@@ -1885,6 +1887,76 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .strat-sc-poly{background:rgba(120,110,255,.15);box-shadow:inset 0 0 0 1.3px rgba(139,126,255,.42);}
 .strat-sc-poly .strat-sc-lbl{color:#b0a4ff;}
 .strat-sc-poly svg{fill:none;stroke:#b0a4ff;border-radius:0;}
+/* ─────── Perp DEX 俯瞰ボード（24h出来高・OI・Vol/OI）───────
+   棒の色は3指標で固定（出来高=青／OI=橙／Vol÷OI=緑）。文字は色を持たせず本文色で書く。
+   棒は細め・先端だけ角丸・根元は四角。外れ値は上限で打ち切り、「//」の切れ目で省略を示す。
+   行ごとに同じ列定義のグリッドを使う（minmax(0,Nfr) なので中身に関係なく列幅が揃い、行の区切り線が途切れない） */
+#perp-bar{--pb-vol:#3987e5;--pb-oi:#d95926;--pb-rt:#199e70;--pb-sf:var(--card2);--pb-grid:rgba(255,255,255,.07);--pb-axis:rgba(255,255,255,.2);}
+[data-theme="light"] #perp-bar{--pb-vol:#2a78d6;--pb-oi:#eb6834;--pb-rt:#1baf7a;--pb-grid:rgba(0,0,0,.08);--pb-axis:rgba(0,0,0,.22);}
+.pb-at{font-variant-numeric:tabular-nums;}
+.pb-body{margin-top:10px;}
+.pb-meta{font-size:var(--fs-sm);color:var(--t3);line-height:1.6;margin-bottom:8px;}
+.pb-empty{font-size:var(--fs-md);color:var(--t3);line-height:1.7;padding:6px 2px 2px;}
+.pb-hd,.pb-row{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr) minmax(0,1fr) minmax(0,.78fr);column-gap:9px;border-bottom:1px solid var(--b);}
+.pb-oi .pb-hd,.pb-oi .pb-row{grid-template-columns:minmax(0,1.15fr) minmax(0,1.5fr) minmax(0,.8fr);}
+.pb-hd{padding-bottom:6px;align-items:end;}
+.pb-row{padding:8px 0 7px;align-items:center;}
+.pb-hc{min-width:0;}
+.pb-hc b{display:block;font-size:12px;font-weight:700;color:var(--t1);white-space:nowrap;letter-spacing:.01em;}
+.pb-hc span{display:block;font-size:9.5px;font-weight:600;color:var(--t3);line-height:1.3;margin-top:2px;word-break:keep-all;overflow-wrap:anywhere;}
+.pb-nm{min-width:0;font-size:13px;font-weight:700;color:var(--t1);line-height:1.25;overflow-wrap:anywhere;}
+.pb-nodata .pb-nm{color:var(--t3);font-weight:600;}
+.pb-na{grid-column:2/-1;min-width:0;font-size:var(--fs-sm);color:var(--t3);line-height:1.45;}
+.pb-c{min-width:0;display:flex;flex-direction:column-reverse;justify-content:center;align-items:flex-start;gap:4px;}
+.pb-v{font-size:11.5px;font-weight:600;color:var(--t1);white-space:nowrap;font-variant-numeric:tabular-nums;letter-spacing:.005em;}
+.pb-v.b{font-weight:800;}
+.pb-v.m{color:var(--t3);font-weight:600;}
+.pb-bar{position:relative;display:block;height:8px;min-width:2px;width:calc(var(--f,0) * 100%);border-radius:0 4px 4px 0;}
+.pb-bar.vol{background:var(--pb-vol);}
+.pb-bar.oi{background:var(--pb-oi);}
+.pb-bar.rt{background:var(--pb-rt);}
+/* 上限で打ち切った棒：先端の手前に背景色の斜線を2本入れて「//」の切れ目にする */
+.pb-bar.cut::after{content:'';position:absolute;top:-2px;bottom:-2px;right:11px;width:2px;background:var(--pb-sf);transform:skewX(-26deg);box-shadow:4px 0 0 var(--pb-sf);}
+.pb-ch{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums;color:var(--t2);}
+.pb-ch i{display:inline-block;width:0;height:0;border-left:4px solid transparent;border-right:4px solid transparent;}
+.pb-ch.up{color:var(--grn);}
+.pb-ch.up i{border-bottom:6px solid currentColor;}
+.pb-ch.dn{color:var(--red);}
+.pb-ch.dn i{border-top:6px solid currentColor;}
+.pb-map-wrap{margin-top:18px;}
+.pb-map-t{font-size:14px;font-weight:700;color:var(--t1);letter-spacing:.01em;}
+.pb-map-s{font-size:var(--fs-sm);color:var(--t3);line-height:1.55;margin:3px 0 6px;}
+.pb-map{position:relative;}
+.pb-map svg{display:block;margin:0 auto;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;}
+.pb-map .pb-grid{stroke:var(--pb-grid);stroke-width:1;}
+.pb-map .pb-axis{stroke:var(--pb-axis);stroke-width:1;}
+.pb-map .pb-ratio{stroke:var(--t3);stroke-width:1;opacity:.5;}
+.pb-map .pb-tick{fill:var(--t3);font-size:10px;font-weight:600;font-variant-numeric:tabular-nums;}
+.pb-map .pb-rlbl{fill:var(--t3);font-size:10px;font-weight:700;}
+.pb-map .pb-atl{fill:var(--t2);font-size:10.5px;font-weight:700;}
+.pb-map .pb-dot{fill:var(--pb-vol);stroke:var(--pb-sf);stroke-width:2;}
+.pb-map .pb-dot.on{stroke:var(--t1);}
+.pb-map .pb-lbl{fill:var(--t1);font-size:11px;font-weight:600;}
+.pb-map .pb-hit{fill:transparent;cursor:pointer;}
+.pb-tip{position:absolute;z-index:3;display:none;pointer-events:none;background:var(--card);border:1px solid var(--bb);border-radius:9px;padding:7px 9px;box-shadow:0 4px 14px rgba(0,0,0,.4);min-width:140px;}
+.pb-tip.show{display:block;}
+.pb-tip-n{font-size:12px;font-weight:700;color:var(--t1);margin-bottom:4px;white-space:nowrap;}
+.pb-tip-r{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--t3);white-space:nowrap;line-height:1.55;}
+.pb-tip-r i{display:inline-block;width:9px;height:2px;border-radius:1px;flex-shrink:0;}
+.pb-tip-r b{margin-left:auto;padding-left:10px;color:var(--t1);font-weight:700;font-variant-numeric:tabular-nums;}
+.pb-notes{margin-top:12px;font-size:var(--fs-sm);color:var(--t3);line-height:1.65;}
+.pb-notes div{padding-left:1em;text-indent:-1em;}
+@media(min-width:700px){
+  .pb-hd,.pb-row{grid-template-columns:minmax(0,1.05fr) minmax(0,1.25fr) minmax(0,1.25fr) minmax(0,1fr);column-gap:14px;}
+  .pb-oi .pb-hd,.pb-oi .pb-row{grid-template-columns:minmax(0,1fr) minmax(0,2fr) minmax(0,.9fr);}
+  .pb-hc b{font-size:13px;}
+  .pb-hc span{font-size:10.5px;}
+  .pb-nm{font-size:14.5px;}
+  .pb-c{flex-direction:row;align-items:center;justify-content:flex-start;gap:7px;}
+  .pb-v{font-size:13px;}
+  .pb-bar{height:11px;width:calc(var(--f,0) * (100% - 76px));flex-shrink:0;}
+  .pb-map-t{font-size:15px;}
+}
 </style>
 </head>
 <body>
@@ -1929,7 +2001,7 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
   <div class="updated-bar" id="updated-bar" style="display:none;"></div>
 
   <div class="view active" id="view-active">
-    <div class="scroll-area"><div class="content"><div class="strategy-bar" id="strategy-bar" style="display:none;"></div><div class="strategy-bar" id="tasklist-bar" style="display:none;"></div><div class="card-list" id="list-active"></div><div class="bnav-spacer" aria-hidden="true"></div></div></div>
+    <div class="scroll-area"><div class="content"><div class="strategy-bar" id="strategy-bar" style="display:none;"></div><div class="strategy-bar" id="tasklist-bar" style="display:none;"></div><div class="strategy-bar" id="perp-bar" style="display:none;"></div><div class="card-list" id="list-active"></div><div class="bnav-spacer" aria-hidden="true"></div></div></div>
   </div>
   <div class="view" id="view-all">
     <div class="scroll-area"><div class="content">
@@ -2803,6 +2875,389 @@ function toggleTaskListFold(){
     rerender:renderTaskList
   });
 }
+// ─────────── Perp DEX 俯瞰ボード（24h出来高・OI・Vol÷OI）───────────
+// ・書込アプリが1日1回、DefiLlama の無料API（/overview/open-interest）からOIを取得してDBへ保存する
+// ・閲覧アプリはDBに保存された値を表示するだけ（閲覧アプリからDefiLlamaへは一切通信しない）
+// ・24h出来高（Perp Volume）は DefiLlama が有料API限定にしているため、書込アプリで任意に手入力する。
+//   入力した日だけ Vol÷OI と散布図を出し、入力が無い日は「OI＋前日比」の表示に切り替える
+// 対象DEXの初期リスト。k は DefiLlama 上の名前の候補（| 区切り・先に書いたものを優先）。
+// 「parent#xxx」は親プロトコル配下の合算（子の名前が見つからないときの保険）
+var PERP_T_DEF=[
+  {n:'Hyperliquid',k:'Hyperliquid Perps|hyperliquid-perps|parent#hyperliquid'},
+  {n:'Variational',k:'Variational|Variational Omni|parent#variational'},
+  {n:'Lighter Robinhood',k:'Lighter Robinhood Perps|lighter-robinhood-perps|Lighter Robinhood'},
+  {n:'Arcus',k:'Arcus|Arcus Perps'},
+  {n:'Pacifica',k:'Pacifica'},
+  {n:'QFEX',k:'QFEX'},
+  {n:'Extended',k:'Extended|Extended Perps'},
+  {n:'Ondo Perps',k:'Ondo Perps|parent#ondo-finance'},
+  {n:'TxFlow',k:'TxFlow'},
+  {n:'RISEx',k:'RISEx'},
+  {n:'SoDEX',k:'SoDEX'},
+  {n:'BULK',k:'BULK|Bulk Trade'},
+  {n:'entropy.io',k:'entropy.io|Entropy'},
+  {n:'Near Perps',k:'Near Perps'},
+  {n:'HelloTrade',k:'HelloTrade'}
+];
+var PERP_T=null;                          // 対象DEX（null＝初期リストを使う）
+var PERP={day:'',at:'',dk:'',rows:[]};    // 取得結果 rows:[{n,oi,ch1,ln,vol,vd}]
+var perpFoldOpen=false;
+function perpTargets(){ return (Array.isArray(PERP_T)&&PERP_T.length)?PERP_T:PERP_T_DEF; }
+function sanPerpT(a){
+  if(!Array.isArray(a))return null;
+  var seen={},out=[];
+  a.slice(0,40).forEach(function(o){
+    if(!o||typeof o!=='object')return;
+    var n=clampStr(o.n,40).trim(), k=clampStr(o.k,160).trim();
+    if(!n||seen[n])return;
+    seen[n]=1; out.push({n:n,k:k});
+  });
+  return out.length?out.slice(0,30):null;
+}
+// 金額は0以上の有限値だけ通す（文字列・真偽値・オブジェクトは捨てる）
+function perpNumOk(v){
+  if(v===null||v===undefined||v===''||typeof v==='object'||typeof v==='boolean')return null;
+  var x=Number(v); return (isFinite(x)&&x>=0&&x<1e14)?x:null;
+}
+function perpPctOk(v){
+  if(v===null||v===undefined||v===''||typeof v==='object'||typeof v==='boolean')return null;
+  var x=Number(v); return (isFinite(x)&&x>-100&&x<1e6)?x:null;
+}
+function sanPerp(o){
+  var z={day:'',at:'',dk:'',rows:[]};
+  if(!o||typeof o!=='object')return z;
+  var reD=/^\d{4}-\d{2}-\d{2}$/;
+  z.day=(typeof o.day==='string'&&reD.test(o.day))?o.day:'';
+  z.dk=(typeof o.dk==='string'&&reD.test(o.dk))?o.dk:'';
+  z.at=(typeof o.at==='string'&&/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{1,3})?Z$/.test(o.at))?o.at:'';
+  if(Array.isArray(o.rows)){
+    var seen={};
+    o.rows.slice(0,40).forEach(function(r){
+      if(!r||typeof r!=='object')return;
+      var n=clampStr(r.n,40).trim(); if(!n||seen[n])return; seen[n]=1;
+      z.rows.push({n:n, oi:perpNumOk(r.oi), ch1:perpPctOk(r.ch1), ln:clampStr(r.ln,80),
+        vol:perpNumOk(r.vol), vd:(typeof r.vd==='string'&&reD.test(r.vd))?r.vd:''});
+    });
+  }
+  return z;
+}
+// DefiLlama の表記に合わせる（$7.886b / $622.22m）
+function perpFmt(v){
+  if(v===null||v===undefined||!isFinite(v))return '—';
+  if(v>=1e9)return '$'+(v/1e9).toFixed(3)+'b';
+  if(v>=1e6)return '$'+(v/1e6).toFixed(2)+'m';
+  if(v>=1e3)return '$'+(v/1e3).toFixed(1)+'k';
+  return '$'+Math.round(v);
+}
+// 目盛り・上限の表記（$10m / $1b / $250m / $1.5b）
+function perpShortFmt(v){
+  function t(x){ return String(Math.round(x*100)/100); }
+  if(v>=1e9)return '$'+t(v/1e9)+'b';
+  if(v>=1e6)return '$'+t(v/1e6)+'m';
+  if(v>=1e3)return '$'+t(v/1e3)+'k';
+  return '$'+Math.round(v);
+}
+function perpRatioFmt(r){ return (r>=100?r.toFixed(0):r.toFixed(2))+'x'; }
+function perpPctFmt(p){ var a=Math.abs(p); return (p>0?'+':(p<0?'−':'±'))+(a>=100?a.toFixed(0):a.toFixed(1))+'%'; }
+// 上位1〜2件だけ桁違いに大きいと他の棒が潰れて読めないため、3番目の少し上を上限にして超えた分は省略する
+function perpCap(vals){
+  var v=vals.filter(function(x){return x>0;}).sort(function(a,b){return b-a;});
+  if(!v.length)return {cap:1,cut:false};
+  if(v.length<4)return {cap:v[0],cut:false};
+  var base=v[2]*1.08;
+  if(v[0]<=base*1.6)return {cap:v[0],cut:false};     // 桁違いでなければ省略しない
+  var e=Math.pow(10,Math.floor(Math.log10(base))), m=base/e;
+  var steps=[1,1.5,2,2.5,3,4,5,6,7,7.5,8,10];
+  for(var i=0;i<steps.length;i++){ if(steps[i]>=m-1e-9){ m=steps[i]; break; } }
+  return {cap:m*e,cut:true};
+}
+// 表示用に整える。出来高は「取得した日と同じ日に入力されたもの」だけ使う（別の日のOIと割らない）
+function perpView(){
+  var P=PERP||{}, rows=Array.isArray(P.rows)?P.rows:[], dk=P.dk||'';
+  var list=rows.map(function(r){
+    var vol=(r.vol!==null&&r.vol>0&&dk&&r.vd===dk)?r.vol:null;
+    var oi=(r.oi!==null&&r.oi>0)?r.oi:null;
+    return {n:r.n,oi:oi,ch1:r.ch1,ln:r.ln||'',vol:vol,ratio:(vol!==null&&oi!==null)?vol/oi:null};
+  });
+  var full=list.some(function(r){return r.vol!==null;});
+  list.sort(function(a,b){
+    if(full){
+      var va=(a.vol!==null)?a.vol:-1, vb=(b.vol!==null)?b.vol:-1;
+      if(va!==vb)return vb-va;
+    }
+    var oa=(a.oi!==null)?a.oi:-1, ob=(b.oi!==null)?b.oi:-1;
+    return ob-oa;
+  });
+  return {full:full,rows:list};
+}
+function perpAtTxt(){
+  if(!PERP||!PERP.at)return '';
+  var d=new Date(PERP.at); if(isNaN(d.getTime()))return '';
+  return (d.getMonth()+1)+'/'+d.getDate()+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+}
+var PERP_ICO='<svg class="dh-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v16a2 2 0 0 0 2 2h16"></path><path d="M18 17V9"></path><path d="M13 17V5"></path><path d="M8 17v-3"></path></svg>';
+function renderPerpBoard(){
+  var el=document.getElementById('perp-bar');
+  if(!el)return;
+  var editable=(typeof perpEditOpen==='function');   // 書込アプリだけ「編集」を出す
+  var has=!!(PERP&&Array.isArray(PERP.rows)&&PERP.rows.length&&PERP.at);
+  if(!has&&!editable){ el.style.display='none'; return; }
+  var at=perpAtTxt();
+  var h='<div class="detail-h tl-head-row" style="cursor:pointer;" onclick="togglePerpFold()">'
+    +'<span class="tl-head-left"><span class="dh-i">'+PERP_ICO+'Perp DEX 俯瞰</span>'
+    +(at?'<span class="tl-stat pb-at">'+esc(at)+'</span>':'')
+    +'</span>'
+    +(editable?'<button class="ez-btn" onclick="event.stopPropagation();perpEditOpen()">編集</button>':'')
+    +'<button class="tl-fold-btn'+(perpFoldOpen?' open':'')+'">'+(perpFoldOpen?'閉じる':'詳細を開く')+'<span class="dt-arrow">▼</span></button>'
+    +'</div>'
+    +'<div class="pb-body" id="pb-fold-body" style="display:'+(perpFoldOpen?'block':'none')+';">'
+    +(perpFoldOpen?perpBodyHtml(editable):'')          // 閉じている間は中身を作らない
+    +'<button class="fold-close" onclick="event.stopPropagation();togglePerpFold()">閉じる<span class="dt-arrow">▲</span></button></div>';
+  el.innerHTML=h;
+  el.classList.toggle('fold-closed',!perpFoldOpen);
+  el.style.display='block';
+  if(perpFoldOpen)perpDrawMap();                       // 実際の幅を測ってから散布図を描く
+}
+function perpCell(cls,v,cap,txt,bold){
+  if(v===null||!(v>0))return '<div class="pb-c"><span class="pb-v m">'+txt+'</span></div>';
+  var f=Math.min(v/cap,1), cut=v>cap*1.0001;
+  return '<div class="pb-c"><i class="pb-bar '+cls+(cut?' cut':'')+'" style="--f:'+f.toFixed(4)+'"></i>'
+    +'<span class="pb-v'+((cut||bold)?' b':'')+'">'+txt+'</span></div>';
+}
+function perpBodyHtml(editable){
+  var V=perpView();
+  if(!V.rows.length||!PERP.at){
+    return '<div class="pb-empty">まだデータがありません。'+(editable?'「編集」→「今すぐ取得」で取得できます。':'')+'</div>';
+  }
+  var at=perpAtTxt();
+  var h='<div class="pb-meta">出典: DefiLlama　'+esc(at)+' 取得<br>並び順: '+(V.full?'24h出来高の大きい順':'OI（建玉）の大きい順')+'</div>';
+  var oiC=perpCap(V.rows.map(function(r){return r.oi||0;}));
+  if(V.full){
+    var volC=perpCap(V.rows.map(function(r){return r.vol||0;}));
+    var rMax=Math.max.apply(null,V.rows.map(function(r){return r.ratio||0;}))||1;
+    h+='<div class="pb-tbl pb-full"><div class="pb-hd"><div></div>'
+      +'<div class="pb-hc"><b>24h出来高</b><span>'+(volC.cut?esc(perpShortFmt(volC.cap))+'超は // で省略':'')+'</span></div>'
+      +'<div class="pb-hc"><b>OI（建玉）</b><span>'+(oiC.cut?esc(perpShortFmt(oiC.cap))+'超は // で省略':'')+'</span></div>'
+      +'<div class="pb-hc"><b>Vol ÷ OI</b><span>24h出来高 ÷ OI</span></div></div>';
+    V.rows.forEach(function(r){
+      if(r.vol===null&&r.oi===null){
+        h+='<div class="pb-row pb-nodata"><div class="pb-nm">'+esc(r.n)+'</div><div class="pb-na">DefiLlamaにデータなし</div></div>';
+        return;
+      }
+      h+='<div class="pb-row"><div class="pb-nm">'+esc(r.n)+'</div>'
+        +perpCell('vol',r.vol,volC.cap,r.vol!==null?perpFmt(r.vol):'—')
+        +perpCell('oi',r.oi,oiC.cap,r.oi!==null?perpFmt(r.oi):'表示なし')
+        +perpCell('rt',r.ratio,rMax,r.ratio!==null?perpRatioFmt(r.ratio):'—')
+        +'</div>';
+    });
+    h+='</div>';
+  }else{
+    h+='<div class="pb-tbl pb-oi"><div class="pb-hd"><div></div>'
+      +'<div class="pb-hc"><b>OI（建玉）</b><span>'+(oiC.cut?esc(perpShortFmt(oiC.cap))+'超は // で省略':'')+'</span></div>'
+      +'<div class="pb-hc"><b>前日比</b><span>OIの増減</span></div></div>';
+    V.rows.forEach(function(r){
+      if(r.oi===null){
+        h+='<div class="pb-row pb-nodata"><div class="pb-nm">'+esc(r.n)+'</div><div class="pb-na">DefiLlamaにOIデータなし</div></div>';
+        return;
+      }
+      var ch='<span class="pb-v m">—</span>';
+      if(r.ch1!==null){
+        var dir=r.ch1>0.05?'up':(r.ch1<-0.05?'dn':'');
+        ch='<span class="pb-ch '+dir+'">'+(dir?'<i></i>':'')+esc(perpPctFmt(r.ch1))+'</span>';
+      }
+      h+='<div class="pb-row"><div class="pb-nm">'+esc(r.n)+'</div>'
+        +perpCell('oi',r.oi,oiC.cap,perpFmt(r.oi))
+        +'<div class="pb-c">'+ch+'</div></div>';
+    });
+    h+='</div>';
+  }
+  var nPts=V.rows.filter(function(r){return r.vol!==null&&r.oi!==null;}).length;
+  if(V.full&&nPts>=3){
+    h+='<div class="pb-map-wrap"><div class="pb-map-t">規模 × 回転率マップ（両対数）</div>'
+      +'<div class="pb-map-s">横軸 OI・縦軸 24h出来高。斜線は Vol/OI 一定（1x / 3x / 10x）で、左上ほど回転率が高い。点をタップで数値</div>'
+      +'<div class="pb-map" id="pb-map"></div></div>';
+  }
+  // 注記：表示名と DefiLlama 上の名前が違うものは対応を書いておく
+  var alias=[];
+  V.rows.forEach(function(r){
+    if(!r.ln)return;
+    var a=String(r.n).toLowerCase().replace(/[^a-z0-9]/g,''), b=String(r.ln).toLowerCase().replace(/[^a-z0-9]/g,'');
+    if(a!==b)alias.push(esc(r.n)+' ＝「'+esc(r.ln)+'」');
+  });
+  h+='<div class="pb-notes">'
+    +'<div>・OI は DefiLlama の公開データ（1日1回自動取得）</div>'
+    +(V.full
+      ?'<div>・24h出来高は DefiLlama の表示値を手入力（DefiLlama が出来高データを有料API限定にしているため）。Vol ÷ OI はその値から算出</div>'
+      :'<div>・24h出来高は DefiLlama が有料API限定にしているため、手入力がある日だけ表示します</div>')
+    +(alias.length?'<div>・'+alias.join('、')+'</div>':'')
+    +'<div>・OI は DefiLlama 側で随時更新・修正されるため、閲覧時刻によって多少ずれることがあります</div>'
+    +'</div>';
+  return h;
+}
+function togglePerpFold(){
+  animatedFoldToggle({
+    getBody:function(){return document.getElementById('pb-fold-body');},
+    isOpen:function(){return perpFoldOpen;},
+    setState:function(v){perpFoldOpen=v;},
+    rerender:renderPerpBoard
+  });
+}
+// 表示幅の目安（ラベルの重なり判定用）。半角は約0.58em、全角は1em
+function perpTextW(s,fs){
+  var w=0; s=String(s||'');
+  for(var i=0;i<s.length;i++){ w+=(s.charCodeAt(i)<0x80)?fs*0.6:fs; }
+  return w;
+}
+var _perpPts=[];
+function perpDrawMap(){
+  var box=document.getElementById('pb-map'); if(!box)return;
+  var V=perpView();
+  var pts=V.rows.filter(function(r){return r.vol!==null&&r.oi!==null;});
+  if(pts.length<3){ box.innerHTML=''; return; }
+  var W=Math.round(Math.max(270,Math.min(box.clientWidth||320,720)));
+  // スマホ幅では縦を長めに取り、中央に固まりやすい点のラベルを上下に散らす
+  var H=Math.round(W<520?Math.min(Math.max(W*1.02,270),460):Math.min(Math.max(W*0.78,260),460));
+  var fs=W<400?10.5:11;
+  var mL=44,mR=10,mT=18,mB=38;
+  var pw=W-mL-mR, ph=H-mT-mB;
+  var lx=pts.map(function(p){return Math.log10(p.oi);}), ly=pts.map(function(p){return Math.log10(p.vol);});
+  var x0=Math.min.apply(null,lx)-0.28, x1=Math.max.apply(null,lx)+0.28;
+  var y0=Math.min.apply(null,ly)-0.28, y1=Math.max.apply(null,ly)+0.28;
+  // 狭すぎると斜線や目盛りが出ないので、最低でも1.2桁ぶんの幅を持たせる
+  if(x1-x0<1.2){ var cx=(x0+x1)/2; x0=cx-0.6; x1=cx+0.6; }
+  if(y1-y0<1.2){ var cy=(y0+y1)/2; y0=cy-0.6; y1=cy+0.6; }
+  function X(l){ return mL+(l-x0)/(x1-x0)*pw; }
+  function Y(l){ return mT+ph-(l-y0)/(y1-y0)*ph; }
+  var s='<svg width="'+W+'" height="'+H+'" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="規模×回転率マップ" onclick="perpTipHide()">';
+  // 目盛り（10倍ごと）と格子
+  var d;
+  for(d=Math.ceil(x0);d<=Math.floor(x1);d++){
+    var gx=X(d).toFixed(1);
+    s+='<line class="pb-grid" x1="'+gx+'" y1="'+mT+'" x2="'+gx+'" y2="'+(mT+ph)+'"></line>'
+      +'<text class="pb-tick" x="'+gx+'" y="'+(mT+ph+14)+'" text-anchor="middle">'+esc(perpShortFmt(Math.pow(10,d)))+'</text>';
+  }
+  for(d=Math.ceil(y0);d<=Math.floor(y1);d++){
+    var gy=Y(d).toFixed(1);
+    s+='<line class="pb-grid" x1="'+mL+'" y1="'+gy+'" x2="'+(mL+pw)+'" y2="'+gy+'"></line>'
+      +'<text class="pb-tick" x="'+(mL-5)+'" y="'+(Y(d)+3.5).toFixed(1)+'" text-anchor="end">'+esc(perpShortFmt(Math.pow(10,d)))+'</text>';
+  }
+  s+='<line class="pb-axis" x1="'+mL+'" y1="'+(mT+ph)+'" x2="'+(mL+pw)+'" y2="'+(mT+ph)+'"></line>'
+    +'<line class="pb-axis" x1="'+mL+'" y1="'+mT+'" x2="'+mL+'" y2="'+(mT+ph)+'"></line>';
+  // Vol/OI 一定の斜線（両対数では y = x + log10(r) の直線）
+  var ratios=[1,3,10];
+  var rmax=Math.max.apply(null,pts.map(function(p){return p.ratio;}));
+  if(rmax>=25)ratios.push(30);
+  var rl=[];
+  ratios.forEach(function(r){
+    var lr=Math.log10(r);
+    var xa=Math.max(x0,y0-lr), xb=Math.min(x1,y1-lr);
+    if(!(xb>xa+0.05))return;
+    var ax=X(xa),ay=Y(xa+lr),bx=X(xb),by=Y(xb+lr);
+    s+='<line class="pb-ratio" x1="'+ax.toFixed(1)+'" y1="'+ay.toFixed(1)+'" x2="'+bx.toFixed(1)+'" y2="'+by.toFixed(1)+'"></line>';
+    // ラベルは線の上端に置く（上辺で切れる線は上辺の少し下、右辺で切れる線は右辺の少し左）
+    var tx=bx-4, ty=(by<=mT+1)?by+11:by-4;
+    s+='<text class="pb-rlbl" x="'+tx.toFixed(1)+'" y="'+ty.toFixed(1)+'" text-anchor="end">'+r+'x</text>';
+    rl.push({x0:tx-perpTextW(r+'x',10),x1:tx,y0:ty-9,y1:ty+2});
+  });
+  // 点のラベル配置：各点に8通りの置き場所を用意し、全体の「重なり・はみ出し・紛らわしさ」が
+  // 最小になるよう1点ずつ置き直すのを収束するまで繰り返す（13点程度なら一瞬で終わる）
+  var P=pts.map(function(p,i){ return {i:i,p:p,x:X(Math.log10(p.oi)),y:Y(Math.log10(p.vol))}; });
+  var N=P.length, cand=[], choice=[];
+  P.forEach(function(o){
+    var w=perpTextW(o.p.n,fs);
+    var list=[
+      {x:o.x+8,y:o.y+4,a:'start',pen:0},{x:o.x-8,y:o.y+4,a:'end',pen:1},
+      {x:o.x+6,y:o.y-7,a:'start',pen:3},{x:o.x+6,y:o.y+15,a:'start',pen:3},
+      {x:o.x-6,y:o.y-7,a:'end',pen:4},{x:o.x-6,y:o.y+15,a:'end',pen:4},
+      {x:o.x,y:o.y-10,a:'middle',pen:5},{x:o.x,y:o.y+19,a:'middle',pen:5}
+    ];
+    list.forEach(function(c){
+      var bx0=c.a==='start'?c.x:(c.a==='end'?c.x-w:c.x-w/2);
+      c.b={x0:bx0,x1:bx0+w,y0:c.y-fs*0.8,y1:c.y+fs*0.2};
+    });
+    cand.push(list); choice.push(0);
+  });
+  function ovA(a,b){ var w=Math.min(a.x1,b.x1)-Math.max(a.x0,b.x0), h=Math.min(a.y1,b.y1)-Math.max(a.y0,b.y0); return (w>0&&h>0)?w*h:0; }
+  function bDist(b,px,py){ var dx=Math.max(b.x0-px,0,px-b.x1), dy=Math.max(b.y0-py,0,py-b.y1); return Math.sqrt(dx*dx+dy*dy); }
+  function costOf(i,k){
+    var b=cand[i][k].b, sc=cand[i][k].pen;
+    if(b.x0<mL+2||b.x1>W-2||b.y0<2||b.y1>mT+ph-2)sc+=1e6;       // 枠外（軸の外）には出さない
+    var dOwn=bDist(b,P[i].x,P[i].y), dMin=Infinity;
+    for(var j=0;j<N;j++){
+      if(j===i)continue;
+      var o=ovA(b,cand[j][choice[j]].b); if(o>0)sc+=o*2+60;       // ラベル同士の重なり
+      var dd=bDist(b,P[j].x,P[j].y);
+      if(dd<5.5)sc+=80+(5.5-dd)*20;                                 // 他の点を隠す
+      if(dd<dMin)dMin=dd;
+    }
+    if(dMin<dOwn+1)sc+=35;                                           // 他の点の方が近い＝どの点の名前か紛らわしい
+    rl.forEach(function(q){ var o=ovA(b,q); if(o>0)sc+=o+40; });      // 斜線のラベル（1x/3x/10x）
+    return sc;
+  }
+  for(var pass=0;pass<30;pass++){
+    var changed=false;
+    for(var i=0;i<N;i++){
+      var best=choice[i], bestS=costOf(i,best);
+      for(var k=0;k<cand[i].length;k++){ var sc=costOf(i,k); if(sc<bestS-0.01){ bestS=sc; best=k; } }
+      if(best!==choice[i]){ choice[i]=best; changed=true; }
+    }
+    if(!changed)break;
+  }
+  P.forEach(function(o,i){
+    var c=cand[i][choice[i]];
+    s+='<text class="pb-lbl" x="'+c.x.toFixed(1)+'" y="'+c.y.toFixed(1)+'" text-anchor="'+c.a+'" style="font-size:'+fs+'px">'+esc(o.p.n)+'</text>';
+  });
+  _perpPts=[];
+  P.forEach(function(o){
+    _perpPts.push({n:o.p.n,vol:o.p.vol,oi:o.p.oi,ratio:o.p.ratio,x:o.x,y:o.y});
+    s+='<circle class="pb-dot" id="pb-dot-'+o.i+'" cx="'+o.x.toFixed(1)+'" cy="'+o.y.toFixed(1)+'" r="4.5"></circle>';
+  });
+  // タップ判定は点より大きく取る（指で狙いやすいよう半径13px）
+  P.forEach(function(o){
+    s+='<circle class="pb-hit" cx="'+o.x.toFixed(1)+'" cy="'+o.y.toFixed(1)+'" r="13" onclick="event.stopPropagation();perpTip('+o.i+')">'
+      +'<title>'+esc(o.p.n+'  24h '+perpFmt(o.p.vol)+' / OI '+perpFmt(o.p.oi)+' / '+perpRatioFmt(o.p.ratio))+'</title></circle>';
+  });
+  s+='<text class="pb-atl" x="'+(mL+pw/2).toFixed(1)+'" y="'+(H-4)+'" text-anchor="middle">OI（建玉）</text>'
+    +'<text class="pb-atl" x="11" y="'+(mT+ph/2).toFixed(1)+'" text-anchor="middle" transform="rotate(-90 11 '+(mT+ph/2).toFixed(1)+')">24h出来高</text>';
+  s+='</svg><div class="pb-tip" id="pb-tip"></div>';
+  box.innerHTML=s;
+}
+function perpTipHide(){
+  var tip=document.getElementById('pb-tip'); if(tip)tip.classList.remove('show');
+  var on=document.querySelector('#pb-map .pb-dot.on'); if(on)on.classList.remove('on');
+}
+function perpTip(i){
+  var p=_perpPts[i], tip=document.getElementById('pb-tip'), box=document.getElementById('pb-map');
+  if(!p||!tip||!box)return;
+  var wasOn=document.getElementById('pb-dot-'+i);
+  if(wasOn&&wasOn.classList.contains('on')&&tip.classList.contains('show')){ perpTipHide(); return; }
+  perpTipHide();
+  tip.innerHTML='<div class="pb-tip-n">'+esc(p.n)+'</div>'
+    +'<div class="pb-tip-r"><i style="background:var(--pb-vol)"></i>24h出来高<b>'+esc(perpFmt(p.vol))+'</b></div>'
+    +'<div class="pb-tip-r"><i style="background:var(--pb-oi)"></i>OI<b>'+esc(perpFmt(p.oi))+'</b></div>'
+    +'<div class="pb-tip-r"><i style="background:var(--pb-rt)"></i>Vol ÷ OI<b>'+esc(perpRatioFmt(p.ratio))+'</b></div>';
+  tip.classList.add('show');
+  var svg=box.querySelector('svg'), offX=svg?svg.offsetLeft:0;
+  var tw=tip.offsetWidth, th=tip.offsetHeight, bw=box.clientWidth;
+  var left=offX+p.x+12, top=p.y-th-8;
+  if(left+tw>bw-2)left=offX+p.x-12-tw;          // 右にはみ出すなら点の左へ
+  if(left<2)left=Math.max(2,Math.min(bw-tw-2,offX+p.x-tw/2));
+  if(top<2)top=p.y+14;                           // 上にはみ出すなら点の下へ
+  tip.style.left=Math.round(left)+'px'; tip.style.top=Math.round(top)+'px';
+  if(wasOn)wasOn.classList.add('on');
+}
+// 画面幅が変わったら（回転・PCのウィンドウ変更）散布図を描き直す
+var _perpRsT=null;
+window.addEventListener('resize',function(){
+  if(!perpFoldOpen)return;
+  clearTimeout(_perpRsT);
+  _perpRsT=setTimeout(function(){
+    var box=document.getElementById('pb-map'), svg=box&&box.querySelector('svg');
+    if(!box||!svg)return;
+    var want=Math.round(Math.max(270,Math.min(box.clientWidth||320,720)));
+    if(Math.abs(want-Number(svg.getAttribute('width')))>2)perpDrawMap();   // 幅が変わった時だけ
+  },200);
+});
 // ランキング/タスク日課共通：案件の現在の状態に応じたタブへ移動し、詳細を開いた状態にする
 function jumpToProjectAny(pid){
   pid=Number(pid);
@@ -4019,7 +4474,7 @@ function bootFromCache(){
     renderTabs(); renderAll(); renderUpdated();
     renderStrongList(); renderSecProof(); renderInfoText();
     renderAchv(); renderScoreCheck(); renderFundAlloc();
-    renderStrategy(); renderTaskList(); renderCalendar();
+    renderStrategy(); renderTaskList(); renderPerpBoard(); renderCalendar();
   }).catch(function(){});
   return !!c;
 }
@@ -4190,6 +4645,7 @@ function applyLoadedData(d,opts){
   TASK_MIN=sanTaskNum(d.taskMin);
   TASK_FREQ=sanTaskFreq(d.taskFreq);
   CALENDAR=sanCalendar(d.calendar);
+  PERP=sanPerp(d.perp);
   // 更新バッジの判定は「完全なデータ」の時だけ行う。
   // 画像を省いた軽量キャッシュで判定すると、画像の有無の差で毎回「更新」扱いになってしまう
   // （＝画像付き案件だけ永遠に更新バッジが付くバグの原因だった）
@@ -4214,6 +4670,7 @@ function initData(hadCache){
     renderStrongList();
     renderStrategy();
     renderTaskList();
+    renderPerpBoard();
     renderCalendar();
     populateCatFilter();
     return true;
@@ -5876,18 +6333,19 @@ function openVcInfo(focusId){
       +'<div class="vc-crit-row"><span class="vce-g vce-gC">C</span><span>Cティアのみ、または減点で下がった場合</span></div>'
     +'</div></div>';
   h+='<div class="vc-sec"><div class="vc-sec-h2">TGEの確度の評価基準</div>'
-    +'<p class="vc-note">各VCのエアドロ実績（高3・中2・低1）の平均に、性質による加減点を足して判定する。</p>'
+    +'<p class="vc-note">各VCのエアドロ実績（高3・中2・低1）のうち<b>最も高いもの</b>を基礎点に、構成による加減点を足して判定する（平均にするとVCが増えるほど薄まるため最大値を使う）。</p>'
     +'<div class="vc-crit">'
-      +'<div class="vc-crit-row"><span class="vc-crit-op vc-crit-plus">＋0.5</span><span>取引所系が1社いる</span></div>'
-      +'<div class="vc-crit-row"><span class="vc-crit-op vc-crit-plus">＋0.8</span><span>取引所系が2社以上いる</span></div>'
-      +'<div class="vc-crit-row"><span class="vc-crit-op vc-crit-minus">－0.6</span><span>TradFi系が過半数</span></div>'
-      +'<div class="vc-crit-row"><span class="vc-crit-op vc-crit-minus">－0.5</span><span>衰退VCが過半数</span></div>'
+      +'<div class="vc-crit-row"><span class="vc-crit-op vc-crit-plus">＋0.4</span><span>実績「高」のVCが3社以上（2社なら＋0.25）</span></div>'
+      +'<div class="vc-crit-row"><span class="vc-crit-op vc-crit-plus">＋0.5</span><span>取引所系が2社以上（1社なら＋0.3）</span></div>'
+      +'<div class="vc-crit-row"><span class="vc-crit-op vc-crit-plus">＋0.3</span><span>S・Aティアに実績「高」のVCがいる</span></div>'
+      +'<div class="vc-crit-row"><span class="vc-crit-op vc-crit-minus">－0.8</span><span>TradFi系が過半数</span></div>'
+      +'<div class="vc-crit-row"><span class="vc-crit-op vc-crit-minus">－0.8</span><span>衰退VCが過半数</span></div>'
     +'</div>'
     +'<div class="vc-crit vc-crit-mt">'
-      +'<div class="vc-crit-row"><span class="vce-g vce-gS">S</span><span>3.2以上</span></div>'
-      +'<div class="vc-crit-row"><span class="vce-g vce-gA">A</span><span>2.6以上</span></div>'
-      +'<div class="vc-crit-row"><span class="vce-g vce-gB">B</span><span>1.9以上</span></div>'
-      +'<div class="vc-crit-row"><span class="vce-g vce-gC">C</span><span>1.9未満</span></div>'
+      +'<div class="vc-crit-row"><span class="vce-g vce-gS">S</span><span>3.9以上</span></div>'
+      +'<div class="vc-crit-row"><span class="vce-g vce-gA">A</span><span>3.3以上</span></div>'
+      +'<div class="vc-crit-row"><span class="vce-g vce-gB">B</span><span>2.4以上</span></div>'
+      +'<div class="vc-crit-row"><span class="vce-g vce-gC">C</span><span>2.4未満</span></div>'
     +'</div>'
     +'<p class="vc-note vc-note-sm">※加減点は社数比例ではなく「有無・構成比」で判定するため、VCが増えても薄まらない。<br>※公開データからの目安であり、スコアには一切影響しない。トークンを前提としない設計の案件（手数料をステーブルで払うL1など）はVC構成だけでは判別できないので、別途確認が必要。</p></div>';
   // ── 見方（バッジの読み方）──
@@ -6052,7 +6510,7 @@ function refreshFromCloud(opts){
     // 変化あり（または初回未取得）→ 全データを取り直して反映
     setCloudStatus('loading');
     return cloudLoad().then(function(ok){
-      if(ok){ renderTabs(); renderAll(); renderUpdated(); renderInfoText(); renderSecProof(); renderAchv(); renderScoreCheck(); renderFundAlloc(); renderStrongList(); renderStrategy(); renderTaskList(); populateCatFilter(); setCloudStatus('ok'); showToast('🔄 最新データに更新しました'); }
+      if(ok){ renderTabs(); renderAll(); renderUpdated(); renderInfoText(); renderSecProof(); renderAchv(); renderScoreCheck(); renderFundAlloc(); renderStrongList(); renderStrategy(); renderTaskList(); renderPerpBoard(); populateCatFilter(); setCloudStatus('ok'); showToast('🔄 最新データに更新しました'); }
       else  { setCloudStatus('err'); }
       _refreshing=false;
     });
@@ -6288,6 +6746,7 @@ if(_hadCache){
   renderStrongList();
   renderStrategy();
   renderTaskList();
+  renderPerpBoard();
   renderCalendar();
   populateCatFilter();
 }else{
@@ -6304,7 +6763,7 @@ return initData(_hadCache);
     renderTabs(); renderAll(); renderCalendar();
     renderStrongList(); renderSecProof(); renderInfoText();
     renderAchv(); renderScoreCheck(); renderFundAlloc();
-    renderStrategy(); renderTaskList(); renderUpdated();
+    renderStrategy(); renderTaskList(); renderPerpBoard(); renderUpdated();
   }
   // 自動再起動から復帰した場合、開いていたタブへ戻す
   try{
