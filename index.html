@@ -2,9 +2,12 @@
 <html lang="ja" data-theme="dark">
 <head>
 <meta charset="UTF-8">
-<!-- viewport-fit=cover が無いと、iPhoneのPWAで表示領域がセーフエリア内に制限され、
-     外部リンクから戻ったときなどに画面下へ黒帯が出る。cover で画面全体を使う -->
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<!-- viewport-fit=cover は付けない（2026-10-01 実機で不具合を確認して撤回）。
+     このアプリはステータスバーを black-translucent にしているため、cover にすると
+     ・上：画面がステータスバーの下に潜り、見出しが透けて重なる
+     ・下：表示領域がステータスバーの高さ分（約60pt）短く計算され、下部ナビの下に隙間ができる
+     cover なしなら上下のセーフエリアは iOS が見出し・下部ナビの色で埋めてくれる -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self' https://mtagkmxkbsedagjmvcij.supabase.co; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none';">
 <title>ばぶのエアドロ分析🪂</title>
 <!-- ▼▼▼ OGP設定：Xやラインでこのアプリのリンクを貼った時に、画像付きカードとして表示されるようにする設定です。
@@ -88,8 +91,8 @@
 html,body{position:fixed;top:0;right:0;bottom:0;left:0;width:auto;height:auto;
   overflow:hidden;overscroll-behavior:none;-webkit-text-size-adjust:100%;font-size:15px;}
 html{background:var(--bg);}
-/* viewport-fit=cover で画面全体を使うため、セーフエリアぶんも含めて
-   背景色を敷いておく。iOSの描画が一瞬ズレても黒地が見えない */
+/* 画面全体に背景色を敷いておく。iOSの描画が一瞬ズレても黒地が見えない
+   （env() のセーフエリア値は viewport-fit=cover の時だけ効く。今は cover なしなので 0 として働く） */
 body::before{content:'';position:fixed;left:0;right:0;
   top:calc(-1 * env(safe-area-inset-top,0px));
   bottom:calc(-1 * env(safe-area-inset-bottom,0px));
@@ -1946,6 +1949,7 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .pb-tip-r b{margin-left:auto;padding-left:10px;color:var(--t1);font-weight:700;font-variant-numeric:tabular-nums;}
 .pb-notes{margin-top:12px;font-size:var(--fs-sm);color:var(--t3);line-height:1.65;}
 .pb-notes div{padding-left:1em;text-indent:-1em;}
+.pb-notes a.pb-src{color:var(--acc);font-weight:700;text-decoration:underline;text-underline-offset:2px;}
 @media(min-width:700px){
   .pb-hd,.pb-row{grid-template-columns:minmax(0,1.05fr) minmax(0,1.25fr) minmax(0,1.25fr) minmax(0,1fr);column-gap:14px;}
   .pb-oi .pb-hd,.pb-oi .pb-row{grid-template-columns:minmax(0,1fr) minmax(0,2fr) minmax(0,.9fr);}
@@ -2286,9 +2290,9 @@ function renderStrategy(){
   if(!STRATEGY){el.style.display='none';return;}
   el.innerHTML='<div class="detail-h"><span class="dh-i">'+ICO.pin+'今のメイン戦略'
     +'<span class="strat-shortcuts">'
-    +'<a class="strat-sc-pill strat-sc-llama" href="https://defillama.com" target="_blank" rel="noopener noreferrer" aria-label="DefiLlama" onclick="event.stopPropagation()"><span class="strat-sc-lbl">DefiLlama</span><img src="data:image/jpeg;base64,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" alt="DefiLlama"></a>'
-    +'<a class="strat-sc-pill strat-sc-xscore" href="https://twitterscore.io" target="_blank" rel="noopener noreferrer" aria-label="X Score" onclick="event.stopPropagation()"><span class="strat-sc-lbl">Xscore</span><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path></svg></a>'
-    +'<a class="strat-sc-pill strat-sc-poly" href="https://polymarket.com" target="_blank" rel="noopener noreferrer" aria-label="Polymarket" onclick="event.stopPropagation()"><span class="strat-sc-lbl">Polymarket</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="M5 3v18"></path><path d="M19 4.2 6.4 8.2 19 11.9Z"></path><path d="M19 12.6 6.4 16.3 19 20.2Z"></path></svg></a>'
+    +'<a class="strat-sc-pill strat-sc-llama" href="https://defillama.com" target="_blank" rel="noopener noreferrer" aria-label="DefiLlama" onclick="event.stopPropagation();markExtNav()"><span class="strat-sc-lbl">DefiLlama</span><img src="data:image/jpeg;base64,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" alt="DefiLlama"></a>'
+    +'<a class="strat-sc-pill strat-sc-xscore" href="https://twitterscore.io" target="_blank" rel="noopener noreferrer" aria-label="X Score" onclick="event.stopPropagation();markExtNav()"><span class="strat-sc-lbl">Xscore</span><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path></svg></a>'
+    +'<a class="strat-sc-pill strat-sc-poly" href="https://polymarket.com" target="_blank" rel="noopener noreferrer" aria-label="Polymarket" onclick="event.stopPropagation();markExtNav()"><span class="strat-sc-lbl">Polymarket</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="M5 3v18"></path><path d="M19 4.2 6.4 8.2 19 11.9Z"></path><path d="M19 12.6 6.4 16.3 19 20.2Z"></path></svg></a>'
     +'</span></span></div><div class="strategy-txt">'+esc(STRATEGY)+'</div>';
   el.style.display='block';
 }
@@ -2878,7 +2882,8 @@ function toggleTaskListFold(){
 // ─────────── PerpDEX OIグラフ（OI・24h出来高・Vol÷OI と 規模×回転率マップ）───────────
 // ・書込アプリが1日1回、無料APIから取得してDBへ保存する
 //     OI       … DefiLlama（/overview/open-interest）
-//     24h出来高 … CoinGecko（/derivatives/exchanges）。DefiLlamaの出来高は有料API限定（HTTP 402）のため
+//     24h出来高 … PerpFinder（/api/data/perps）＝ DefiLlama の Perp Volume をキー不要で公開しているもの。
+//                 DefiLlama 本体の出来高APIは有料限定（HTTP 402）。PerpFinder が落ちていた日は CoinGecko で代用
 // ・閲覧アプリはDBに保存された値を表示するだけ（閲覧アプリから外部APIへは一切通信しない）
 // ・出来高が取れたDEXが3つ以上ある日は 規模×回転率マップ（両対数の散布図）も出す
 // 対象DEXの初期リスト。
@@ -2938,8 +2943,8 @@ function perpPctOk(v){
 function sanPerp(o){
   var z={day:'',at:'',dk:'',rows:[],ce:0,v:1};
   if(!o||typeof o!=='object')return z;
-  z.ce=(o.ce===1)?1:0;                                     // 1=出来高（CoinGecko）の取得に失敗した日
-  z.v=(o.v===2)?2:1;                                       // 2=CoinGeckoの出来高にも対応した版で取得した結果
+  z.ce=(o.ce===1)?1:0;                                     // 1=その日の出来高の取得に失敗した（PerpFinder・CoinGecko とも）
+  z.v=(o.v===3||o.v===2)?o.v:1;                           // 取得した版（3=PerpFinder対応。古い版の結果は起動時に取り直す）
   var reD=/^\d{4}-\d{2}-\d{2}$/;
   z.day=(typeof o.day==='string'&&reD.test(o.day))?o.day:'';
   z.dk=(typeof o.dk==='string'&&reD.test(o.dk))?o.dk:'';
@@ -2949,12 +2954,13 @@ function sanPerp(o){
     o.rows.slice(0,40).forEach(function(r){
       if(!r||typeof r!=='object')return;
       var n=clampStr(r.n,40).trim(); if(!n||seen[n])return; seen[n]=1;
+      // 出来高の出どころ pf=PerpFinder（DefiLlamaの値）/ cg=CoinGecko / man=手入力（出どころの無い旧データの出来高は手入力だったもの）
+      var vs=(r.vs==='pf'||r.vs==='cg'||r.vs==='man')?r.vs:((perpNumOk(r.vol)>0)?'man':'');
       z.rows.push({n:n, oi:perpNumOk(r.oi), ch1:perpPctOk(r.ch1), ln:clampStr(r.ln,80),
         vol:perpNumOk(r.vol), vd:(typeof r.vd==='string'&&reD.test(r.vd))?r.vd:'',
-        // 出来高の出どころ cg=CoinGecko / man=手入力（出どころの無い旧データの出来高は手入力だったもの）
-        vs:(r.vs==='cg'||r.vs==='man')?r.vs:((perpNumOk(r.vol)>0)?'man':''),
-        gn:clampStr(r.gn,60),                              // CoinGecko 上の取引所名
-        gx:r.gx===1?1:0});                                 // 1=CoinGeckoとDefiLlamaでOIが大きく違うため出来高を使わなかった
+        vs:vs,
+        gn:clampStr(r.gn,60),                              // 出来高側の名前（DefiLlama または CoinGecko 上の名前）
+        gx:(vs==='cg'&&r.gx===1)?1:0});                    // 1=CoinGeckoの値だがDefiLlamaとOIの規模が大きく違う（※参考値）。CoinGecko以外では付けない
     });
   }
   return z;
@@ -2985,6 +2991,15 @@ function perpCap(vals){
   var base=v[2]*1.08;
   if(v[0]<=base*1.6)return {cap:v[0],cut:false};     // 桁違いでなければ省略しない
   var e=Math.pow(10,Math.floor(Math.log10(base))), m=base/e;
+  var steps=[1,1.5,2,2.5,3,4,5,6,7,7.5,8,10];
+  for(var i=0;i<steps.length;i++){ if(steps[i]>=m-1e-9){ m=steps[i]; break; } }
+  return {cap:m*e,cut:true};
+}
+// 回転率（Vol÷OI）は数倍〜十数倍の差が普通にあるので、1位だけが2位の3倍を超える極端な外れ値の時だけ省略する
+function perpCapRatio(vals){
+  var v=vals.filter(function(x){return x>0;}).sort(function(a,b){return b-a;});
+  if(v.length<3||v[0]<=v[1]*3)return {cap:v.length?v[0]:1,cut:false};
+  var base=v[1]*1.08, e=Math.pow(10,Math.floor(Math.log10(base))), m=base/e;
   var steps=[1,1.5,2,2.5,3,4,5,6,7,7.5,8,10];
   for(var i=0;i<steps.length;i++){ if(steps[i]>=m-1e-9){ m=steps[i]; break; } }
   return {cap:m*e,cut:true};
@@ -3049,26 +3064,31 @@ function perpBodyHtml(editable){
     return '<div class="pb-empty">まだデータがありません。'+(editable?'「編集」→「今すぐ取得」で取得できます。':'')+'</div>';
   }
   var at=perpAtTxt();
-  var nCg=V.rows.filter(function(r){return r.vs==='cg';}).length, nMan=V.rows.filter(function(r){return r.vs==='man';}).length;
-  var src='OI＝DefiLlama'+(nCg?'／24h出来高＝CoinGecko'+(nMan?'（一部手入力）':''):(nMan?'／24h出来高＝手入力':''));
+  var nPf=V.rows.filter(function(r){return r.vs==='pf';}).length, nCg=V.rows.filter(function(r){return r.vs==='cg';}).length, nMan=V.rows.filter(function(r){return r.vs==='man';}).length;
+  var vsrc=[];
+  if(nPf)vsrc.push('DefiLlama');
+  if(nCg)vsrc.push(nPf?'一部CoinGecko':'CoinGecko');
+  if(nMan)vsrc.push((nPf||nCg)?'一部手入力':'手入力');
+  var src='OI＝DefiLlama'+(vsrc.length?'／24h出来高＝'+vsrc.join('・'):'');
   var h='<div class="pb-meta">出典: '+src+'　'+esc(at)+' 取得<br>並び順: '+(V.full?'24h出来高の大きい順':'OI（建玉）の大きい順')+'</div>';
   var oiC=perpCap(V.rows.map(function(r){return r.oi||0;}));
   if(V.full){
     var volC=perpCap(V.rows.map(function(r){return r.vol||0;}));
-    var rMax=Math.max.apply(null,V.rows.map(function(r){return r.ratio||0;}))||1;
+    var rtC=perpCapRatio(V.rows.map(function(r){return r.ratio||0;}));   // 回転率は1件だけ桁違いの時だけ // で省略
     h+='<div class="pb-tbl pb-full"><div class="pb-hd"><div></div>'
       +'<div class="pb-hc"><b>24h出来高</b><span>'+(volC.cut?esc(perpShortFmt(volC.cap))+'超は // で省略':'')+'</span></div>'
       +'<div class="pb-hc"><b>OI（建玉）</b><span>'+(oiC.cut?esc(perpShortFmt(oiC.cap))+'超は // で省略':'')+'</span></div>'
-      +'<div class="pb-hc"><b>Vol ÷ OI</b><span>24h出来高 ÷ OI</span></div></div>';
+      +'<div class="pb-hc"><b>Vol ÷ OI</b><span>'+(rtC.cut?esc(String(Math.round(rtC.cap*100)/100)+'x')+'超は // で省略':'24h出来高 ÷ OI')+'</span></div></div>';
     V.rows.forEach(function(r){
       if(r.vol===null&&r.oi===null){
         h+='<div class="pb-row pb-nodata"><div class="pb-nm">'+esc(r.n)+'</div><div class="pb-na">OI・出来高ともにデータなし</div></div>';
         return;
       }
-      h+='<div class="pb-row"><div class="pb-nm">'+esc(r.n)+'</div>'
-        +perpCell('vol',r.vol,volC.cap,r.vol!==null?perpFmt(r.vol):'—')
+      var mk=r.gx?'※':'';      // CoinGecko の値で DefiLlama と規模が大きく違うもの（参考値）
+      h+='<div class="pb-row"><div class="pb-nm">'+esc(r.n)+mk+'</div>'
+        +perpCell('vol',r.vol,volC.cap,r.vol!==null?perpFmt(r.vol)+mk:'—')
         +perpCell('oi',r.oi,oiC.cap,r.oi!==null?perpFmt(r.oi):'表示なし')
-        +perpCell('rt',r.ratio,rMax,r.ratio!==null?perpRatioFmt(r.ratio):'—')
+        +perpCell('rt',r.ratio,rtC.cap,r.ratio!==null?perpRatioFmt(r.ratio)+mk:'—')
         +'</div>';
     });
     h+='</div>';
@@ -3100,24 +3120,29 @@ function perpBodyHtml(editable){
   }
   // 注記：出典・出来高が無いDEXとその理由・表示名と各サイト上の名前の対応
   function nz(x){ return String(x||'').toLowerCase().replace(/[^a-z0-9]/g,''); }
-  var alias=[],aliasG=[],noVol=[],gx=[],man=[];
+  var alias=[],aliasG=[],noVol=[],gx=[],man=[],cgs=[];
   V.rows.forEach(function(r){
     // 「〇〇 Perps」「〇〇 (Futures)」のように後ろに付くだけの違いは書かない
     if(r.ln&&nz(r.n)!==nz(r.ln)&&nz(r.ln)!==nz(r.n)+'perps'&&nz(r.ln)!==nz(r.n)+'perp')alias.push(esc(r.n)+' ＝「'+esc(r.ln)+'」');
     if(r.vs==='cg'&&r.gn&&nz(r.gn)!==nz(r.n)&&nz(r.gn)!==nz(r.n)+'futures')aliasG.push(esc(r.n)+' ＝「'+esc(r.gn)+'」');
     if(r.vs==='man')man.push(esc(r.n));
-    if(r.vol===null&&r.oi!==null){ if(r.gx)gx.push(esc(r.n)); else noVol.push(esc(r.n)); }
+    if(r.vs==='cg')cgs.push(esc(r.n));
+    if(r.gx)gx.push(esc(r.n));
+    if(r.vol===null&&r.oi!==null)noVol.push(esc(r.n));
   });
+  // PerpFinder は「再掲するときは PerpFinder へのリンク付きでクレジットを」という条件で無料公開しているので必ずリンクを付ける
+  var pfLink='<a class="pb-src" href="https://perpfinder.com" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();if(typeof markExtNav===\'function\')markExtNav();">PerpFinder</a>';
   h+='<div class="pb-notes">'
     +'<div>・OI は DefiLlama の公開データ（1日1回自動取得）</div>'
-    +(nCg?'<div>・24h出来高は CoinGecko の公開データ（各取引所の申告値・直近24時間、1日1回自動取得）。Vol ÷ OI はその出来高と DefiLlama の OI から算出</div>':'')
+    +(nPf?'<div>・24h出来高は DefiLlama の Perp Volume（Data: '+pfLink+'・1日1回自動取得）。Vol ÷ OI はその出来高と OI から算出</div>':'')
+    +(cgs.length?'<div>・'+cgs.join('、')+' の出来高は CoinGecko の公開データ（各取引所の申告値・直近24時間）</div>':'')
+    +(gx.length?'<div>※ '+gx.join('、')+' は CoinGecko と DefiLlama で OI の規模が大きく異なる（集計の対象が違う可能性がある）ため参考値</div>':'')
     +(man.length?'<div>・手入力した出来高：'+man.join('、')+'</div>':'')
     +(!V.full?'<div>・24h出来高を取得できなかったため、OI と前日比のみ表示しています</div>':'')
-    +(V.full&&noVol.length?'<div>・出来高なし（CoinGeckoに未掲載）：'+noVol.join('、')+'</div>':'')
-    +(gx.length?'<div>・'+gx.join('、')+' は CoinGecko と DefiLlama で OI が大きく異なる（集計の対象が違う可能性）ため、出来高を表示していません</div>':'')
+    +(V.full&&noVol.length?'<div>・出来高なし（どのデータにも未掲載）：'+noVol.join('、')+'</div>':'')
     +(alias.length?'<div>・DefiLlama：'+alias.join('、')+'</div>':'')
     +(aliasG.length?'<div>・CoinGecko：'+aliasG.join('、')+'</div>':'')
-    +'<div>・数値は DefiLlama・CoinGecko 側で随時更新・修正されるため、閲覧時刻によって多少ずれることがあります</div>'
+    +'<div>・数値は各サイト側で随時更新・修正されるため、閲覧時刻によって多少ずれることがあります</div>'
     +'</div>';
   return h;
 }
@@ -3191,7 +3216,7 @@ function perpDrawMap(){
   var P=pts.map(function(p,i){ return {i:i,p:p,x:X(Math.log10(p.oi)),y:Y(Math.log10(p.vol))}; });
   var N=P.length, cand=[], choice=[];
   P.forEach(function(o){
-    var w=perpTextW(o.p.n,fs);
+    var w=perpTextW(o.p.n+(o.p.gx?'※':''),fs);
     var list=[
       {x:o.x+8,y:o.y+4,a:'start',pen:0},{x:o.x-8,y:o.y+4,a:'end',pen:1},
       {x:o.x+6,y:o.y-7,a:'start',pen:3},{x:o.x+6,y:o.y+15,a:'start',pen:3},
@@ -3232,7 +3257,7 @@ function perpDrawMap(){
   }
   P.forEach(function(o,i){
     var c=cand[i][choice[i]];
-    s+='<text class="pb-lbl" x="'+c.x.toFixed(1)+'" y="'+c.y.toFixed(1)+'" text-anchor="'+c.a+'" style="font-size:'+fs+'px">'+esc(o.p.n)+'</text>';
+    s+='<text class="pb-lbl" x="'+c.x.toFixed(1)+'" y="'+c.y.toFixed(1)+'" text-anchor="'+c.a+'" style="font-size:'+fs+'px">'+esc(o.p.n+(o.p.gx?'※':''))+'</text>';
   });
   _perpPts=[];
   P.forEach(function(o){
