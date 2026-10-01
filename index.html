@@ -1896,11 +1896,17 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
    行ごとに同じ列定義のグリッドを使う（minmax(0,Nfr) なので中身に関係なく列幅が揃い、行の区切り線が途切れない） */
 #perp-bar{--pb-vol:#3987e5;--pb-oi:#d95926;--pb-rt:#199e70;--pb-sf:var(--card2);--pb-grid:rgba(255,255,255,.07);--pb-axis:rgba(255,255,255,.2);}
 [data-theme="light"] #perp-bar{--pb-vol:#2a78d6;--pb-oi:#eb6834;--pb-rt:#1baf7a;--pb-grid:rgba(0,0,0,.08);--pb-axis:rgba(0,0,0,.22);}
-/* 見出し：アイコン＋「PerpDEX vol・OIグラフ」＋「10月1日 10:00 更新」。幅が足りなければ日時は名前の下の行に回る */
+/* 見出し：アイコン＋「PerpDEX vol・OIグラフ」＋小さめの更新日時を1行に。日時は収まる一番長い形を JS（perpFitHead）が選ぶ
+   （10月1日 10:00 更新 → 10/1 10:00 更新 → 10/1 10:00）。それでも収まらない狭い画面だけ名前の下の行に回る */
 #perp-bar .pb-hl{gap:7px;}
-#perp-bar .pb-tt{display:flex;flex-wrap:wrap;align-items:baseline;column-gap:9px;row-gap:1px;min-width:0;}
+#perp-bar .pb-tt{display:flex;flex-wrap:wrap;align-items:baseline;column-gap:6px;row-gap:1px;min-width:0;}
 #perp-bar .pb-ttl{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;max-width:100%;}   /* さらに狭い画面では末尾を…で省略 */
 .pb-at{font-variant-numeric:tabular-nums;white-space:nowrap;}
+#perp-bar .pb-at{font-size:10px;font-weight:600;color:var(--t2);letter-spacing:0;}
+/* 本文の先頭：出典の行（左）と、書込アプリだけ「編集」ボタン（右） */
+.pb-mrow{display:flex;align-items:flex-start;gap:10px;}
+.pb-mrow>.pb-meta,.pb-mrow>.pb-empty{flex:1 1 auto;min-width:0;}
+.pb-mrow>.pb-edit{margin-top:1px;}
 .pb-body{margin-top:10px;}
 .pb-meta{font-size:var(--fs-sm);color:var(--t3);line-height:1.6;margin-bottom:8px;}
 .pb-empty{font-size:var(--fs-md);color:var(--t3);line-height:1.7;padding:6px 2px 2px;}
@@ -1937,7 +1943,7 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .pb-map svg{display:block;margin:0 auto;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;}
 .pb-map .pb-grid{stroke:var(--pb-grid);stroke-width:1;}
 .pb-map .pb-axis{stroke:var(--pb-axis);stroke-width:1;}
-.pb-map .pb-ratio{stroke:var(--t3);stroke-width:1;opacity:.5;}
+.pb-map .pb-ratio{stroke:var(--t3);stroke-width:1;opacity:.6;stroke-dasharray:4 3;}   /* vol ÷ OI 一定の線は破線（実線の指示線と見分ける） */
 .pb-map .pb-tick{fill:var(--t3);font-size:10px;font-weight:600;font-variant-numeric:tabular-nums;}
 .pb-map .pb-rlbl{fill:var(--t3);font-size:10px;font-weight:700;}
 .pb-map .pb-atl{fill:var(--t2);font-size:10.5px;font-weight:700;}
@@ -3041,11 +3047,43 @@ function perpAtTxt(){
 }
 // 見出しの「10月1日 10:00 更新」。データは日本時間10時（UTC 1時）を境に1日1回切り替わるので、
 // 実際に取得した時刻ではなく、そのデータ日（dk）の切替時刻を端末の時刻で出す（取得した時刻は本文の出典行に出す）
-function perpUpdTxt(){
+// 見出しに1行で収めるため、長い順に3通り用意する（10月1日 10:00 更新 → 10/1 10:00 更新 → 10/1 10:00）
+function perpUpdVariants(){
   var m=/^(\d{4})-(\d{2})-(\d{2})$/.exec((PERP&&PERP.dk)||'');
   var d=m?new Date(Date.UTC(+m[1],+m[2]-1,+m[3],1,0,0)):((PERP&&PERP.at)?new Date(PERP.at):null);
-  if(!d||isNaN(d.getTime()))return '';
-  return (d.getMonth()+1)+'月'+d.getDate()+'日 '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')+' 更新';
+  if(!d||isNaN(d.getTime()))return [];
+  var mo=d.getMonth()+1, da=d.getDate(), hm=String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+  return [mo+'月'+da+'日 '+hm+' 更新', mo+'/'+da+' '+hm+' 更新', mo+'/'+da+' '+hm];
+}
+function perpUpdTxt(){ var v=perpUpdVariants(); return v.length?v[0]:''; }
+// 見出しの日時を、名前と同じ行に収まる一番長い形にする（実際の幅で判定。収まる形が無ければ正式な形で次の行へ）
+var _perpHeadFit=null;   // 閉じた状態で選んだ形 {w:幅, k:何番目}（開閉で「更新」が出たり消えたりしないよう、開いた時も同じ形を使う）
+function perpFitHead(){
+  var el=document.getElementById('perp-bar'); if(!el)return;
+  var t=el.querySelector('.pb-ttl'), a=el.querySelector('.pb-at'); if(!t||!a)return;
+  var w=Math.round(el.getBoundingClientRect().width);
+  if(!w||!t.getBoundingClientRect().width)return;                   // 非表示（別のタブを表示中）の間は測れないので何もしない
+  var vs=perpUpdVariants(); if(!vs.length)return;
+  // 開いている時はボタンが「閉じる」で短いぶん長い形も入るが、閉じた時に選んだ形があればそれに合わせる
+  if(perpFoldOpen&&_perpHeadFit&&_perpHeadFit.w===w&&vs[_perpHeadFit.k]){ a.textContent=vs[_perpHeadFit.k]; return; }
+  for(var k=0;k<vs.length;k++){
+    if(a.textContent!==vs[k])a.textContent=vs[k];
+    // 文字を変えると名前の位置も動くので、毎回両方を測り直す（日時の上端が名前の下端より上＝同じ行）
+    if(a.getBoundingClientRect().top<t.getBoundingClientRect().bottom-2){ if(!perpFoldOpen)_perpHeadFit={w:w,k:k}; return; }
+  }
+  a.textContent=vs[0];
+  if(!perpFoldOpen)_perpHeadFit={w:w,k:0};
+}
+// 幅が変わった時（タブを開いて表示された・画面の回転）に収め直す
+var _perpHeadRO=null,_perpHeadW=0;
+function perpWatchHead(el){
+  if(_perpHeadRO||typeof ResizeObserver==='undefined')return;
+  _perpHeadRO=new ResizeObserver(function(ents){
+    var w=Math.round((ents[0]&&ents[0].contentRect.width)||0);
+    // 非表示（幅0）になったことも覚えておき、再び表示された時に収め直す
+    if(w!==_perpHeadW){ _perpHeadW=w; if(w)requestAnimationFrame(perpFitHead); }
+  });
+  _perpHeadRO.observe(el);
 }
 var PERP_ICO='<svg class="dh-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v16a2 2 0 0 0 2 2h16"></path><path d="M18 17V9"></path><path d="M13 17V5"></path><path d="M8 17v-3"></path></svg>';
 function renderPerpBoard(){
@@ -3055,13 +3093,13 @@ function renderPerpBoard(){
   var has=!!(PERP&&Array.isArray(PERP.rows)&&PERP.rows.length&&PERP.at);
   if(!has&&!editable){ el.style.display='none'; return; }
   var upd=has?perpUpdTxt():'';
-  // 見出し：名前の横に「10月1日 10:00 更新」。幅が足りない時は名前の下の行に回る
+  // 見出し：名前の横に小さく更新日時（1行に収まる形を perpFitHead で選ぶ）。
+  // 書込アプリの「編集」は見出しに置くと1行に収まらないので、開いた中（出典の行の右）に置く
   var h='<div class="detail-h tl-head-row" style="cursor:pointer;" onclick="togglePerpFold()">'
     +'<span class="tl-head-left pb-hl">'+PERP_ICO
     +'<span class="pb-tt"><span class="pb-ttl">PerpDEX vol・OIグラフ</span>'
     +(upd?'<span class="tl-stat pb-at">'+esc(upd)+'</span>':'')
     +'</span></span>'
-    +(editable?'<button class="ez-btn" onclick="event.stopPropagation();perpEditOpen()">編集</button>':'')
     +'<button class="tl-fold-btn'+(perpFoldOpen?' open':'')+'">'+(perpFoldOpen?'閉じる':'詳細を開く')+'<span class="dt-arrow">▼</span></button>'
     +'</div>'
     +'<div class="pb-body" id="pb-fold-body" style="display:'+(perpFoldOpen?'block':'none')+';">'
@@ -3070,8 +3108,10 @@ function renderPerpBoard(){
   el.innerHTML=h;
   el.classList.toggle('fold-closed',!perpFoldOpen);
   el.style.display='block';
+  perpFitHead(); perpWatchHead(el);
   if(perpFoldOpen)perpDrawMap();                       // 実際の幅を測ってから散布図を描く
 }
+function perpEditBtn(editable){ return editable?'<button class="ez-btn pb-edit" onclick="event.stopPropagation();perpEditOpen()">編集</button>':''; }
 function perpCell(cls,v,cap,txt,bold){
   if(v===null||!(v>0))return '<div class="pb-c"><span class="pb-v m">'+txt+'</span></div>';
   var f=Math.min(v/cap,1), cut=v>cap*1.0001;
@@ -3082,7 +3122,7 @@ function perpCell(cls,v,cap,txt,bold){
 function perpBodyHtml(editable){
   var V=perpView();
   if(!V.rows.length||!PERP.at){
-    return '<div class="pb-empty">まだデータがありません。'+(editable?'「編集」→「今すぐ取得」で取得できます。':'')+'</div>';
+    return '<div class="pb-mrow"><div class="pb-empty">まだデータがありません。'+(editable?'「編集」→「今すぐ取得」で取得できます。':'')+'</div>'+perpEditBtn(editable)+'</div>';
   }
   var at=perpAtTxt();
   var nPf=V.rows.filter(function(r){return r.vs==='pf';}).length, nCg=V.rows.filter(function(r){return r.vs==='cg';}).length, nMan=V.rows.filter(function(r){return r.vs==='man';}).length;
@@ -3091,7 +3131,7 @@ function perpBodyHtml(editable){
   if(nCg)vsrc.push(nPf?'一部CoinGecko':'CoinGecko');
   if(nMan)vsrc.push((nPf||nCg)?'一部手入力':'手入力');
   var src=(vsrc.length===1&&nPf)?'OI・vol＝DefiLlama':('OI＝DefiLlama'+(vsrc.length?'／vol＝'+vsrc.join('・'):''));
-  var h='<div class="pb-meta">出典: '+src+'　'+esc(at)+' 取得<br>並び順: '+(V.full?'vol /24h の大きい順':'OI /24h の大きい順')+'</div>';
+  var h='<div class="pb-mrow"><div class="pb-meta">出典: '+src+'　'+esc(at)+' 取得<br>並び順: '+(V.full?'vol /24h の大きい順':'OI /24h の大きい順')+'</div>'+perpEditBtn(editable)+'</div>';
   var oiC=perpCap(V.rows.map(function(r){return r.oi||0;}));
   if(V.full){
     var volC=perpCap(V.rows.map(function(r){return r.vol||0;}));
@@ -3136,7 +3176,7 @@ function perpBodyHtml(editable){
   var nPts=V.rows.filter(function(r){return r.vol!==null&&r.oi!==null;}).length;
   if(V.full&&nPts>=3){
     h+='<div class="pb-map-wrap"><div class="pb-map-t">規模 × 回転率マップ（両対数）</div>'
-      +'<div class="pb-map-s">横軸 OI /24h・縦軸 vol /24h。斜線は vol ÷ OI が一定（1x / 3x / 10x）で、左上ほど回転率が高い。点か名前をタップで数値</div>'
+      +'<div class="pb-map-s">横軸 OI /24h・縦軸 vol /24h。破線は vol ÷ OI が一定（1x / 3x / 10x）で、左上ほど回転率が高い。点か名前をタップで数値</div>'
       +'<div class="pb-map" id="pb-map"></div></div>';
   }
   // 注記：出典・vol が無いDEXとその理由・表示名と各サイト上の名前の対応
@@ -3356,7 +3396,7 @@ function perpDrawMap(){
   }
   s+='<line class="pb-axis" x1="'+mL+'" y1="'+(mT+ph)+'" x2="'+(mL+pw)+'" y2="'+(mT+ph)+'"></line>'
     +'<line class="pb-axis" x1="'+mL+'" y1="'+mT+'" x2="'+mL+'" y2="'+(mT+ph)+'"></line>';
-  // vol ÷ OI 一定の斜線（両対数では y = x + log10(r) の直線）
+  // vol ÷ OI 一定の斜線（両対数では y = x + log10(r) の直線）。指示線と見分けるため破線で描く（CSS）
   var ratios=[1,3,10];
   var rmax=Math.max.apply(null,pts.map(function(p){return p.ratio;}));
   if(rmax>=25)ratios.push(30);
