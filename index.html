@@ -1887,7 +1887,7 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .strat-sc-poly{background:rgba(120,110,255,.15);box-shadow:inset 0 0 0 1.3px rgba(139,126,255,.42);}
 .strat-sc-poly .strat-sc-lbl{color:#b0a4ff;}
 .strat-sc-poly svg{fill:none;stroke:#b0a4ff;border-radius:0;}
-/* ─────── Perp DEX 俯瞰ボード（24h出来高・OI・Vol/OI）───────
+/* ─────── PerpDEX OIグラフ（24h出来高・OI・Vol/OI・規模×回転率マップ）───────
    棒の色は3指標で固定（出来高=青／OI=橙／Vol÷OI=緑）。文字は色を持たせず本文色で書く。
    棒は細め・先端だけ角丸・根元は四角。外れ値は上限で打ち切り、「//」の切れ目で省略を示す。
    行ごとに同じ列定義のグリッドを使う（minmax(0,Nfr) なので中身に関係なく列幅が揃い、行の区切り線が途切れない） */
@@ -2875,42 +2875,54 @@ function toggleTaskListFold(){
     rerender:renderTaskList
   });
 }
-// ─────────── Perp DEX 俯瞰ボード（24h出来高・OI・Vol÷OI）───────────
-// ・書込アプリが1日1回、DefiLlama の無料API（/overview/open-interest）からOIを取得してDBへ保存する
-// ・閲覧アプリはDBに保存された値を表示するだけ（閲覧アプリからDefiLlamaへは一切通信しない）
-// ・24h出来高（Perp Volume）は DefiLlama が有料API限定にしているため、書込アプリで任意に手入力する。
-//   入力した日だけ Vol÷OI と散布図を出し、入力が無い日は「OI＋前日比」の表示に切り替える
-// 対象DEXの初期リスト。k は DefiLlama 上の名前の候補（| 区切り・先に書いたものを優先）。
-// 「parent#xxx」は親プロトコル配下の合算（子の名前が見つからないときの保険）
+// ─────────── PerpDEX OIグラフ（OI・24h出来高・Vol÷OI と 規模×回転率マップ）───────────
+// ・書込アプリが1日1回、無料APIから取得してDBへ保存する
+//     OI       … DefiLlama（/overview/open-interest）
+//     24h出来高 … CoinGecko（/derivatives/exchanges）。DefiLlamaの出来高は有料API限定（HTTP 402）のため
+// ・閲覧アプリはDBに保存された値を表示するだけ（閲覧アプリから外部APIへは一切通信しない）
+// ・出来高が取れたDEXが3つ以上ある日は 規模×回転率マップ（両対数の散布図）も出す
+// 対象DEXの初期リスト。
+//   k … DefiLlama 上の名前の候補（| 区切り・先に書いたものを優先。「parent#xxx」は親プロトコル配下の合算）
+//   g … CoinGecko 上の取引所名の候補（同上）
 var PERP_T_DEF=[
-  {n:'Hyperliquid',k:'Hyperliquid Perps|hyperliquid-perps|parent#hyperliquid'},
-  {n:'Variational',k:'Variational|Variational Omni|parent#variational'},
-  {n:'Lighter Robinhood',k:'Lighter Robinhood Perps|lighter-robinhood-perps|Lighter Robinhood'},
-  {n:'Arcus',k:'Arcus|Arcus Perps'},
-  {n:'Pacifica',k:'Pacifica'},
-  {n:'QFEX',k:'QFEX'},
-  {n:'Extended',k:'Extended|Extended Perps'},
-  {n:'Ondo Perps',k:'Ondo Perps|parent#ondo-finance'},
-  {n:'TxFlow',k:'TxFlow'},
-  {n:'RISEx',k:'RISEx'},
-  {n:'SoDEX',k:'SoDEX'},
-  {n:'BULK',k:'BULK|Bulk Trade'},
-  {n:'entropy.io',k:'entropy.io|Entropy'},
-  {n:'Near Perps',k:'Near Perps'},
-  {n:'HelloTrade',k:'HelloTrade'}
+  {n:'Hyperliquid',k:'Hyperliquid Perps|hyperliquid-perps|parent#hyperliquid',g:'Hyperliquid (Futures)|Hyperliquid'},
+  {n:'Variational',k:'Variational|Variational Omni|parent#variational',g:'Variational Omni|Variational'},
+  {n:'Lighter Robinhood',k:'Lighter Robinhood Perps|lighter-robinhood-perps|Lighter Robinhood',g:'Robinhood Chain Lighter (Futures)|Robinhood Chain Lighter'},
+  {n:'Arcus',k:'Arcus|Arcus Perps',g:'Arcus (Futures)|Arcus'},
+  {n:'Pacifica',k:'Pacifica Perps|Pacifica',g:'Pacifica'},
+  {n:'QFEX',k:'QFEX',g:'QFEX'},
+  {n:'Extended',k:'Extended Perps|Extended',g:'Extended'},
+  {n:'Ondo Perps',k:'Ondo Perps|parent#ondo-finance',g:'Ondo Perps'},
+  {n:'TxFlow',k:'TxFlow',g:'TxFlow'},
+  {n:'RISEx',k:'RISEx',g:'RISEx'},
+  {n:'SoDEX',k:'SoDEX Perps|SoDEX',g:'SoDEX (Futures)|SoDEX'},
+  {n:'BULK',k:'BULK|Bulk Trade',g:'BULK'},
+  {n:'entropy.io',k:'entropy.io|Entropy',g:'entropy.io|Entropy'},
+  {n:'Near Perps',k:'Near Perps',g:'Near Perps'},
+  {n:'HelloTrade',k:'HelloTrade',g:'HelloTrade'},
+  {n:'Perpl',k:'Perpl',g:'Perpl'},
+  {n:'Pop DEX',k:'PopDEX Perps|PopDEX|popdex-perps|popdex-perp-oi',g:'PopDEX|Pop DEX'}
 ];
 var PERP_T=null;                          // 対象DEX（null＝初期リストを使う）
-var PERP={day:'',at:'',dk:'',rows:[]};    // 取得結果 rows:[{n,oi,ch1,ln,vol,vd}]
+var PERP={day:'',at:'',dk:'',rows:[],ce:0,v:1};  // 取得結果 rows:[{n,oi,ch1,ln,vol,vd,vs,gn,gx}]
 var perpFoldOpen=false;
-function perpTargets(){ return (Array.isArray(PERP_T)&&PERP_T.length)?PERP_T:PERP_T_DEF; }
+function perpTargets(){
+  if(!(Array.isArray(PERP_T)&&PERP_T.length))return PERP_T_DEF;
+  // 以前に保存した独自リストには CoinGecko 名(g)が無いので、同じ表示名の初期値で補う
+  return PERP_T.map(function(t){
+    if(t.g)return t;
+    var d=PERP_T_DEF.filter(function(x){return x.n===t.n;})[0];
+    return d?{n:t.n,k:t.k,g:d.g}:t;
+  });
+}
 function sanPerpT(a){
   if(!Array.isArray(a))return null;
   var seen={},out=[];
   a.slice(0,40).forEach(function(o){
     if(!o||typeof o!=='object')return;
-    var n=clampStr(o.n,40).trim(), k=clampStr(o.k,160).trim();
+    var n=clampStr(o.n,40).trim(), k=clampStr(o.k,160).trim(), g=clampStr(o.g,160).trim();
     if(!n||seen[n])return;
-    seen[n]=1; out.push({n:n,k:k});
+    seen[n]=1; out.push({n:n,k:k,g:g});
   });
   return out.length?out.slice(0,30):null;
 }
@@ -2924,8 +2936,10 @@ function perpPctOk(v){
   var x=Number(v); return (isFinite(x)&&x>-100&&x<1e6)?x:null;
 }
 function sanPerp(o){
-  var z={day:'',at:'',dk:'',rows:[]};
+  var z={day:'',at:'',dk:'',rows:[],ce:0,v:1};
   if(!o||typeof o!=='object')return z;
+  z.ce=(o.ce===1)?1:0;                                     // 1=出来高（CoinGecko）の取得に失敗した日
+  z.v=(o.v===2)?2:1;                                       // 2=CoinGeckoの出来高にも対応した版で取得した結果
   var reD=/^\d{4}-\d{2}-\d{2}$/;
   z.day=(typeof o.day==='string'&&reD.test(o.day))?o.day:'';
   z.dk=(typeof o.dk==='string'&&reD.test(o.dk))?o.dk:'';
@@ -2936,7 +2950,11 @@ function sanPerp(o){
       if(!r||typeof r!=='object')return;
       var n=clampStr(r.n,40).trim(); if(!n||seen[n])return; seen[n]=1;
       z.rows.push({n:n, oi:perpNumOk(r.oi), ch1:perpPctOk(r.ch1), ln:clampStr(r.ln,80),
-        vol:perpNumOk(r.vol), vd:(typeof r.vd==='string'&&reD.test(r.vd))?r.vd:''});
+        vol:perpNumOk(r.vol), vd:(typeof r.vd==='string'&&reD.test(r.vd))?r.vd:'',
+        // 出来高の出どころ cg=CoinGecko / man=手入力（出どころの無い旧データの出来高は手入力だったもの）
+        vs:(r.vs==='cg'||r.vs==='man')?r.vs:((perpNumOk(r.vol)>0)?'man':''),
+        gn:clampStr(r.gn,60),                              // CoinGecko 上の取引所名
+        gx:r.gx===1?1:0});                                 // 1=CoinGeckoとDefiLlamaでOIが大きく違うため出来高を使わなかった
     });
   }
   return z;
@@ -2977,7 +2995,8 @@ function perpView(){
   var list=rows.map(function(r){
     var vol=(r.vol!==null&&r.vol>0&&dk&&r.vd===dk)?r.vol:null;
     var oi=(r.oi!==null&&r.oi>0)?r.oi:null;
-    return {n:r.n,oi:oi,ch1:r.ch1,ln:r.ln||'',vol:vol,ratio:(vol!==null&&oi!==null)?vol/oi:null};
+    return {n:r.n,oi:oi,ch1:r.ch1,ln:r.ln||'',vol:vol,ratio:(vol!==null&&oi!==null)?vol/oi:null,
+            vs:(vol!==null?r.vs:''),gn:r.gn||'',gx:r.gx===1};
   });
   var full=list.some(function(r){return r.vol!==null;});
   list.sort(function(a,b){
@@ -3004,7 +3023,7 @@ function renderPerpBoard(){
   if(!has&&!editable){ el.style.display='none'; return; }
   var at=perpAtTxt();
   var h='<div class="detail-h tl-head-row" style="cursor:pointer;" onclick="togglePerpFold()">'
-    +'<span class="tl-head-left"><span class="dh-i">'+PERP_ICO+'Perp DEX 俯瞰</span>'
+    +'<span class="tl-head-left"><span class="dh-i">'+PERP_ICO+'PerpDEX OIグラフ</span>'
     +(at?'<span class="tl-stat pb-at">'+esc(at)+'</span>':'')
     +'</span>'
     +(editable?'<button class="ez-btn" onclick="event.stopPropagation();perpEditOpen()">編集</button>':'')
@@ -3030,7 +3049,9 @@ function perpBodyHtml(editable){
     return '<div class="pb-empty">まだデータがありません。'+(editable?'「編集」→「今すぐ取得」で取得できます。':'')+'</div>';
   }
   var at=perpAtTxt();
-  var h='<div class="pb-meta">出典: DefiLlama　'+esc(at)+' 取得<br>並び順: '+(V.full?'24h出来高の大きい順':'OI（建玉）の大きい順')+'</div>';
+  var nCg=V.rows.filter(function(r){return r.vs==='cg';}).length, nMan=V.rows.filter(function(r){return r.vs==='man';}).length;
+  var src='OI＝DefiLlama'+(nCg?'／24h出来高＝CoinGecko'+(nMan?'（一部手入力）':''):(nMan?'／24h出来高＝手入力':''));
+  var h='<div class="pb-meta">出典: '+src+'　'+esc(at)+' 取得<br>並び順: '+(V.full?'24h出来高の大きい順':'OI（建玉）の大きい順')+'</div>';
   var oiC=perpCap(V.rows.map(function(r){return r.oi||0;}));
   if(V.full){
     var volC=perpCap(V.rows.map(function(r){return r.vol||0;}));
@@ -3041,7 +3062,7 @@ function perpBodyHtml(editable){
       +'<div class="pb-hc"><b>Vol ÷ OI</b><span>24h出来高 ÷ OI</span></div></div>';
     V.rows.forEach(function(r){
       if(r.vol===null&&r.oi===null){
-        h+='<div class="pb-row pb-nodata"><div class="pb-nm">'+esc(r.n)+'</div><div class="pb-na">DefiLlamaにデータなし</div></div>';
+        h+='<div class="pb-row pb-nodata"><div class="pb-nm">'+esc(r.n)+'</div><div class="pb-na">OI・出来高ともにデータなし</div></div>';
         return;
       }
       h+='<div class="pb-row"><div class="pb-nm">'+esc(r.n)+'</div>'
@@ -3077,20 +3098,26 @@ function perpBodyHtml(editable){
       +'<div class="pb-map-s">横軸 OI・縦軸 24h出来高。斜線は Vol/OI 一定（1x / 3x / 10x）で、左上ほど回転率が高い。点をタップで数値</div>'
       +'<div class="pb-map" id="pb-map"></div></div>';
   }
-  // 注記：表示名と DefiLlama 上の名前が違うものは対応を書いておく
-  var alias=[];
+  // 注記：出典・出来高が無いDEXとその理由・表示名と各サイト上の名前の対応
+  function nz(x){ return String(x||'').toLowerCase().replace(/[^a-z0-9]/g,''); }
+  var alias=[],aliasG=[],noVol=[],gx=[],man=[];
   V.rows.forEach(function(r){
-    if(!r.ln)return;
-    var a=String(r.n).toLowerCase().replace(/[^a-z0-9]/g,''), b=String(r.ln).toLowerCase().replace(/[^a-z0-9]/g,'');
-    if(a!==b)alias.push(esc(r.n)+' ＝「'+esc(r.ln)+'」');
+    // 「〇〇 Perps」「〇〇 (Futures)」のように後ろに付くだけの違いは書かない
+    if(r.ln&&nz(r.n)!==nz(r.ln)&&nz(r.ln)!==nz(r.n)+'perps'&&nz(r.ln)!==nz(r.n)+'perp')alias.push(esc(r.n)+' ＝「'+esc(r.ln)+'」');
+    if(r.vs==='cg'&&r.gn&&nz(r.gn)!==nz(r.n)&&nz(r.gn)!==nz(r.n)+'futures')aliasG.push(esc(r.n)+' ＝「'+esc(r.gn)+'」');
+    if(r.vs==='man')man.push(esc(r.n));
+    if(r.vol===null&&r.oi!==null){ if(r.gx)gx.push(esc(r.n)); else noVol.push(esc(r.n)); }
   });
   h+='<div class="pb-notes">'
     +'<div>・OI は DefiLlama の公開データ（1日1回自動取得）</div>'
-    +(V.full
-      ?'<div>・24h出来高は DefiLlama の表示値を手入力（DefiLlama が出来高データを有料API限定にしているため）。Vol ÷ OI はその値から算出</div>'
-      :'<div>・24h出来高は DefiLlama が有料API限定にしているため、手入力がある日だけ表示します</div>')
-    +(alias.length?'<div>・'+alias.join('、')+'</div>':'')
-    +'<div>・OI は DefiLlama 側で随時更新・修正されるため、閲覧時刻によって多少ずれることがあります</div>'
+    +(nCg?'<div>・24h出来高は CoinGecko の公開データ（各取引所の申告値・直近24時間、1日1回自動取得）。Vol ÷ OI はその出来高と DefiLlama の OI から算出</div>':'')
+    +(man.length?'<div>・手入力した出来高：'+man.join('、')+'</div>':'')
+    +(!V.full?'<div>・24h出来高を取得できなかったため、OI と前日比のみ表示しています</div>':'')
+    +(V.full&&noVol.length?'<div>・出来高なし（CoinGeckoに未掲載）：'+noVol.join('、')+'</div>':'')
+    +(gx.length?'<div>・'+gx.join('、')+' は CoinGecko と DefiLlama で OI が大きく異なる（集計の対象が違う可能性）ため、出来高を表示していません</div>':'')
+    +(alias.length?'<div>・DefiLlama：'+alias.join('、')+'</div>':'')
+    +(aliasG.length?'<div>・CoinGecko：'+aliasG.join('、')+'</div>':'')
+    +'<div>・数値は DefiLlama・CoinGecko 側で随時更新・修正されるため、閲覧時刻によって多少ずれることがあります</div>'
     +'</div>';
   return h;
 }
@@ -3209,7 +3236,7 @@ function perpDrawMap(){
   });
   _perpPts=[];
   P.forEach(function(o){
-    _perpPts.push({n:o.p.n,vol:o.p.vol,oi:o.p.oi,ratio:o.p.ratio,x:o.x,y:o.y});
+    _perpPts.push({n:o.p.n,vol:o.p.vol,oi:o.p.oi,ratio:o.p.ratio,ch1:o.p.ch1,x:o.x,y:o.y});
     s+='<circle class="pb-dot" id="pb-dot-'+o.i+'" cx="'+o.x.toFixed(1)+'" cy="'+o.y.toFixed(1)+'" r="4.5"></circle>';
   });
   // タップ判定は点より大きく取る（指で狙いやすいよう半径13px）
@@ -3235,7 +3262,8 @@ function perpTip(i){
   tip.innerHTML='<div class="pb-tip-n">'+esc(p.n)+'</div>'
     +'<div class="pb-tip-r"><i style="background:var(--pb-vol)"></i>24h出来高<b>'+esc(perpFmt(p.vol))+'</b></div>'
     +'<div class="pb-tip-r"><i style="background:var(--pb-oi)"></i>OI<b>'+esc(perpFmt(p.oi))+'</b></div>'
-    +'<div class="pb-tip-r"><i style="background:var(--pb-rt)"></i>Vol ÷ OI<b>'+esc(perpRatioFmt(p.ratio))+'</b></div>';
+    +'<div class="pb-tip-r"><i style="background:var(--pb-rt)"></i>Vol ÷ OI<b>'+esc(perpRatioFmt(p.ratio))+'</b></div>'
+    +(p.ch1!==null&&p.ch1!==undefined?'<div class="pb-tip-r"><i style="background:transparent"></i>OI前日比<b>'+esc(perpPctFmt(p.ch1))+'</b></div>':'');
   tip.classList.add('show');
   var svg=box.querySelector('svg'), offX=svg?svg.offsetLeft:0;
   var tw=tip.offsetWidth, th=tip.offsetHeight, bw=box.clientWidth;
