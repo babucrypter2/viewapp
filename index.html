@@ -1936,7 +1936,12 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .pb-ch.up i{border-bottom:6px solid currentColor;}
 .pb-ch.dn{color:var(--red);}
 .pb-ch.dn i{border-top:6px solid currentColor;}
-.pb-map-wrap{margin-top:18px;}
+.pb-map-wrap{margin-top:14px;}
+/* 散布図の下のランキング（棒の表） */
+.pb-sec{margin-top:20px;}
+.pb-sec>.pb-map-s{margin-bottom:8px;}
+/* 開いている間、見出しのすぐ下に出る「✕ 閉じる」バー（案件カードの詳細と同じ .detail-toggle.open。画面上部に追従する） */
+#perp-bar .pb-closebar{margin-top:2px;}
 .pb-map-t{font-size:14px;font-weight:700;color:var(--t1);letter-spacing:.01em;}
 .pb-map-s{font-size:var(--fs-sm);color:var(--t3);line-height:1.55;margin:3px 0 6px;}
 .pb-map{position:relative;}
@@ -3100,8 +3105,10 @@ function renderPerpBoard(){
     +'<span class="pb-tt"><span class="pb-ttl">PerpDEX vol・OIグラフ</span>'
     +(upd?'<span class="tl-stat pb-at">'+esc(upd)+'</span>':'')
     +'</span></span>'
-    +'<button class="tl-fold-btn'+(perpFoldOpen?' open':'')+'">'+(perpFoldOpen?'閉じる':'詳細を開く')+'<span class="dt-arrow">▼</span></button>'
+    // 開いている間は見出しのボタンの代わりに、すぐ下の「✕ 閉じる」バーが画面上部に追従する（案件カードの詳細と同じ見た目・動き）
+    +(perpFoldOpen?'':'<button class="tl-fold-btn">詳細を開く<span class="dt-arrow">▼</span></button>')
     +'</div>'
+    +(perpFoldOpen?'<button class="detail-toggle open pb-closebar" onclick="event.stopPropagation();perpCloseBar()"><span class="dt-label">✕ 閉じる</span><span class="dt-arrow">▼</span></button>':'')
     +'<div class="pb-body" id="pb-fold-body" style="display:'+(perpFoldOpen?'block':'none')+';">'
     +(perpFoldOpen?perpBodyHtml(editable):'')          // 閉じている間は中身を作らない
     +'<button class="fold-close" onclick="event.stopPropagation();togglePerpFold()">閉じる<span class="dt-arrow">▲</span></button></div>';
@@ -3110,6 +3117,16 @@ function renderPerpBoard(){
   el.style.display='block';
   perpFitHead(); perpWatchHead(el);
   if(perpFoldOpen)perpDrawMap();                       // 実際の幅を測ってから散布図を描く
+}
+// 追従する「✕ 閉じる」バー。下の方まで読んでいる時に閉じると、そのままでは縮んだ分だけ下の案件カードに飛んでしまうので、
+// 先に見出しが画面の先頭に来る位置まで戻してから閉じる
+function perpCloseBar(){
+  var el=document.getElementById('perp-bar'), cont=el&&el.closest('.scroll-area,.set-scroll');
+  if(el&&cont){
+    var top=el.getBoundingClientRect().top-cont.getBoundingClientRect().top;
+    if(top<0)cont.scrollTop=Math.max(0,cont.scrollTop+top-4);
+  }
+  if(perpFoldOpen)togglePerpFold();
 }
 function perpEditBtn(editable){ return editable?'<button class="ez-btn pb-edit" onclick="event.stopPropagation();perpEditOpen()">編集</button>':''; }
 function perpCell(cls,v,cap,txt,bold){
@@ -3131,7 +3148,15 @@ function perpBodyHtml(editable){
   if(nCg)vsrc.push(nPf?'一部CoinGecko':'CoinGecko');
   if(nMan)vsrc.push((nPf||nCg)?'一部手入力':'手入力');
   var src=(vsrc.length===1&&nPf)?'OI・vol＝DefiLlama':('OI＝DefiLlama'+(vsrc.length?'／vol＝'+vsrc.join('・'):''));
-  var h='<div class="pb-mrow"><div class="pb-meta">出典: '+src+'　'+esc(at)+' 取得<br>並び順: '+(V.full?'vol /24h の大きい順':'OI /24h の大きい順')+'</div>'+perpEditBtn(editable)+'</div>';
+  var h='<div class="pb-mrow"><div class="pb-meta">出典: '+src+'　'+esc(at)+' 取得</div>'+perpEditBtn(editable)+'</div>';
+  // 先に散布図（規模×回転率マップ）、その下にランキング（棒の表）
+  var nPts=V.rows.filter(function(r){return r.vol!==null&&r.oi!==null;}).length;
+  if(V.full&&nPts>=3){
+    h+='<div class="pb-map-wrap"><div class="pb-map-t">規模 × 回転率マップ（両対数）</div>'
+      +'<div class="pb-map-s">横軸 OI /24h・縦軸 vol /24h。破線は vol ÷ OI が一定（1x / 3x / 10x）で、左上ほど回転率が高い。点か名前をタップで数値</div>'
+      +'<div class="pb-map" id="pb-map"></div></div>';
+  }
+  h+='<div class="pb-sec"><div class="pb-map-t">ランキング</div><div class="pb-map-s">'+(V.full?'vol /24h の大きい順':'OI /24h の大きい順')+'</div>';
   var oiC=perpCap(V.rows.map(function(r){return r.oi||0;}));
   if(V.full){
     var volC=perpCap(V.rows.map(function(r){return r.vol||0;}));
@@ -3173,12 +3198,7 @@ function perpBodyHtml(editable){
     });
     h+='</div>';
   }
-  var nPts=V.rows.filter(function(r){return r.vol!==null&&r.oi!==null;}).length;
-  if(V.full&&nPts>=3){
-    h+='<div class="pb-map-wrap"><div class="pb-map-t">規模 × 回転率マップ（両対数）</div>'
-      +'<div class="pb-map-s">横軸 OI /24h・縦軸 vol /24h。破線は vol ÷ OI が一定（1x / 3x / 10x）で、左上ほど回転率が高い。点か名前をタップで数値</div>'
-      +'<div class="pb-map" id="pb-map"></div></div>';
-  }
+  h+='</div>';
   // 注記：出典・vol が無いDEXとその理由・表示名と各サイト上の名前の対応
   function nz(x){ return String(x||'').toLowerCase().replace(/[^a-z0-9]/g,''); }
   var alias=[],aliasG=[],noVol=[],gx=[],man=[],cgs=[];
