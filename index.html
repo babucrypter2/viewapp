@@ -2926,7 +2926,21 @@ var PERP_T_DEF=[
   {n:'Near Perps',k:'Near Perps',g:'Near Perps'},
   {n:'HelloTrade',k:'HelloTrade',g:'HelloTrade'},
   {n:'Perpl',k:'Perpl',g:'Perpl'},
-  {n:'Pop DEX',k:'PopDEX Perps|PopDEX|popdex-perps|popdex-perp-oi',g:'PopDEX|Pop DEX'}
+  {n:'Pop DEX',k:'PopDEX Perps|PopDEX|popdex-perps|popdex-perp-oi',g:'PopDEX|Pop DEX'},
+  // ↓ 2026-10-03 追加。DefiLlama 上の名前は、DefiLlama の集計コード（dimension-adapters）と PerpFinder の一覧で確認
+  //   Aster   … 「Aster Perps」（集計コード apollox。OI も同じ名前）
+  //   edgeX   … 「edgeX V2」（2026-05 からの V2。OI も V2 のみ。旧 V1 は「edgeX」）
+  //   Grvt    … 「Grvt Perps」（OI は grvt-perps-oi）
+  //   Phoenix … 「Phoenix Perp」（Solana のPerp・集計コード phoenix-trade／OI は phoenix-trade-oi。同名の現物DEX「Phoenix」とは別）
+  //   Hibachi … 「Hibachi」  Nado … 「Nado Perps」（OI の集計コードは nado）  Decibel … 「Decibel」
+  //   CoinGecko（予備）は Aster (Futures)・edgeX・GRVT・Nado・Decibel。Phoenix と Hibachi は CoinGecko に無い
+  {n:'Aster',k:'Aster Perps|apollox',g:'Aster (Futures)|Aster'},
+  {n:'edgeX',k:'edgeX V2|edgeX-v2|edgeX|edgeX Perps',g:'edgeX'},
+  {n:'Grvt',k:'Grvt Perps|grvt-perps|GRVT',g:'GRVT|GRVT (Futures)'},
+  {n:'Phoenix',k:'Phoenix Perp|phoenix-trade|phoenix-trade-oi|Phoenix Perps',g:'Phoenix Perps|Phoenix (Futures)'},
+  {n:'Hibachi',k:'Hibachi',g:'Hibachi'},
+  {n:'Nado',k:'Nado Perps|Nado|nado-perp',g:'Nado'},
+  {n:'Decibel',k:'Decibel',g:'Decibel'}
 ];
 var PERP_T=null;                          // 対象DEX（null＝初期リストを使う）
 var PERP={day:'',at:'',dk:'',rows:[],ce:0,v:1};  // 取得結果 rows:[{n,oi,ch1,ln,vol,vd,vs,gn,gx}]
