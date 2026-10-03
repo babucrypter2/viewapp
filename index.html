@@ -3052,13 +3052,16 @@ function perpAtTxt(){
 }
 // 見出しの「10月1日 10:00 更新」。データは日本時間10時（UTC 1時）を境に1日1回切り替わるので、
 // 実際に取得した時刻ではなく、そのデータ日（dk）の切替時刻を端末の時刻で出す（取得した時刻は本文の出典行に出す）
-// 見出しに1行で収めるため、長い順に3通り用意する（10月1日 10:00 更新 → 10/1 10:00 更新 → 10/1 10:00）
+// 見出しの更新日「10/3 更新」（入らない狭い画面では「10/3」）。時刻は出さない。
+// データは日本時間10時（UTC 1時）を境に1日1回切り替わるので、データ日（dk）の切替時刻の日付を端末の時刻で出す。
+// 書込アプリで取得している間は「更新中…」
 function perpUpdVariants(){
+  if(typeof _perpBusy!=='undefined'&&_perpBusy)return ['更新中…'];
   var m=/^(\d{4})-(\d{2})-(\d{2})$/.exec((PERP&&PERP.dk)||'');
   var d=m?new Date(Date.UTC(+m[1],+m[2]-1,+m[3],1,0,0)):((PERP&&PERP.at)?new Date(PERP.at):null);
   if(!d||isNaN(d.getTime()))return [];
-  var mo=d.getMonth()+1, da=d.getDate(), hm=String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
-  return [mo+'月'+da+'日 '+hm+' 更新', mo+'/'+da+' '+hm+' 更新', mo+'/'+da+' '+hm];
+  var md=(d.getMonth()+1)+'/'+d.getDate();
+  return [md+' 更新', md];
 }
 function perpUpdTxt(){ var v=perpUpdVariants(); return v.length?v[0]:''; }
 // 見出しの日時を、名前と同じ行に収まる一番長い形にする（実際の幅で判定。収まる形が無ければ正式な形で次の行へ）
@@ -3069,7 +3072,8 @@ function perpFitHead(){
   var w=Math.round(el.getBoundingClientRect().width);
   if(!w||!t.getBoundingClientRect().width)return;                   // 非表示（別のタブを表示中）の間は測れないので何もしない
   var vs=perpUpdVariants(); if(!vs.length)return;
-  // 開いている時はボタンが「閉じる」で短いぶん長い形も入るが、閉じた時に選んだ形があればそれに合わせる
+  if(typeof _perpBusy!=='undefined'&&_perpBusy){ a.textContent=vs[0]; return; }   // 取得中は「更新中…」だけ（選んだ形は記録しない）
+  // 開いている時は見出しのボタンが無いぶん長い形も入るが、閉じた時に選んだ形があればそれに合わせる
   if(perpFoldOpen&&_perpHeadFit&&_perpHeadFit.w===w&&vs[_perpHeadFit.k]){ a.textContent=vs[_perpHeadFit.k]; return; }
   for(var k=0;k<vs.length;k++){
     if(a.textContent!==vs[k])a.textContent=vs[k];
