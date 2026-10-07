@@ -2904,7 +2904,7 @@ function toggleTaskListFold(){
 //     vol /24h … PerpFinder（/api/data/perps）＝ DefiLlama の Perp Volume をキー不要で公開しているもの。
 //                DefiLlama 本体の出来高APIは有料限定（HTTP 402）。PerpFinder が落ちていた日は CoinGecko で代用
 // ・閲覧アプリはDBに保存された値を表示するだけ（閲覧アプリから外部APIへは一切通信しない）
-// ・vol が取れたDEXが3つ以上ある日は 規模×回転率マップ（両対数の散布図）も出す。点の名前は指示線つきで自動配置
+// ・vol が取れたDEXが3つ以上ある日は 規模×回転率マップ（両対数の散布図）も出す。点の名前は点のすぐ横に自動配置（重なる時だけ短い指示線）
 // ・画面の用語は「vol /24h」「OI /24h」「vol ÷ OI」に統一する（「出来高」とは書かない）
 // 対象DEXの初期リスト。
 //   k … DefiLlama 上の名前の候補（| 区切り・先に書いたものを優先。「parent#xxx」は親プロトコル配下の合算）
@@ -2912,6 +2912,10 @@ function toggleTaskListFold(){
 var PERP_T_DEF=[
   {n:'Hyperliquid',k:'Hyperliquid Perps|hyperliquid-perps|parent#hyperliquid',g:'Hyperliquid (Futures)|Hyperliquid'},
   {n:'Variational',k:'Variational|Variational Omni|parent#variational',g:'Variational Omni|Variational'},
+  // Lighter は DefiLlama 上で Core（zkLighter）と Robinhood Chain 版が別々に載っている（親「Lighter」は両方の合算なので使わない）
+  //   Core     … 「Lighter Perps」（集計コード：vol は lighterv2・OI は lighter-v2）。CoinGecko は「Lighter」  ← 2026-10-07 追加
+  //   Robinhood… 「Lighter Robinhood Perps」（lighter-rh／lighter-rh-oi）。CoinGecko は「Robinhood Chain Lighter (Futures)」
+  {n:'Lighter Core',k:'Lighter Perps|lighter-v2',g:'Lighter'},
   {n:'Lighter Robinhood',k:'Lighter Robinhood Perps|lighter-robinhood-perps|Lighter Robinhood',g:'Robinhood Chain Lighter (Futures)|Robinhood Chain Lighter'},
   {n:'Arcus',k:'Arcus|Arcus Perps',g:'Arcus (Futures)|Arcus'},
   {n:'Pacifica',k:'Pacifica Perps|Pacifica',g:'Pacifica'},
