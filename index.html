@@ -3273,16 +3273,18 @@ function perpMeasure(s,fs,ff){
   }catch(e){}
   return perpTextW(s,fs);
 }
-// ─── 点の名前の配置（指示線つき） ───
-//   P: [{x,y,w}] 点の位置と名前の幅   o: {L,R,T,B 描画枠, fs 文字の大きさ, obst 避ける箱（斜線のラベルなど）}
-//   各点に「点のすぐ横（8通り）」と「少し離して指示線でつなぐ（16方向×6距離）」の置き場所を用意し、
-//   ・名前同士の重なり ・名前や指示線が他の点を隠す／横切る ・指示線同士の交差 ・枠からのはみ出し
-//   ・どの点の名前か紛らわしい（他の点の方が近い） ・指示線の長さ
-//   の合計が最小になるよう、1点ずつ置き直すのを収束まで繰り返す。置き直す順番を変えて4回試し、一番よい結果を使う。
-//   密集した所の点は自然に「離して指示線」になり、空いている所の点は「すぐ横」になる。
+// ─── 点の名前の配置 ───
+//   P: [{x,y,w}] 点の位置と名前の幅   o: {L,R,T,B 描画枠, fs 文字の大きさ, obst 避ける箱（1x/3x/10x の文字）}
+//   方針（v30〜）：**名前は点のすぐ横に置くのが基本。指示線は、すぐ横のどこに置いても点や他の名前と重なる時だけ。**
+//   ・点のすぐ横の置き場所を16通り用意（右・左・右やや上下・左やや上下・右上・右下・左上・左下・真上・真下・上下で点から書き始め/書き終わり）
+//   ・指示線は16方向×16〜60px。1本ごとに大きなコスト（すぐ横で少し紛らわしい程度なら、すぐ横の方を選ぶ）。短いほど良い
+//   ・破線（1x/3x/10x の線）や格子とは重なってよい（縁取りで読めるため）。1x/3x/10x の文字とは重ねない
+//   コストの大きさの順：重なり（名前同士・名前と点・指示線と点/名前/指示線・枠外）＞ 指示線を使う ＞ 他の点に近くて紛らわしい ＞ 置き場所の好み・線の長さ
+//   1点ずつ「他を固定して一番安い置き場所」に置き直すのを収束まで繰り返す。置き直す順番を4通り試して一番よい結果を使う
 function perpLabelLayout(P,o){
   var N=P.length, fs=o.fs, LH=fs, ASC=fs*0.8, DR=4.5;
   var L=o.L+1, R=o.R-1, T=o.T+1, B=o.B-1, obst=o.obst||[];
+  var HARD=5000, LEAD=100;
   function mk(i,x0,yc,a,pen,seg){
     var w=P[i].w, b={x0:x0,x1:x0+w,y0:yc-LH/2,y1:yc+LH/2};
     var c={b:b,a:a,seg:seg||null,pen:pen};
@@ -3293,27 +3295,35 @@ function perpLabelLayout(P,o){
     c.e=e;
     return c;
   }
-  var DIST=[20,30,42,56,72,90], cand=[];
+  var DIST=[16,24,34,46,60], cand=[];
   for(var i=0;i<N;i++){
-    var x=P[i].x, y=P[i].y, w=P[i].w, list=[];
-    // 点のすぐ横（指示線なし）。右 → 左 → 斜め → 真上・真下 の順に好む
-    list.push(mk(i,x+7,y,'start',0));
-    list.push(mk(i,x-7-w,y,'end',1.5));
-    list.push(mk(i,x+4,y-4-LH/2,'start',2.5));
-    list.push(mk(i,x+4,y+4+LH/2,'start',3));
-    list.push(mk(i,x-4-w,y-4-LH/2,'end',3.5));
-    list.push(mk(i,x-4-w,y+4+LH/2,'end',4));
-    list.push(mk(i,x-w/2,y-7-LH/2,'middle',4.5));
-    list.push(mk(i,x-w/2,y+7+LH/2,'middle',5));
-    // 離して指示線でつなぐ。線の先に名前を付ける（右向きなら線の右、左向きなら線の左、真上・真下なら線の上・下）
+    var x=P[i].x, y=P[i].y, w=P[i].w, list=[], G=7, H2=LH/2;
+    // 点のすぐ横（指示線なし）。数字は好みの順（小さいほど優先）
+    list.push(mk(i,x+G,y,'start',0));                 // 右
+    list.push(mk(i,x-G-w,y,'end',1));                 // 左
+    list.push(mk(i,x+G-1,y-5,'start',2));             // 右やや上
+    list.push(mk(i,x+G-1,y+5,'start',2));             // 右やや下
+    list.push(mk(i,x-G+1-w,y-5,'end',3));             // 左やや上
+    list.push(mk(i,x-G+1-w,y+5,'end',3));             // 左やや下
+    list.push(mk(i,x+3,y-5-H2,'start',4));            // 右上
+    list.push(mk(i,x+3,y+5+H2,'start',4));            // 右下
+    list.push(mk(i,x-3-w,y-5-H2,'end',5));            // 左上
+    list.push(mk(i,x-3-w,y+5+H2,'end',5));            // 左下
+    list.push(mk(i,x-w/2,y-7-H2,'middle',5));         // 真上
+    list.push(mk(i,x-w/2,y+7+H2,'middle',6));         // 真下
+    list.push(mk(i,x-4,y-7-H2,'start',6));            // 上（点の真上から右へ書く）
+    list.push(mk(i,x+4-w,y-7-H2,'end',6));            // 上（点の真上で書き終わる）
+    list.push(mk(i,x-4,y+7+H2,'start',7));            // 下（点の真下から右へ書く）
+    list.push(mk(i,x+4-w,y+7+H2,'end',7));            // 下（点の真下で書き終わる）
+    // 指示線（すぐ横に置けない時だけ）。線の先に名前を付ける（右向きなら線の右、左向きなら線の左、真上・真下なら線の上・下）
     for(var k=0;k<16;k++){
       var th=k*Math.PI/8, cs=Math.cos(th), sn=Math.sin(th);
       for(var q=0;q<DIST.length;q++){
         var d=DIST[q], ax=x+d*cs, ay=y+d*sn;
-        var seg={x1:x+(DR+1.5)*cs,y1:y+(DR+1.5)*sn,x2:ax,y2:ay}, pen=10+d*0.25+Math.abs(sn)*4;   // 短く・横向きの線ほど好む
+        var seg={x1:x+(DR+1.5)*cs,y1:y+(DR+1.5)*sn,x2:ax,y2:ay}, pen=LEAD+d*2.5+Math.abs(sn)*10;  // 1本ごとに大きなコスト。短く・横向きほど良い
         if(cs>0.35)list.push(mk(i,ax+2.5,ay,'start',pen,seg));
         else if(cs<-0.35)list.push(mk(i,ax-2.5-w,ay,'end',pen,seg));
-        else list.push(mk(i,ax-w/2,sn<0?ay-1.5-LH/2:ay+1.5+LH/2,'middle',pen,seg));
+        else list.push(mk(i,ax-w/2,sn<0?ay-1.5-H2:ay+1.5+H2,'middle',pen,seg));
       }
     }
     cand.push(list);
@@ -3340,36 +3350,54 @@ function perpLabelLayout(P,o){
     return or(a.x1,a.y1,a.x2,a.y2,b.x1,b.y1)*or(a.x1,a.y1,a.x2,a.y2,b.x2,b.y2)<0
         && or(b.x1,b.y1,b.x2,b.y2,a.x1,a.y1)*or(b.x1,b.y1,b.x2,b.y2,a.x2,a.y2)<0;
   }
-  // 他の候補に関係なく決まるコスト
+  // 他の名前に関係なく決まるコスト
+  // 他の名前に関係なく決まるコスト
+  //   紛らわしさは「名前がどの点に付いて見えるか」で判定する。名前は、左右の端の中央・上下の辺の中央・四隅のどこかに
+  //   点がくっついていると、その点の名前に見える（四隅は少し弱い）。自分の点より他の点の方がくっついて見える置き方は避ける。
+  //   名前の上下を他の点がかすめる程度なら、自分の点の方がくっついて見える限り読み違えないので小さく見る
+  function assoc(b,px,py){
+    var yc=(b.y0+b.y1)/2, xc=(b.x0+b.x1)/2, m=Infinity;
+    var A=[[b.x0,yc,1],[b.x1,yc,1],[xc,b.y0,1.15],[xc,b.y1,1.15],[b.x0,b.y0,1.3],[b.x1,b.y0,1.3],[b.x0,b.y1,1.3],[b.x1,b.y1,1.3]];
+    for(var k=0;k<A.length;k++){ var d=Math.hypot(px-A[k][0],py-A[k][1])*A[k][2]; if(d<m)m=d; }
+    return m;
+  }
   var stat=cand.map(function(list,i){
     return list.map(function(c){
       var b=c.b, sc=c.pen;
-      if(b.x0<L||b.x1>R||b.y0<T||b.y1>B)return 1e9;                // 枠の外には出さない
-      var dOwn=bDist(b,P[i].x,P[i].y);
+      if(b.x0<L||b.x1>R||b.y0<T||b.y1>B)return 1e9;                 // 枠の外には出さない
+      var own=c.seg?0:assoc(b,P[i].x,P[i].y);                        // 指示線の名前は線でつながっているので紛らわしくない
       for(var j=0;j<N;j++){
         if(j===i)continue;
-        var dj=bDist(b,P[j].x,P[j].y);
-        if(dj<DR+2.5)sc+=400;                                        // 他の点を隠す
-        if(!c.seg){ if(dj<dOwn+2)sc+=150; else if(dj<dOwn+7)sc+=50; else if(dj<dOwn+13)sc+=25; }  // すぐ横に置く時、他の点も近い＝紛らわしい
-        else if(dj<7)sc+=60; else if(dj<12)sc+=15;                  // 指示線つきでも、他の点にくっつく位置は紛らわしい
-        if(c.seg&&segPt(c.seg,P[j].x,P[j].y)<DR+2.5)sc+=300;         // 指示線が他の点を横切る
+        var px=P[j].x, py=P[j].y, dj=bDist(b,px,py);
+        if(dj<DR+1.5){ sc+=HARD; continue; }                          // 他の点に重なる
+        if(!c.seg){
+          var oa=assoc(b,px,py);
+          if(oa<=own)sc+=60;                                          // 自分の点より他の点の方がくっついて見える
+          else if(oa<=own+4)sc+=25;                                   // 同じくらいくっついて見える
+          else if(oa<=own+8)sc+=6;
+        }else if(dj<DR+4)sc+=20;                                      // 指示線の名前でも、他の点にくっつく位置は避ける
+        if(c.seg){
+          var sp=segPt(c.seg,px,py);
+          if(sp<DR+1.5)sc+=HARD/2;                                    // 指示線が他の点を横切る
+          else if(sp<DR+4)sc+=30;                                     // 指示線が他の点をかすめる
+        }
       }
-      for(var q=0;q<obst.length;q++){ if(ovA(b,obst[q],1)>0)sc+=200; if(c.seg&&segBox(c.seg,obst[q],0))sc+=40; }
+      for(var q=0;q<obst.length;q++){ if(ovA(b,obst[q],1)>0)sc+=HARD/2; if(c.seg&&segBox(c.seg,obst[q],0))sc+=50; }
       return sc;
     });
   });
   function pair(a,b){
-    if(a.e.x1+3<b.e.x0||b.e.x1+3<a.e.x0||a.e.y1+3<b.e.y0||b.e.y1+3<a.e.y0)return 0;
+    if(a.e.x1+5<b.e.x0||b.e.x1+5<a.e.x0||a.e.y1+5<b.e.y0||b.e.y1+5<a.e.y0)return 0;
     var sc=0, ov=ovA(a.b,b.b,2);
-    if(ov>0)sc+=500+ov*3;                                            // 名前同士の重なり（2pxの余白込み）
-    if(a.seg&&segBox(a.seg,b.b,1.5))sc+=300;                         // 指示線が他の名前を横切る
-    if(b.seg&&segBox(b.seg,a.b,1.5))sc+=300;
-    if(a.seg&&b.seg&&segX(a.seg,b.seg))sc+=250;                      // 指示線同士の交差
+    if(ov>0)sc+=HARD+ov*5;                                            // 名前同士の重なり（2pxの余白込み）
+    if(a.seg){ if(segBox(a.seg,b.b,1.5))sc+=HARD/2; else if(segBox(a.seg,b.b,4.5))sc+=40; }   // 指示線が他の名前を横切る／すれすれを通る
+    if(b.seg){ if(segBox(b.seg,a.b,1.5))sc+=HARD/2; else if(segBox(b.seg,a.b,4.5))sc+=40; }
+    if(a.seg&&b.seg&&segX(a.seg,b.seg))sc+=HARD/2;                    // 指示線同士の交差
     return sc;
   }
   function solve(order){
     var ch=stat.map(function(s){ var bi=0; for(var k=1;k<s.length;k++)if(s[k]<s[bi])bi=k; return bi; });
-    for(var pass=0;pass<25;pass++){
+    for(var pass=0;pass<30;pass++){
       var changed=false;
       for(var oi=0;oi<order.length;oi++){
         var i=order[oi], best=ch[i], bestS=Infinity;
@@ -3395,8 +3423,38 @@ function perpLabelLayout(P,o){
     idx.slice().sort(function(a,b){ return P[a].x-P[b].x||a-b; }),
     idx.slice().sort(function(a,b){ return crowd[a]-crowd[b]||a-b; })
   ];
+  // 1点ずつの置き直しだけだと「Aを動かせばBの指示線が要らなくなる」配置を見つけられないので、
+  // 指示線つき（または紛らわしい）名前について、すぐ横の置き場所を試し、ぶつかる名前の方を置き直してみる。合計が下がれば採用
+  function total(ch){ var t=0; for(var a=0;a<N;a++){ t+=stat[a][ch[a]]; for(var b=a+1;b<N;b++)t+=pair(cand[a][ch[a]],cand[b][ch[b]]); } return t; }
+  function bestFor(j,ch){
+    var bk=ch[j], bs=Infinity;
+    for(var k=0;k<cand[j].length;k++){
+      var sc=stat[j][k]; if(sc>=1e9||sc>=bs)continue;
+      for(var m=0;m<N&&sc<bs;m++){ if(m!==j)sc+=pair(cand[j][k],cand[m][ch[m]]); }
+      if(sc<bs-0.01){ bs=sc; bk=k; }
+    }
+    return bk;
+  }
+  function improve(r){
+    var ch=r.ch.slice(), base=r.tot;
+    for(var round=0;round<4;round++){
+      var moved=false;
+      for(var i=0;i<N;i++){
+        if(!(cand[i][ch[i]].seg||stat[i][ch[i]]>=40))continue;          // 指示線つき・紛らわしい名前だけ見直す
+        for(var k=0;k<16;k++){                                           // すぐ横の16通り（候補の先頭16個）
+          if(k===ch[i]||stat[i][k]>=HARD)continue;
+          var tr=ch.slice(); tr[i]=k;
+          for(var j=0;j<N;j++){ if(j!==i&&pair(cand[i][k],cand[j][tr[j]])>=HARD/2)tr[j]=bestFor(j,tr); }
+          var t=total(tr);
+          if(t<base-0.01){ ch=tr; base=t; moved=true; if(!cand[i][ch[i]].seg&&stat[i][ch[i]]<40)break; }
+        }
+      }
+      if(!moved)break;
+    }
+    return {ch:ch,tot:base};
+  }
   var best=null;
-  orders.forEach(function(od){ var r=solve(od); if(!best||r.tot<best.tot-0.01)best=r; });
+  orders.forEach(function(od){ var r=improve(solve(od)); if(!best||r.tot<best.tot-0.01)best=r; });
   return best.ch.map(function(k,i){ return cand[i][k]; });
 }
 var _perpPts=[];
