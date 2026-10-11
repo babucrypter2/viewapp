@@ -2903,11 +2903,14 @@ function toggleTaskListFold(){
 //     OI /24h  … DefiLlama（/overview/open-interest）
 //     vol /24h … PerpFinder（/api/data/perps）＝ DefiLlama の Perp Volume をキー不要で公開しているもの。
 //                DefiLlama 本体の出来高APIは有料限定（HTTP 402）。PerpFinder が落ちていた日は CoinGecko で代用
+//                PerpFinder は DefiLlama の分類が「Derivatives」のDEXしか載せない。Hyperliquid 上の HIP-3 市場
+//                （entropy.io など。DefiLlama の分類は Interface 等）は載らないので、Hyperliquid の公開API から取る（v32〜）
 // ・閲覧アプリはDBに保存された値を表示するだけ（閲覧アプリから外部APIへは一切通信しない）
 // ・vol が取れたDEXが3つ以上ある日は 規模×回転率マップ（両対数の散布図）も出す。点の名前は点のすぐ横に自動配置（重なる時だけ短い指示線）
 // ・画面の用語は「vol /24h」「OI /24h」「vol ÷ OI」に統一する（「出来高」とは書かない）
 // 対象DEXの初期リスト。
 //   k … DefiLlama 上の名前の候補（| 区切り・先に書いたものを優先。「parent#xxx」は親プロトコル配下の合算）
+//       「hl#xxx」は Hyperliquid の HIP-3 市場 xxx。PerpFinder に vol が無い時、その市場の全銘柄の直近24時間の vol の合計を使う
 //   g … CoinGecko 上の取引所名の候補（同上）
 var PERP_T_DEF=[
   {n:'Hyperliquid',k:'Hyperliquid Perps|hyperliquid-perps|parent#hyperliquid',g:'Hyperliquid (Futures)|Hyperliquid'},
@@ -2926,7 +2929,10 @@ var PERP_T_DEF=[
   {n:'RISEx',k:'RISEx',g:'RISEx'},
   {n:'SoDEX',k:'SoDEX Perps|SoDEX',g:'SoDEX (Futures)|SoDEX'},
   {n:'BULK',k:'BULK|Bulk Trade',g:'BULK'},
-  {n:'entropy.io',k:'entropy.io|Entropy',g:'entropy.io|Entropy'},
+  // entropy.io … Hyperliquid の HIP-3 市場「io」（株・未上場株などの RWA perp）。DefiLlama の名前は「entropy.io」（OI は factory の entropy-oi）。
+  //   DefiLlama には vol（Perp Volume）もあるが、分類が Interface なので PerpFinder の一覧に載らない（v31までは vol なしになっていた）。
+  //   vol は Hyperliquid の公開API（info・metaAndAssetCtxs・dex=io）の各銘柄の dayNtlVlm の合計（DefiLlama も同じ Hyperliquid のデータを集計）
+  {n:'entropy.io',k:'entropy.io|Entropy|hl#io',g:'entropy.io|Entropy'},
   {n:'Near Perps',k:'Near Perps',g:'Near Perps'},
   {n:'HelloTrade',k:'HelloTrade',g:'HelloTrade'},
   {n:'Perpl',k:'Perpl',g:'Perpl'},
@@ -2992,12 +2998,13 @@ function sanPerp(o){
     o.rows.slice(0,40).forEach(function(r){
       if(!r||typeof r!=='object')return;
       var n=clampStr(r.n,40).trim(); if(!n||seen[n])return; seen[n]=1;
-      // 出来高の出どころ pf=PerpFinder（DefiLlamaの値）/ cg=CoinGecko / man=手入力（出どころの無い旧データの出来高は手入力だったもの）
-      var vs=(r.vs==='pf'||r.vs==='cg'||r.vs==='man')?r.vs:((perpNumOk(r.vol)>0)?'man':'');
+      // 出来高の出どころ pf=PerpFinder（DefiLlamaの値）/ hl=Hyperliquid（HIP-3 市場・v32〜）/ cg=CoinGecko / man=手入力
+      // （出どころの無い旧データの出来高は手入力だったもの）
+      var vs=(r.vs==='pf'||r.vs==='hl'||r.vs==='cg'||r.vs==='man')?r.vs:((perpNumOk(r.vol)>0)?'man':'');
       z.rows.push({n:n, oi:perpNumOk(r.oi), ch1:perpPctOk(r.ch1), ln:clampStr(r.ln,80),
         vol:perpNumOk(r.vol), vd:(typeof r.vd==='string'&&reD.test(r.vd))?r.vd:'',
         vs:vs,
-        gn:clampStr(r.gn,60),                              // 出来高側の名前（DefiLlama または CoinGecko 上の名前）
+        gn:clampStr(r.gn,60),                              // 出来高側の名前（DefiLlama・CoinGecko 上の名前。hl は HIP-3 市場の名前）
         gx:(vs==='cg'&&r.gx===1)?1:0});                    // 1=CoinGeckoの値だがDefiLlamaとOIの規模が大きく違う（※参考値）。CoinGecko以外では付けない
     });
   }
@@ -3165,10 +3172,12 @@ function perpBodyHtml(editable){
   }
   var at=perpAtTxt();
   var nPf=V.rows.filter(function(r){return r.vs==='pf';}).length, nCg=V.rows.filter(function(r){return r.vs==='cg';}).length, nMan=V.rows.filter(function(r){return r.vs==='man';}).length;
+  var nHl=V.rows.filter(function(r){return r.vs==='hl';}).length;
   var vsrc=[];
   if(nPf)vsrc.push('DefiLlama');
-  if(nCg)vsrc.push(nPf?'一部CoinGecko':'CoinGecko');
-  if(nMan)vsrc.push((nPf||nCg)?'一部手入力':'手入力');
+  if(nHl)vsrc.push(nPf?'一部Hyperliquid':'Hyperliquid');
+  if(nCg)vsrc.push((nPf||nHl)?'一部CoinGecko':'CoinGecko');
+  if(nMan)vsrc.push((nPf||nHl||nCg)?'一部手入力':'手入力');
   var src=(vsrc.length===1&&nPf)?'OI・vol＝DefiLlama':('OI＝DefiLlama'+(vsrc.length?'／vol＝'+vsrc.join('・'):''));
   var h='<div class="pb-mrow"><div class="pb-meta">出典: '+src+'　'+esc(at)+' 取得</div>'+perpEditBtn(editable)+'</div>';
   // 先に散布図（規模×回転率マップ）、その下にランキング（棒の表）
@@ -3223,8 +3232,9 @@ function perpBodyHtml(editable){
   h+='</div>';
   // 注記：出典・vol が無いDEXとその理由・表示名と各サイト上の名前の対応
   function nz(x){ return String(x||'').toLowerCase().replace(/[^a-z0-9]/g,''); }
-  var alias=[],aliasG=[],noVol=[],gx=[],man=[],cgs=[];
+  var alias=[],aliasG=[],noVol=[],gx=[],man=[],cgs=[],hls=[],hlm=[];
   V.rows.forEach(function(r){
+    if(r.vs==='hl'){ hls.push(esc(r.n)); if(r.gn&&hlm.indexOf('「'+esc(r.gn)+'」')<0)hlm.push('「'+esc(r.gn)+'」'); }
     // 「〇〇 Perps」「〇〇 (Futures)」のように後ろに付くだけの違いは書かない
     if(r.ln&&nz(r.n)!==nz(r.ln)&&nz(r.ln)!==nz(r.n)+'perps'&&nz(r.ln)!==nz(r.n)+'perp')alias.push(esc(r.n)+' ＝「'+esc(r.ln)+'」');
     if(r.vs==='cg'&&r.gn&&nz(r.gn)!==nz(r.n)&&nz(r.gn)!==nz(r.n)+'futures')aliasG.push(esc(r.n)+' ＝「'+esc(r.gn)+'」');
@@ -3238,6 +3248,7 @@ function perpBodyHtml(editable){
   h+='<div class="pb-notes">'
     +'<div>・OI /24h は DefiLlama の公開データ（1日1回自動取得）</div>'
     +(nPf?'<div>・vol /24h は DefiLlama の Perp Volume（Data: '+pfLink+'・1日1回自動取得）。vol ÷ OI は vol と OI から算出</div>':'')
+    +(hls.length?'<div>・'+hls.join('、')+' の vol は Hyperliquid の公開データ（'+(hlm.length?'HIP-3 市場'+hlm.join('')+'の':'')+'全銘柄の直近24時間の合計。PerpFinder の一覧に載らないため）</div>':'')
     +(cgs.length?'<div>・'+cgs.join('、')+' の vol は CoinGecko の公開データ（各取引所の申告値・直近24時間）</div>':'')
     +(gx.length?'<div>※ '+gx.join('、')+' は CoinGecko と DefiLlama で OI の規模が大きく異なる（集計の対象が違う可能性がある）ため参考値</div>':'')
     +(man.length?'<div>・手入力した vol：'+man.join('、')+'</div>':'')
