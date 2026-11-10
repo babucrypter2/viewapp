@@ -1961,7 +1961,20 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .pb-map .pb-ldr.on{stroke:var(--acc);opacity:1;stroke-width:1.4;}
 .pb-map .pb-hit{fill:transparent;cursor:pointer;}
 .pb-tip{position:absolute;z-index:3;display:none;pointer-events:none;background:var(--card);border:1px solid var(--bb);border-radius:9px;padding:7px 9px;box-shadow:0 4px 14px rgba(0,0,0,.4);min-width:140px;}
-.pb-tip.show{display:block;}
+.pb-tip.show{display:block;pointer-events:auto;}
+.pb-ll{display:inline-block;font-size:11.5px;font-weight:700;color:var(--acc);text-decoration:none;white-space:nowrap;}
+.pb-tip .pb-ll{display:block;margin-top:6px;padding-top:6px;border-top:1px solid var(--b);}
+.pb-tap{cursor:pointer;-webkit-tap-highlight-color:transparent;}
+.pb-row.open,.pb-row.sel{background:rgba(127,150,255,.09);box-shadow:-6px 0 0 rgba(127,150,255,.09),6px 0 0 rgba(127,150,255,.09);}
+.pb-row.open{border-bottom-color:transparent;}
+.pb-det{display:none;padding:2px 0 10px;border-bottom:1px solid var(--b);}
+.pb-det.show{display:block;}
+.pb-det-ch{display:flex;flex-wrap:wrap;gap:4px 14px;margin-bottom:8px;}
+.pb-dc{font-size:11.5px;color:var(--t3);white-space:nowrap;}
+.pb-dc b{color:var(--t1);font-weight:700;font-variant-numeric:tabular-nums;}
+.pb-dc b.up{color:var(--grn);} .pb-dc b.dn{color:var(--red);}
+.pb-det-bt{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;}
+.pb-db{font:inherit;font-size:11.5px;font-weight:700;color:var(--t1);background:transparent;border:1px solid var(--bb);border-radius:7px;padding:5px 10px;cursor:pointer;}
 .pb-tip-n{font-size:12px;font-weight:700;color:var(--t1);margin-bottom:4px;white-space:nowrap;}
 .pb-tip-r{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--t3);white-space:nowrap;line-height:1.55;}
 .pb-tip-r i{display:inline-block;width:9px;height:2px;border-radius:1px;flex-shrink:0;}
@@ -2984,6 +2997,55 @@ function perpPctOk(v){
   if(v===null||v===undefined||v===''||typeof v==='object'||typeof v==='boolean')return null;
   var x=Number(v); return (isFinite(x)&&x>-100&&x<1e6)?x:null;
 }
+// DefiLlama のページ名（slug）。英小文字・数字・._- だけを通す（URL に入れるので厳しく）
+function perpSlugOk(x){ var t=String(x==null?'':x).trim().toLowerCase(); return /^[a-z0-9][a-z0-9._-]{0,79}$/.test(t)?t:''; }
+// 選んだDEXの DefiLlama のページ（OI・Perp Volume の推移グラフ）。ページ名が保存されていない古いデータは DefiLlama 上の名前から作る
+function perpLlamaUrl(r){
+  if(!r)return '';
+  var sl=perpSlugOk(r.sl);
+  if(!sl&&r.ln){
+    var ln=String(r.ln), k=ln.indexOf('（合算）');
+    sl=perpSlugOk(k>0?ln.slice(0,k):ln.trim().toLowerCase().replace(/\s+/g,'-').replace(/'/g,''));
+  }
+  return sl?'https://defillama.com/protocol/'+encodeURIComponent(sl)+'?tvl=false&perpVolume=true&openInterest=true':'';
+}
+function perpLlamaLink(r,label){
+  var u=perpLlamaUrl(r); if(!u)return '';
+  return '<a class="pb-ll" href="'+esc(u)+'" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();if(typeof markExtNav===\'function\')markExtNav();">'+label+' ↗</a>';
+}
+function perpChHtml(lbl,v){
+  if(v===null||v===undefined)return '';
+  var dir=v>0.05?'up':(v<-0.05?'dn':'');
+  return '<span class="pb-dc">'+lbl+' <b class="'+dir+'">'+esc(perpPctFmt(v))+'</b></span>';
+}
+// ランキングの行をタップ：その行の下に 前日比・マップで見る・DefiLlama へのリンク を出す（もう一度タップで閉じる）
+var _perpRowsV=[], _perpRowOpen=-1;
+function perpRowTap(k){
+  var old=document.getElementById('pb-det-'+_perpRowOpen), oldRow=document.getElementById('pb-row-'+_perpRowOpen);
+  if(old){ old.innerHTML=''; old.classList.remove('show'); }
+  if(oldRow)oldRow.classList.remove('open');
+  if(_perpRowOpen===k){ _perpRowOpen=-1; return; }
+  var r=_perpRowsV[k], d=document.getElementById('pb-det-'+k), row=document.getElementById('pb-row-'+k);
+  if(!r||!d){ _perpRowOpen=-1; return; }
+  var onMap=(r.vol!==null&&r.oi!==null);
+  d.innerHTML='<div class="pb-det-ch">'+(perpChHtml('vol 前日比',r.vc)+perpChHtml('OI 前日比',r.ch1)||'<span class="pb-dc">前日比のデータなし</span>')+'</div>'
+    +'<div class="pb-det-bt">'+(onMap?'<button type="button" class="pb-db" onclick="event.stopPropagation();perpMapShow('+k+')">マップで見る</button>':'')
+    +perpLlamaLink(r,'DefiLlama で推移を見る')+'</div>';
+  d.classList.add('show'); if(row)row.classList.add('open');
+  _perpRowOpen=k;
+}
+// マップの該当の点を選んで、マップが見える位置まで戻す
+function perpMapShow(k){
+  var r=_perpRowsV[k]; if(!r)return;
+  for(var i=0;i<_perpPts.length;i++){
+    if(_perpPts[i].n!==r.n)continue;
+    perpTipHide();
+    var box=document.getElementById('pb-map');
+    if(box&&box.scrollIntoView)box.scrollIntoView({block:'center',behavior:'smooth'});
+    perpTip(i);
+    return;
+  }
+}
 function sanPerp(o){
   var z={day:'',at:'',dk:'',rows:[],ce:0,v:1};
   if(!o||typeof o!=='object')return z;
@@ -3002,6 +3064,8 @@ function sanPerp(o){
       // （出どころの無い旧データの出来高は手入力だったもの）
       var vs=(r.vs==='pf'||r.vs==='hl'||r.vs==='cg'||r.vs==='man')?r.vs:((perpNumOk(r.vol)>0)?'man':'');
       z.rows.push({n:n, oi:perpNumOk(r.oi), ch1:perpPctOk(r.ch1), ln:clampStr(r.ln,80),
+        sl:perpSlugOk(r.sl),                               // DefiLlama のページ名（v34〜。リンク用。英小文字・数字・._- だけ）
+        vc:perpPctOk(r.vc),                                // vol の前日比％（v34〜。PerpFinder＝DefiLlama の値がある時だけ）
         vol:perpNumOk(r.vol), vd:(typeof r.vd==='string'&&reD.test(r.vd))?r.vd:'',
         vs:vs,
         gn:clampStr(r.gn,60),                              // 出来高側の名前（DefiLlama・CoinGecko 上の名前。hl は HIP-3 市場の名前）
@@ -3055,7 +3119,7 @@ function perpView(){
   var list=rows.map(function(r){
     var vol=(r.vol!==null&&r.vol>0&&dk&&r.vd===dk)?r.vol:null;
     var oi=(r.oi!==null&&r.oi>0)?r.oi:null;
-    return {n:r.n,oi:oi,ch1:r.ch1,ln:r.ln||'',vol:vol,ratio:(vol!==null&&oi!==null)?vol/oi:null,
+    return {n:r.n,oi:oi,ch1:r.ch1,sl:r.sl||'',vc:(vol!==null&&r.vs==='pf'&&r.vc!==undefined)?r.vc:null,ln:r.ln||'',vol:vol,ratio:(vol!==null&&oi!==null)?vol/oi:null,
             vs:(vol!==null?r.vs:''),gn:r.gn||'',gx:r.gx===1};
   });
   var full=list.some(function(r){return r.vol!==null;});
@@ -3167,6 +3231,7 @@ function perpCell(cls,v,cap,txt,bold){
 // 用語は「vol /24h」「OI /24h」「vol ÷ OI」に統一（「出来高」とは書かない）
 function perpBodyHtml(editable){
   var V=perpView();
+  _perpRowsV=V.rows; _perpRowOpen=-1;
   if(!V.rows.length||!PERP.at){
     return '<div class="pb-mrow"><div class="pb-empty">まだデータがありません。'+(editable?'「編集」→「今すぐ取得」で取得できます。':'')+'</div>'+perpEditBtn(editable)+'</div>';
   }
@@ -3187,7 +3252,7 @@ function perpBodyHtml(editable){
       +'<div class="pb-map-s">横軸 OI /24h・縦軸 vol /24h。破線は vol ÷ OI が一定（1x / 3x / 10x）で、左上ほど回転率が高い。点か名前をタップで数値</div>'
       +'<div class="pb-map" id="pb-map"></div></div>';
   }
-  h+='<div class="pb-sec"><div class="pb-map-t">ランキング</div><div class="pb-map-s">'+(V.full?'vol /24h の大きい順':'OI /24h の大きい順')+'</div>';
+  h+='<div class="pb-sec"><div class="pb-map-t">ランキング</div><div class="pb-map-s">'+(V.full?'vol /24h の大きい順・行をタップで前日比と DefiLlama のグラフ':'OI /24h の大きい順')+'</div>';
   var oiC=perpCap(V.rows.map(function(r){return r.oi||0;}));
   if(V.full){
     var volC=perpCap(V.rows.map(function(r){return r.vol||0;}));
@@ -3196,24 +3261,24 @@ function perpBodyHtml(editable){
       +'<div class="pb-hc"><b>vol /24h</b><span>'+(volC.cut?esc(perpShortFmt(volC.cap))+'超は // で省略':'')+'</span></div>'
       +'<div class="pb-hc"><b>OI /24h</b><span>'+(oiC.cut?esc(perpShortFmt(oiC.cap))+'超は // で省略':'')+'</span></div>'
       +'<div class="pb-hc"><b>vol ÷ OI</b><span>'+(rtC.cut?esc(String(Math.round(rtC.cap*100)/100)+'x')+'超は // で省略':'回転率')+'</span></div></div>';
-    V.rows.forEach(function(r){
+    V.rows.forEach(function(r,k){
       if(r.vol===null&&r.oi===null){
         h+='<div class="pb-row pb-nodata"><div class="pb-nm">'+esc(r.n)+'</div><div class="pb-na">OI・vol ともにデータなし</div></div>';
         return;
       }
       var mk=r.gx?'※':'';      // CoinGecko の値で DefiLlama と規模が大きく違うもの（参考値）
-      h+='<div class="pb-row"><div class="pb-nm">'+esc(r.n)+mk+'</div>'
+      h+='<div class="pb-row pb-tap" id="pb-row-'+k+'" onclick="perpRowTap('+k+')"><div class="pb-nm">'+esc(r.n)+mk+'</div>'
         +perpCell('vol',r.vol,volC.cap,r.vol!==null?perpFmt(r.vol)+mk:'—')
         +perpCell('oi',r.oi,oiC.cap,r.oi!==null?perpFmt(r.oi):'表示なし')
         +perpCell('rt',r.ratio,rtC.cap,r.ratio!==null?perpRatioFmt(r.ratio)+mk:'—')
-        +'</div>';
+        +'</div><div class="pb-det" id="pb-det-'+k+'"></div>';
     });
     h+='</div>';
   }else{
     h+='<div class="pb-tbl pb-oi"><div class="pb-hd"><div></div>'
       +'<div class="pb-hc"><b>OI /24h</b><span>'+(oiC.cut?esc(perpShortFmt(oiC.cap))+'超は // で省略':'')+'</span></div>'
       +'<div class="pb-hc"><b>前日比</b><span>OIの増減</span></div></div>';
-    V.rows.forEach(function(r){
+    V.rows.forEach(function(r,k){
       if(r.oi===null){
         h+='<div class="pb-row pb-nodata"><div class="pb-nm">'+esc(r.n)+'</div><div class="pb-na">DefiLlamaにOIデータなし</div></div>';
         return;
@@ -3223,9 +3288,9 @@ function perpBodyHtml(editable){
         var dir=r.ch1>0.05?'up':(r.ch1<-0.05?'dn':'');
         ch='<span class="pb-ch '+dir+'">'+(dir?'<i></i>':'')+esc(perpPctFmt(r.ch1))+'</span>';
       }
-      h+='<div class="pb-row"><div class="pb-nm">'+esc(r.n)+'</div>'
+      h+='<div class="pb-row pb-tap" id="pb-row-'+k+'" onclick="perpRowTap('+k+')"><div class="pb-nm">'+esc(r.n)+'</div>'
         +perpCell('oi',r.oi,oiC.cap,perpFmt(r.oi))
-        +'<div class="pb-c">'+ch+'</div></div>';
+        +'<div class="pb-c">'+ch+'</div></div><div class="pb-det" id="pb-det-'+k+'"></div>';
     });
     h+='</div>';
   }
@@ -3534,7 +3599,7 @@ function perpDrawMap(){
   _perpPts=[];
   P.forEach(function(o,i){
     var c=lay[i], g=c.seg;
-    _perpPts.push({n:o.p.n,vol:o.p.vol,oi:o.p.oi,ratio:o.p.ratio,ch1:o.p.ch1,x:o.x,y:o.y,lb:c.b});
+    _perpPts.push({n:o.p.n,vol:o.p.vol,oi:o.p.oi,ratio:o.p.ratio,ch1:o.p.ch1,vc:o.p.vc,sl:o.p.sl,ln:o.p.ln,x:o.x,y:o.y,lb:c.b});
     if(g)sL+='<line class="pb-ldr" id="pb-ldr-'+i+'" x1="'+g.x1.toFixed(1)+'" y1="'+g.y1.toFixed(1)+'" x2="'+g.x2.toFixed(1)+'" y2="'+g.y2.toFixed(1)+'"></line>';
     sT+='<text class="pb-lbl" id="pb-lbl-'+i+'" x="'+c.tx.toFixed(1)+'" y="'+c.ty.toFixed(1)+'" text-anchor="'+c.a+'" style="font-size:'+fs+'px">'+esc(o.nm)+'</text>';
     sD+='<circle class="pb-dot" id="pb-dot-'+i+'" cx="'+o.x.toFixed(1)+'" cy="'+o.y.toFixed(1)+'" r="4.5"></circle>';
@@ -3553,6 +3618,8 @@ function perpTipHide(){
   var tip=document.getElementById('pb-tip'); if(tip)tip.classList.remove('show');
   var on=document.querySelectorAll('#pb-map .on');
   for(var k=0;k<on.length;k++)on[k].classList.remove('on');
+  var sel=document.querySelectorAll('#perp-bar .pb-row.sel');
+  for(var k2=0;k2<sel.length;k2++)sel[k2].classList.remove('sel');
 }
 function perpTip(i){
   var p=_perpPts[i], tip=document.getElementById('pb-tip'), box=document.getElementById('pb-map');
@@ -3564,7 +3631,11 @@ function perpTip(i){
     +'<div class="pb-tip-r"><i style="background:var(--pb-vol)"></i>vol /24h<b>'+esc(perpFmt(p.vol))+'</b></div>'
     +'<div class="pb-tip-r"><i style="background:var(--pb-oi)"></i>OI /24h<b>'+esc(perpFmt(p.oi))+'</b></div>'
     +'<div class="pb-tip-r"><i style="background:var(--pb-rt)"></i>vol ÷ OI<b>'+esc(perpRatioFmt(p.ratio))+'</b></div>'
-    +(p.ch1!==null&&p.ch1!==undefined?'<div class="pb-tip-r"><i style="background:transparent"></i>OI 前日比<b>'+esc(perpPctFmt(p.ch1))+'</b></div>':'');
+    +(p.vc!==null&&p.vc!==undefined?'<div class="pb-tip-r"><i style="background:transparent"></i>vol 前日比<b>'+esc(perpPctFmt(p.vc))+'</b></div>':'')
+    +(p.ch1!==null&&p.ch1!==undefined?'<div class="pb-tip-r"><i style="background:transparent"></i>OI 前日比<b>'+esc(perpPctFmt(p.ch1))+'</b></div>':'')
+    +perpLlamaLink(p,'DefiLlama で推移を見る');
+  // ランキングの同じDEXの行も強調する
+  for(var q=0;q<_perpRowsV.length;q++){ if(_perpRowsV[q].n===p.n){ var rw=document.getElementById('pb-row-'+q); if(rw)rw.classList.add('sel'); } }
   tip.classList.add('show');
   // SVG要素には offsetLeft が無い（undefined になり位置が NaN になっていた）ので、画面上の位置の差で求める
   var svg=box.querySelector('svg'), offX=0, offY=0;
