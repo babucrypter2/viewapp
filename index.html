@@ -2056,18 +2056,20 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
    アーリー度＝緑・プロジェクトの質（調達先VCを含む）＝青・報酬の競争率＝黄（見出しのアイコンの色と同じ）。
    区切り線をやめ、角丸の薄い面で区切る。文字・記号・数字の色は変えない（面はごく薄くして、白文字や緑・黄・赤の記号の読みやすさを保つ）。
    元に戻す時は、このブロックを消すだけでよい（.q-zone の入れ物は残っても見た目は変わらない） */
-.early-wrap,.q-zone{--zc:255,255,255;--za:.085;margin:8px 0 0;padding:10px 7px 8px;border-radius:12px;
+.early-wrap,.q-zone{--zc:255,255,255;--za:.085;margin:5px 0 0;padding:10px 7px 8px;border-radius:12px;
   border:1px solid rgba(var(--zc),.17);background:linear-gradient(180deg,rgba(var(--zc),var(--za)),rgba(var(--zc),.035));}
 .early-wrap{--zc:61,220,134;}
 .q-zone-q{--zc:74,144,232;}
 .q-zone-ef{--zc:245,197,66;--za:.07;}          /* 黄は黒の上で茶色っぽく見えやすいので少し薄く */
 .q-zone>.q-card{padding:0 0 2px;border-top:none;}
-.q-zone .vce{margin-top:10px;padding-left:9px;padding-right:9px;}   /* 面のぶん狭くなる横幅を、VC の箱の内側の余白で取り戻す */
+/* 調達先VCは枠・紫の地をやめ、プロジェクトの質と同じ青い面の一部にする（上に細い区切り線だけ。v37〜） */
+.q-zone .vce{margin:9px 0 0;padding:9px 2px 0;border:none;border-top:1px solid rgba(var(--zc),.22);border-radius:0;background:none;box-shadow:none;}
+.q-zone .vce-ico{color:#7fb8ff;}
+.q-zone .vce-hr{background:rgba(var(--zc),.16);}
 [data-theme="light"] .early-wrap,[data-theme="light"] .q-zone{--za:.11;border-color:rgba(var(--zc),.32);background:linear-gradient(180deg,rgba(var(--zc),var(--za)),rgba(var(--zc),.05));}
 [data-theme="light"] .early-track{background:rgba(0,0,0,.09);}   /* ライトではアーリー度の帯の下地（白の半透明）が見えていなかった */
 @media (max-width:389px){   /* iPhone SE・mini など：面の内側の余白を詰めて、VC の調達数・報酬シェアの欄が切れないようにする */
   .early-wrap,.q-zone{padding-left:5px;padding-right:5px;}
-  .q-zone .vce{padding-left:7px;padding-right:7px;}
 }
 </style>
 </head>
