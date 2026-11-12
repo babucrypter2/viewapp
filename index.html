@@ -2011,18 +2011,18 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .pb-lg{display:flex;flex-wrap:wrap;justify-content:center;gap:4px 12px;margin-top:4px;font-size:10.5px;font-weight:600;color:var(--t3);}
 .pb-lg span{display:inline-flex;align-items:center;gap:5px;white-space:nowrap;}
 .pb-lg i{display:inline-block;flex-shrink:0;}
-.pb-lg i.o{width:7px;height:7px;border:1.3px solid var(--t3);border-radius:50%;}
+.pb-lg i.o{width:6px;height:6px;border:1.2px solid var(--t3);border-radius:50%;opacity:.6;}
 .pb-lg i.d{width:8px;height:8px;background:var(--pb-vol);border-radius:50%;}
-.pb-lg i.l{width:14px;height:2px;border-radius:1px;}
-.pb-lg i.l.up{background:var(--grn);} .pb-lg i.l.dn{background:var(--red);} .pb-lg i.l.fl{height:1px;background:var(--t3);}
-.pb-map .pb-mv{fill:none;stroke-width:1.25;stroke-linecap:round;}
-.pb-map .pb-mv.up{stroke:var(--grn);} .pb-map .pb-mv.dn{stroke:var(--red);}
-.pb-map .pb-mv.fl{stroke:var(--t3);stroke-width:.9;opacity:.55;}
-.pb-map .pb-mv.on{stroke-width:2;opacity:1;}
-.pb-map .pb-past{fill:var(--pb-sf);stroke:var(--t3);stroke-width:1.1;}
-.pb-map .pb-past.up{stroke:var(--grn);} .pb-map .pb-past.dn{stroke:var(--red);}
-.pb-map .pb-past.on{stroke-width:1.8;}
-.pb-map .pb-ah.up{fill:var(--grn);} .pb-map .pb-ah.dn{fill:var(--red);}
+.pb-lg i.l{width:16px;height:2px;border-radius:1px;}
+.pb-lg i.l.up{background:linear-gradient(90deg,transparent,var(--grn));} .pb-lg i.l.dn{background:linear-gradient(90deg,transparent,var(--red));}
+.pb-lg i.l.fl{height:1px;background:linear-gradient(90deg,transparent,var(--t3));}
+/* v38〜：線の色は各線のグラデーション（style の stroke:url(#pb-tg-i)）。○ は小さく薄い灰色、選んだ時だけはっきり */
+.pb-map .pb-mv{fill:none;stroke-width:2;stroke-linecap:round;}
+.pb-map .pb-mv.fl{stroke-width:1;}
+.pb-map .pb-mv.on{stroke-width:2.8;}
+.pb-map .pb-ts.up{stop-color:var(--grn);} .pb-map .pb-ts.dn{stop-color:var(--red);} .pb-map .pb-ts.fl{stop-color:var(--t3);}
+.pb-map .pb-past{fill:var(--pb-sf);stroke:var(--t3);stroke-width:1;opacity:.55;}
+.pb-map .pb-past.on{opacity:1;stroke:var(--t1);stroke-width:1.4;}
 .pb-map .pb-dot.up{fill:var(--grn);} .pb-map .pb-dot.dn{fill:var(--red);}
 .pb-sub{font-size:10.5px;font-weight:700;color:var(--t3);white-space:nowrap;font-variant-numeric:tabular-nums;line-height:1;margin-top:-1px;}
 .pb-sub.up{color:var(--grn);} .pb-sub.dn{color:var(--red);}
@@ -2066,6 +2066,11 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .q-zone .vce{margin:9px 0 0;padding:9px 2px 0;border:none;border-top:1px solid rgba(var(--zc),.22);border-radius:0;background:none;box-shadow:none;}
 .q-zone .vce-ico{color:#7fb8ff;}
 .q-zone .vce-hr{background:rgba(var(--zc),.16);}
+/* v38／閲覧 v34：3つの面を1つのまとまりに。面の間は 3px、まとまりの外側の角だけ大きく（12px）丸め、内側の角は小さく（5px） */
+.early-wrap,.q-zone{margin-top:3px;border-radius:5px;}
+.early-wrap{margin-top:8px;border-radius:12px 12px 5px 5px;}
+.q-zone-q:not(.early-wrap+.q-zone-q){margin-top:8px;border-top-left-radius:12px;border-top-right-radius:12px;}   /* アーリー度が無いカード */
+.q-zone-ef{border-bottom-left-radius:12px;border-bottom-right-radius:12px;}
 [data-theme="light"] .early-wrap,[data-theme="light"] .q-zone{--za:.11;border-color:rgba(var(--zc),.32);background:linear-gradient(180deg,rgba(var(--zc),var(--za)),rgba(var(--zc),.05));}
 [data-theme="light"] .early-track{background:rgba(0,0,0,.09);}   /* ライトではアーリー度の帯の下地（白の半透明）が見えていなかった */
 @media (max-width:389px){   /* iPhone SE・mini など：面の内側の余白を詰めて、VC の調達数・報酬シェアの欄が切れないようにする */
@@ -3313,7 +3318,7 @@ function perpCmpBodyHtml(w){
   var nFull=L.filter(function(r){ return r.full; }).length;
   if(nFull>=3){
     h+='<div class="pb-map-wrap"><div class="pb-map-t">規模 × 回転率マップ（'+w+'日の動き）</div>'
-      +'<div class="pb-map-s">○ その前の'+w+'日の平均 → ● 直近'+w+'日の平均。±'+PERP_CMP_SIG+'% 以上動いた DEX は色付きの矢印（緑＝増加・赤＝低下）、それ以外は灰色の細線。点か名前をタップで数値</div>'
+      +'<div class="pb-map-s">○ その前の'+w+'日の平均 → ● 直近'+w+'日の平均。±'+PERP_CMP_SIG+'% 以上動いた DEX は ● に向かって濃くなる線（緑＝増加・赤＝低下）、それ以外は灰色の細線。点か名前をタップで数値</div>'
       +'<div class="pb-map" id="pb-map"></div>'
       +'<div class="pb-lg"><span><i class="o"></i>前の'+w+'日</span><span><i class="d"></i>直近'+w+'日</span><span><i class="l up"></i>増加</span><span><i class="l dn"></i>低下</span><span><i class="l fl"></i>ほぼ変わらず</span></div></div>';
   }else{
@@ -3876,31 +3881,31 @@ function perpDrawMap(){
     var nm=p.n+(p.gx?'※':'');
     return {i:i,p:p,nm:nm,x:X(Math.log10(p.oi)),y:Y(Math.log10(p.vol)),w:perpMeasure(nm,fs,ff)};
   });
-  // 比較の時：○（前の位置）から ●（今の位置）への線。大きく動いたものは色付きの矢印、それ以外は灰色の細線（v36〜）
+  // 比較の時：○（前の位置）から ●（今の位置）への線（v36〜）。
+  // v38〜：矢印の先をやめ、● に向かって濃くなる線（○ 側はほぼ透明）にした。○ は小さく薄い灰色。主役は今の位置（●）
   var sA='', soft=[];
   if(cw){
-    var sF='', sG='';
+    var sF='', sG='', sGr='';
     P.forEach(function(o,i){
       var p=o.p, qx=X(Math.log10(p.op)), qy=Y(Math.log10(p.vp)), dx=o.x-qx, dy=o.y-qy, ln=Math.sqrt(dx*dx+dy*dy);
       var cls=(p.mv&&p.mv.sig)?(p.mv.up?'up':'dn'):'fl'; o.cls=cls;
       var g='';
       if(ln>=7){   // 点とほぼ同じ位置（動きが点より小さい）なら ○ は描かない（点の縁から少しはみ出して見えるだけなので）
-        g='<circle class="pb-past '+cls+'" id="pb-pc-'+i+'" cx="'+qx.toFixed(1)+'" cy="'+qy.toFixed(1)+'" r="2.7"></circle>';
+        g='<circle class="pb-past '+cls+'" id="pb-pc-'+i+'" cx="'+qx.toFixed(1)+'" cy="'+qy.toFixed(1)+'" r="2.4"></circle>';
         soft.push({x0:qx-4.5,x1:qx+4.5,y0:qy-4.5,y1:qy+4.5,pen:80});
       }
       if(ln>9){
-        // 矢印の先は小さく（4.5px）、線が短い（22px 未満）時は付けない（○→● の向きで分かる・先が ○ や点に重なって見づらくなるため。v37〜）
-        var head=(cls!=='fl'&&ln>=22), ux=dx/ln, uy=dy/ln, e=head?6.2:5.5;
-        g+='<line class="pb-mv '+cls+'" id="pb-mv-'+i+'" x1="'+(qx+ux*3.2).toFixed(1)+'" y1="'+(qy+uy*3.2).toFixed(1)+'" x2="'+(o.x-ux*e).toFixed(1)+'" y2="'+(o.y-uy*e).toFixed(1)+'"'
-          +(head?' marker-end="url(#pb-ah-'+cls+')"':'')+'></line>';
+        // 線の色は ○ 側ほぼ透明 → ● 側で濃く（グラデーション）。向きは濃くなる方＝今
+        var ux=dx/ln, uy=dy/ln, x1=qx+ux*2.6, y1=qy+uy*2.6, x2=o.x-ux*5, y2=o.y-uy*5, sig=(cls!=='fl');
+        sGr+='<linearGradient id="pb-tg-'+i+'" gradientUnits="userSpaceOnUse" x1="'+x1.toFixed(1)+'" y1="'+y1.toFixed(1)+'" x2="'+x2.toFixed(1)+'" y2="'+y2.toFixed(1)+'">'
+          +'<stop offset="0" class="pb-ts '+cls+'" stop-opacity="'+(sig?'.07':'.04')+'"></stop><stop offset="1" class="pb-ts '+cls+'" stop-opacity="'+(sig?'.95':'.5')+'"></stop></linearGradient>';
+        g+='<line class="pb-mv '+cls+'" id="pb-mv-'+i+'" style="stroke:url(#pb-tg-'+i+')" x1="'+x1.toFixed(1)+'" y1="'+y1.toFixed(1)+'" x2="'+x2.toFixed(1)+'" y2="'+y2.toFixed(1)+'"></line>';
         // 線の上に名前を重ねないよう、線に沿って小さな箱を置く（重なると減点）
         for(var t=6;t<ln-6;t+=7)soft.push({x0:qx+ux*t-2,x1:qx+ux*t+2,y0:qy+uy*t-2,y1:qy+uy*t+2,pen:(cls==='fl')?14:35});
       }
       if(cls==='fl')sF+=g; else sG+=g;
     });
-    sA='<defs>'+['up','dn'].map(function(k){
-      return '<marker id="pb-ah-'+k+'" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4.5" markerHeight="4.5" markerUnits="userSpaceOnUse" orient="auto"><path class="pb-ah '+k+'" d="M0,0 L10,5 L0,10 z"></path></marker>';
-    }).join('')+'</defs>'+sF+sG;
+    sA='<defs>'+sGr+'</defs>'+sF+sG;
   }
   var lay=perpLabelLayout(P,{L:mL,R:mL+pw,T:mT,B:mT+ph,fs:fs,obst:rl,soft:soft});
   // 指示線 → 名前 → 点 → タップ判定 の順に重ねる（点は名前の縁取りに隠れないよう名前より上）
