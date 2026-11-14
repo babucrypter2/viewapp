@@ -3298,7 +3298,7 @@ function perpLgIco(c){
 // マップの見方（説明文はマップの上から消し、注記に1行で）
 function perpMapNoteHtml(){
   if(_perpMapNote===1)return '<div>・マップ：横軸 OI /24h・縦軸 vol /24h（両対数）。破線は vol ÷ OI が一定（1x / 3x / 10x）で、左上ほど回転率が高い。点か名前をタップで数値</div>';
-  if(_perpMapNote===7||_perpMapNote===30)return '<div>・マップ：○ がその前の'+_perpMapNote+'日の平均、● が直近'+_perpMapNote+'日の平均。±'+PERP_CMP_SIG+'% 以上動いた DEX は ● に向かう矢印（緑＝増加・赤＝低下）。名前の色は動きの大きい上位3つ</div>';
+  if(_perpMapNote===7||_perpMapNote===30)return '<div>・マップ：○ がその前の'+_perpMapNote+'日の平均、● が直近'+_perpMapNote+'日の平均。±'+PERP_CMP_SIG+'% 以上動いた DEX は ● に向かう矢印（緑＝増加・赤＝低下）。名前の色は動きの大きい上位5つ</div>';
   return '';
 }
 // 動きの要約（変化の大きい順に3件。「すべて見る」で残りも）。行をタップでマップのその点を選ぶ
@@ -3775,7 +3775,7 @@ function perpLabelLayout(P,o){
         }
       }
       for(var q=0;q<obst.length;q++){ if(ovA(b,obst[q],1)>0)sc+=HARD/2; if(c.seg&&segBox(c.seg,obst[q],0))sc+=50; }
-      for(var q2=0;q2<soft.length;q2++){ if(ovA(b,soft[q2],0)>0)sc+=soft[q2].pen; }
+      for(var q2=0;q2<soft.length;q2++){ if(ovA(b,soft[q2],0)>0)sc+=soft[q2].pen; else if(soft[q2].pen>=1000&&ovA(b,soft[q2],1.5)>0)sc+=150; if(c.seg&&soft[q2].pen>=1000&&segBox(c.seg,soft[q2],0))sc+=300; }
       return sc;
     });
   });
@@ -3918,6 +3918,11 @@ function perpDrawMap(){
       var p=o.p, qx=X(Math.log10(p.op)), qy=Y(Math.log10(p.vp)), dx=o.x-qx, dy=o.y-qy, ln=Math.sqrt(dx*dx+dy*dy);
       var cls=(p.mv&&p.mv.sig)?(p.mv.up?'up':'dn'):'fl'; o.cls=cls;
       o.ang=(ln>0.5)?Math.atan2(dy,dx)*180/Math.PI:null;          // 動いた向き（矢印型の点の向き）
+      if(cls!=='fl'&&o.ang!==null){
+        // 矢印（点の手前 約5〜15px）の上には名前を置かない（ほぼ禁止に近い減点。v43〜）
+        var ax_=Math.cos(o.ang*Math.PI/180), ay_=Math.sin(o.ang*Math.PI/180);
+        [7.5,11,14.5].forEach(function(dd){ var cx_=o.x-ax_*dd, cy_=o.y-ay_*dd; soft.push({x0:cx_-3.4,x1:cx_+3.4,y0:cy_-3.4,y1:cy_+3.4,pen:1200}); });
+      }
       var g='';
       // 点とほぼ同じ位置（動きが点より小さい）なら ○ は描かない（点の縁から少しはみ出して見えるだけなので）。
       // 矢印を付ける DEX で動きが短い（18px 未満）時も描かない（矢印の根元が ○ に重なるため。矢印で前の位置の方向は分かる）
@@ -3932,13 +3937,13 @@ function perpDrawMap(){
           +'<stop offset="0" class="pb-ts '+cls+'" stop-opacity="'+(sig?'.07':'.04')+'"></stop><stop offset="1" class="pb-ts '+cls+'" stop-opacity="'+(sig?'.95':'.5')+'"></stop></linearGradient>';
         g+='<line class="pb-mv '+cls+'" id="pb-mv-'+i+'" style="stroke:url(#pb-tg-'+i+')" x1="'+x1.toFixed(1)+'" y1="'+y1.toFixed(1)+'" x2="'+x2.toFixed(1)+'" y2="'+y2.toFixed(1)+'"></line>';
         // 線の上に名前を重ねないよう、線に沿って小さな箱を置く（重なると減点）
-        for(var t=6;t<ln-6;t+=7)soft.push({x0:qx+ux*t-2,x1:qx+ux*t+2,y0:qy+uy*t-2,y1:qy+uy*t+2,pen:(cls==='fl')?14:35});
+        for(var t=6;t<ln-6;t+=7)soft.push({x0:qx+ux*t-2,x1:qx+ux*t+2,y0:qy+uy*t-2,y1:qy+uy*t+2,pen:(cls==='fl')?20:120});
       }
       if(cls==='fl')sF+=g; else sG+=g;
     });
     sA='<defs>'+sGr+'</defs>'+sF+sG;
-    // 名前を緑／赤にするのは、±25% 以上動いた DEX のうち動きの大きい上位3つだけ（全部色付きだと見分けにくいため。v42〜）
-    P.filter(function(o){ return o.cls!=='fl'&&o.p.mv; }).sort(function(a,b){ return b.p.mv.sc-a.p.mv.sc; }).slice(0,3).forEach(function(o){ o.top=true; });
+    // 名前を緑／赤にするのは、±25% 以上動いた DEX のうち動きの大きい上位5つだけ（全部色付きだと見分けにくいため。v42〜・v43 で3→5）
+    P.filter(function(o){ return o.cls!=='fl'&&o.p.mv; }).sort(function(a,b){ return b.p.mv.sc-a.p.mv.sc; }).slice(0,5).forEach(function(o){ o.top=true; });
   }
   var lay=perpLabelLayout(P,{L:mL,R:mL+pw,T:mT,B:mT+ph,fs:fs,obst:rl,soft:soft});
   // 指示線 → 名前 → 点 → タップ判定 の順に重ねる（点は名前の縁取りに隠れないよう名前より上）
