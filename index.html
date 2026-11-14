@@ -3298,7 +3298,7 @@ function perpLgIco(c){
 // マップの見方（説明文はマップの上から消し、注記に1行で）
 function perpMapNoteHtml(){
   if(_perpMapNote===1)return '<div>・マップ：横軸 OI /24h・縦軸 vol /24h（両対数）。破線は vol ÷ OI が一定（1x / 3x / 10x）で、左上ほど回転率が高い。点か名前をタップで数値</div>';
-  if(_perpMapNote===7||_perpMapNote===30)return '<div>・マップ：○ がその前の'+_perpMapNote+'日の平均、● が直近'+_perpMapNote+'日の平均。±'+PERP_CMP_SIG+'% 以上動いた DEX は ● に向かう矢印（緑＝増加・赤＝低下）。名前の色は動きの大きい上位5つ</div>';
+  if(_perpMapNote===7||_perpMapNote===30)return '<div>・マップ：○ がその前の'+_perpMapNote+'日の平均、● が直近'+_perpMapNote+'日の平均。±'+PERP_CMP_SIG+'% 以上動いた DEX は ● に向かう矢印（緑＝増加・赤＝低下）。名前と点の色は動きの大きい上位5つ</div>';
   return '';
 }
 // 動きの要約（変化の大きい順に3件。「すべて見る」で残りも）。行をタップでマップのその点を選ぶ
@@ -3959,7 +3959,8 @@ function perpDrawMap(){
     if(cw&&o.cls&&o.cls!=='fl'&&o.ang!==null){
       sD+='<path class="pb-ah '+o.cls+'" d="M7.2,0 L-4.4,3.3 L-2.4,0 L-4.4,-3.3 Z" transform="translate('+o.x.toFixed(1)+','+o.y.toFixed(1)+') rotate('+o.ang.toFixed(1)+') translate(-10.4,0)"></path>';
     }
-    sD+='<circle class="pb-dot" id="pb-dot-'+i+'" cx="'+o.x.toFixed(1)+'" cy="'+o.y.toFixed(1)+'" r="4.5"></circle>';
+    // 動きの大きい上位5つは、点の色も名前・矢印と同じ緑／赤に（v44〜）
+    sD+='<circle class="pb-dot'+(o.top?' '+o.cls:'')+'" id="pb-dot-'+i+'" cx="'+o.x.toFixed(1)+'" cy="'+o.y.toFixed(1)+'" r="4.5"></circle>';
     // 名前もタップできるようにする（点のタップ判定は半径13px。重なる所は点を優先）
     sH='<rect class="pb-hit" x="'+(c.b.x0-3).toFixed(1)+'" y="'+(c.b.y0-3).toFixed(1)+'" width="'+(c.b.x1-c.b.x0+6).toFixed(1)+'" height="'+(c.b.y1-c.b.y0+6).toFixed(1)+'" onclick="event.stopPropagation();perpTip('+i+')"></rect>'+sH;
     sH+='<circle class="pb-hit" cx="'+o.x.toFixed(1)+'" cy="'+o.y.toFixed(1)+'" r="13" onclick="event.stopPropagation();perpTip('+i+')">'
