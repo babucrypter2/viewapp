@@ -2119,17 +2119,7 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .sc-i{display:inline-block;margin:-6px -6px -6px 0;padding:6px 6px 6px 4px;font-size:11px;color:var(--t3);font-weight:700;vertical-align:1px;cursor:pointer;-webkit-tap-highlight-color:transparent;}
 /* 更新日時：幅の狭い機種では「（◯時間前）」を省いて切れないようにする */
 @media (max-width:389px){ .upd-rel{display:none;} }
-/* カードの3つの面：塗りをやめて無彩色に。色は上の細い線とアイコンだけ（緑・黄・赤を ○△× の意味だけに使う）。
-   元の色付きの面に戻す時は、ここから「面の色ここまで」までを消す */
-.early-wrap,.q-zone{position:relative;background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.095);}
-.early-wrap::before,.q-zone::before{content:'';position:absolute;left:11px;right:11px;top:-1px;height:2px;border-radius:0 0 2px 2px;background:rgba(var(--zc),.66);pointer-events:none;}
-.q-zone .vce{border-top-color:rgba(255,255,255,.1);}
-.q-zone .vce-hr{background:rgba(255,255,255,.09);}
-[data-theme="light"] .early-wrap,[data-theme="light"] .q-zone{background:rgba(0,0,0,.022);border-color:rgba(0,0,0,.1);}
-[data-theme="light"] .early-wrap::before,[data-theme="light"] .q-zone::before{background:rgba(var(--zc),.85);}
-[data-theme="light"] .q-zone .vce{border-top-color:rgba(0,0,0,.1);}
-[data-theme="light"] .q-zone .vce-hr{background:rgba(0,0,0,.08);}
-/* 面の色ここまで */   /* ライトではアーリー度の帯の下地（白の半透明）が見えていなかった */
+   /* ライトではアーリー度の帯の下地（白の半透明）が見えていなかった */
 @media (max-width:389px){   /* iPhone SE・mini など：面の内側の余白を詰めて、VC の調達数・報酬シェアの欄が切れないようにする */
   .early-wrap,.q-zone{padding-left:5px;padding-right:5px;}
 }
@@ -3341,7 +3331,7 @@ function perpSegHtml(h7,h30){
 function perpStickHtml(){
   var h7=perpCmpHas(7), h30=perpCmpHas(30);
   if((_perpCmp===7&&!h7)||(_perpCmp===30&&!h30))_perpCmp=0;
-  return '<div class="pb-stick"><button type="button" class="pb-x" onclick="event.stopPropagation();perpCloseBar()">✕ 閉じる</button>'+((h7||h30)?perpSegHtml(h7,h30):'')+'</div>';
+  return (h7||h30)?'<div class="pb-stick">'+perpSegHtml(h7,h30)+'</div>':'';   // 追従バーは 今／7日比較／30日比較 だけ。閉じるは見出しのボタンで（v47〜）
 }
 function perpSetCmp(w){
   if(w!==0&&w!==7&&w!==30)return;
@@ -3589,7 +3579,7 @@ function renderPerpBoard(){
     +(upd?'<span class="tl-stat pb-at">'+esc(upd)+'</span>':'')
     +'</span></span>'
     // 開いている間は見出しのボタンの代わりに、すぐ下の「✕ 閉じる」バーが画面上部に追従する（案件カードの詳細と同じ見た目・動き）
-    +(perpFoldOpen?'':'<button class="tl-fold-btn">詳細を開く<span class="dt-arrow">▼</span></button>')
+    +'<button class="tl-fold-btn">'+(perpFoldOpen?'閉じる<span class="dt-arrow">▲</span>':'詳細を開く<span class="dt-arrow">▼</span>')+'</button>'   // 開いている間も同じ場所に「閉じる」を残す（v46〜）
     +'</div>'
     +(perpFoldOpen?perpStickHtml():'')
     +'<div class="pb-body" id="pb-fold-body" style="display:'+(perpFoldOpen?'block':'none')+';">'
