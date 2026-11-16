@@ -2115,8 +2115,6 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .pb-how.on{color:var(--t1);border-color:var(--bb);}
 .pb-howbox{font-size:11.5px;line-height:1.65;color:var(--t2);background:rgba(255,255,255,.04);border:1px solid var(--b);border-radius:9px;padding:8px 11px;margin:0 0 8px;}
 [data-theme="light"] .pb-howbox{background:rgba(0,0,0,.03);}
-/* カード：期待値の ⓘ */
-.sc-i{display:inline-block;margin:-6px -6px -6px 0;padding:6px 6px 6px 4px;font-size:11px;color:var(--t3);font-weight:700;vertical-align:1px;cursor:pointer;-webkit-tap-highlight-color:transparent;}
 /* 更新日時：幅の狭い機種では「（◯時間前）」を省いて切れないようにする */
 @media (max-width:389px){ .upd-rel{display:none;} }
    /* ライトではアーリー度の帯の下地（白の半透明）が見えていなかった */
@@ -2278,15 +2276,6 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 </div>
 
 
-<div class="modal-overlay" id="m-score">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <button class="modal-x" onclick="cm('m-score')" aria-label="閉じる">✕</button>
-    <div class="modal-title">期待値の出し方</div>
-    <div id="m-score-body" class="info-body" style="max-height:70vh;overflow-y:auto;-webkit-overflow-scrolling:touch;"></div>
-    <div class="mfooter"><button class="btn-c" onclick="cm('m-score')">閉じる</button></div>
-  </div>
-</div>
 <div class="modal-overlay" id="m-vc">
   <div class="modal">
     <div class="modal-handle"></div>
@@ -3600,16 +3589,6 @@ function perpCloseBar(){
     if(top<0)cont.scrollTop=Math.max(0,cont.scrollTop+top-4);
   }
   if(perpFoldOpen)togglePerpFold();
-}
-// カードの「期待値 ⓘ」：情報タブの「期待値スコアの出し方」と同じ本文を出す（v45〜）
-function scoreInfoOpen(){
-  var src=document.getElementById('info-score'), body=document.getElementById('m-score-body'), ov=document.getElementById('m-score');
-  if(!body||!ov)return;
-  if(src&&!src.innerHTML.trim()&&typeof renderInfoTab==='function'){ try{ renderInfoTab(); }catch(e){} }   // 書込アプリ：情報タブをまだ開いていない時
-  var h=src?src.innerHTML:'';
-  body.innerHTML=(h&&h.replace(/<[^>]*>/g,'').trim())?h:'<p class="info-p">期待値は、このアプリ独自の点数（100点満点）です。くわしい出し方は「情報」タブにあります。</p>';
-  body.scrollTop=0;
-  ov.classList.add('open');
 }
 function perpEditBtn(editable){ return editable?'<button class="ez-btn pb-edit" onclick="event.stopPropagation();perpEditOpen()">編集</button>':''; }
 function perpCell(cls,v,cap,txt,bold,sub){
@@ -6505,7 +6484,7 @@ function renderList(id,mode){
       +(burn_>0?'<div class="pj-meta3"><span class="pj-lbl-row">コスト：</span> <span class="pj-dv pj-burn">'+fmtU(burn_)+'</span></div>':'')
       +(p.tge&&!p.earlyStart?'<div class="pj-meta3"><span class="pj-lbl-row">TGE予定：</span> <span class="pj-dv">'+tgeSym(p.tge)+'</span></div>':'')
       +'</div>'
-      +'<div class="sc-wrap"><div class="sc-lbl">期待値<span class="sc-i" role="button" aria-label="期待値の出し方" onclick="event.stopPropagation();scoreInfoOpen()">ⓘ</span></div><div class="sc-val '+scCls(s)+' '+(String(s).length>=5?'sc-sm':'')+'">'+s+'<span class="sc-max">/'+scoreMax()+'</span></div>'
+      +'<div class="sc-wrap"><div class="sc-lbl">期待値</div><div class="sc-val '+scCls(s)+' '+(String(s).length>=5?'sc-sm':'')+'">'+s+'<span class="sc-max">/'+scoreMax()+'</span></div>'
         +'<div class="sc-conf">算出確度'+msym(scoreConfidence(p,bd))+'</div></div>'
       +'</div>'
       +resultStripHtml(p)
@@ -7637,6 +7616,49 @@ return initData(_hadCache);
   }catch(e){}
 });
 
+</script>
+<script>
+// ─── 触感（ハプティクス。v48〜）───
+// iPhone の Safari／ホーム画面のアプリには振動の機能（navigator.vibrate）が無いため、
+// 画面外に置いた iOS のスイッチ（input type=checkbox switch）を切り替えて、iOS 標準の「カチッ」を鳴らす（iOS 18 以降）。
+// Android は navigator.vibrate。どちらも無い端末では何もしない。
+// 付けるのは「切り替え・開閉・保存」など操作の区切りだけ（スクロール・リンク・点のタップなどには付けない）
+(function(){
+  var lbl=null, last=0;
+  var isIOS=/iP(hone|ad|od)/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+  function iosTick(){
+    if(!lbl){
+      try{
+        var i=document.createElement('input'); i.type='checkbox'; i.setAttribute('switch',''); i.id='hp-sw'; i.tabIndex=-1;
+        lbl=document.createElement('label'); lbl.htmlFor='hp-sw'; lbl.setAttribute('aria-hidden','true');
+        lbl.style.cssText='position:fixed;left:-9999px;top:0;width:1px;height:1px;opacity:0;pointer-events:none;';
+        lbl.appendChild(i);
+        lbl.addEventListener('click',function(e){ e.stopPropagation(); });   // ほかの処理に、この見えないクリックを届けない
+        document.body.appendChild(lbl);
+      }catch(e){ lbl=null; return; }
+    }
+    lbl.click();
+  }
+  // k：'tap'＝軽い（切り替え・開閉）、'ok'＝保存など完了
+  window.haptic=function(k){
+    var t=Date.now(); if(t-last<60)return; last=t;
+    try{
+      if(isIOS){ iosTick(); return; }
+      if(navigator.vibrate)navigator.vibrate(k==='ok'?[12,60,18]:10);
+    }catch(e){}
+  };
+  // 付ける場所（ここに無いものには付けない）
+  var TAP=['.nav-item:not(.active)','.bni:not(.active)','.pb-seg button:not(.on):not(:disabled)','.uview-toggle','.sort-dir-btn',
+           '.detail-toggle','.tl-fold-btn','.fold-close','.pb-sm-row','.pb-row.pb-tap','.pb-how','.pb-sm-all','.modal-x','.btn-c'].join(',');
+  var OK=['.btn-s','.btn-result-add','.btn-end','.btn-dep','.btn-wd'].join(',');
+  document.addEventListener('click',function(e){
+    var t=e.target; if(!t||!t.closest||!e.isTrusted)return;
+    if(t.closest(OK))haptic('ok'); else if(t.closest(TAP))haptic('tap');
+  },true);
+  document.addEventListener('change',function(e){
+    var t=e.target; if(t&&e.isTrusted&&t.matches&&t.matches('select.sort-sel'))haptic('tap');
+  },true);
+})();
 </script>
 </body>
 </html>
