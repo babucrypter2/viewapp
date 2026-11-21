@@ -1534,6 +1534,8 @@ body{background:var(--bg);color:var(--t1);font-variant-numeric:tabular-nums;}
 .achv-lbl-hi{font-size:15px;color:var(--t1);font-weight:700;flex-shrink:0;}
 .achv-amt{font-size:15px;font-weight:600;color:var(--t1);flex-shrink:0;}
 .achv-sub{color:var(--t3);flex-shrink:0;}
+.achv-usd{font-size:12px;font-weight:600;color:var(--t2);font-variant-numeric:tabular-nums;}
+.achv-tot-note{font-size:10.5px;color:var(--t3);line-height:1.55;margin:8px 2px 2px;}
 .achv-toggle{width:100%;margin-top:10px;padding:10px;border:none;cursor:pointer;background:rgba(255,255,255,.09);border:1.5px solid rgba(255,255,255,.28);border-radius:9px;color:#fff;font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:6px;transition:background .15s;}
 .achv-toggle:active{background:var(--b);}
 .achv-toggle .dt-arrow{font-size:var(--fs-xs);transition:transform .2s;}
@@ -2420,12 +2422,17 @@ function achvRankItems(){
     if(p.endDate&&Array.isArray(p.results)&&p.results.length){
       var su=0,sj=0;
       p.results.forEach(function(r){su+=num(r.usd);sj+=num(r.jpy);});
-      su-=burnAmt(p); // 受け取り額から削り額（$）を差し引いた純益
-      if(su!==0||sj!==0)items.push({name:p.name||'（無題）',usd:su,jpy:sj,pid:p.id});
+      var gu=su, bu=burnAmt(p);
+      su-=bu; // 受け取り額から削り額（$）を差し引いた純益
+      // 合計用の純額（v49〜）：円は受け取り時の円額から削り額を引く（その案件の円/ドルの比で換算）。片方しか無い時は ACHV_FX で換算
+      var rt=(gu>0&&sj>0)?sj/gu:ACHV_FX;
+      var nu=(gu!==0?gu:sj/ACHV_FX)-bu, nj=(sj!==0?sj:gu*ACHV_FX)-bu*rt;
+      if(su!==0||sj!==0)items.push({name:p.name||'（無題）',usd:su,jpy:sj,pid:p.id,nu:nu,nj:nj});
     }
   });
   (Array.isArray(ACHV.extra)?ACHV.extra:[]).forEach(function(e){
-    if(num(e.jpy)!==0||num(e.usd)!==0)items.push({name:e.name||'（手動追加）',usd:num(e.usd),jpy:num(e.jpy)});
+    var eu=num(e.usd), ej=num(e.jpy);
+    if(ej!==0||eu!==0)items.push({name:e.name||'（手動追加）',usd:eu,jpy:ej,nu:(eu!==0?eu:ej/ACHV_FX),nj:(ej!==0?ej:eu*ACHV_FX)});
   });
   items.forEach(function(it){it._eq=it.jpy+it.usd*ACHV_FX;});
   items.sort(function(a,b){return b._eq-a._eq;});
@@ -4112,6 +4119,18 @@ function jumpToProjectAny(pid){
   },60);
 }
 
+// エアドロ実績の合計（v49〜）。各行の純額を足す。円は「万円」表記
+function achvTotals(items){
+  var t={jpy:0,usd:0};
+  (items||[]).forEach(function(it){ t.jpy+=num(it.nj); t.usd+=num(it.nu); });
+  return t;
+}
+function fmtManYen(v){
+  var a=Math.abs(v), sg=v<0?'−':'+';
+  if(a>=1e8)return sg+(Math.round(a/1e6)/100).toLocaleString('en-US')+'億円';
+  if(a>=1e4)return sg+(Math.round(a/1e3)/10).toLocaleString('en-US')+'万円';
+  return sg+Math.round(a).toLocaleString('en-US')+'円';
+}
 function achvDurTxt(){
   if(!ACHV.startDate)return '';
   var d0=new Date(ACHV.startDate+'T00:00:00');
@@ -4130,12 +4149,14 @@ function renderAchv(){
   if(!el)return;
   var rankItems=achvRankItems();
   if(!ACHV.amount&&!rankItems.length){el.style.display='none';return;}
-  var amt=ACHV.amount;
+  var tot=rankItems.length?achvTotals(rankItems):null;
+  var amt=ACHV.amount;   // 手入力の実績額は、エアドロ結果が1件も無い時だけ使う（v49〜は自動で合計）
   var dur=achvDurTxt();
   var today=new Date();
   var todayTxt=today.getFullYear()+'/'+(today.getMonth()+1)+'/'+today.getDate();
-  var summaryHtml=amt?(
-      '<span class="achv-amt">'+esc(amt)+'</span>'
+  var summaryHtml=(tot||amt)?(
+      (tot?'<span class="achv-amt">'+esc(fmtManYen(tot.jpy))+'</span><span class="achv-sub achv-usd">'+(tot.usd<0?'−':'')+'$'+Math.round(Math.abs(tot.usd)).toLocaleString('en-US')+'</span>'
+          :'<span class="achv-amt">'+esc(amt)+'</span>')
       +'<span class="early-sep"></span>'
       +(dur?'<span class="achv-sub">歴'+esc(dur)+'</span>':'')
       +'<span class="achv-sub">'+todayTxt+'時点</span>'
@@ -4175,7 +4196,7 @@ function renderAchv(){
     :'';
   el.innerHTML='<div class="set-card-title fa-title-row"'+(rankItems.length?' style="cursor:pointer;" onclick="toggleAchvFold()"':'')+'><span class="dh-i2">🪂 エアドロ実績</span><span class="fa-title-right">'+winRateHtml+foldBtnHtml+'</span></div>'
     +'<div class="achv-line">'+summaryHtml+'</div>'
-    +'<div class="achv-rank-list" id="achv-rank-list" style="display:'+(achvFoldOpen?'block':'none')+';margin-top:8px;">'+rankHtml+pagerHtml+'<button class="fold-close" onclick="event.stopPropagation();toggleAchvFold()">閉じる<span class="dt-arrow">▲</span></button></div>';
+    +'<div class="achv-rank-list" id="achv-rank-list" style="display:'+(achvFoldOpen?'block':'none')+';margin-top:8px;">'+rankHtml+pagerHtml+(tot?'<div class="achv-tot-note">合計は削り額を差し引いた純額（'+rankItems.length+'件）。円は受け取り時の円額の合計で、円の記録が無い分は $1＝¥'+ACHV_FX+' で換算</div>':'')+'<button class="fold-close" onclick="event.stopPropagation();toggleAchvFold()">閉じる<span class="dt-arrow">▲</span></button></div>';
   el.style.display='block';
 }
 function toggleAchvFold(){
